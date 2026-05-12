@@ -1,0 +1,1625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Prime — Study Smarter, Not Harder</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green:   #004d2e;
+      --green-light: #006b3f;
+      --green-mid: #005c36;
+      --gold:    #F5A800;
+      --gold-hover: #e09600;
+      --white:   #ffffff;
+      --off-white: #f8faf9;
+      --glass-bg: rgba(255,255,255,0.06);
+      --glass-border: rgba(255,255,255,0.12);
+      --text-muted: rgba(255,255,255,0.65);
+      --text-dim: rgba(255,255,255,0.4);
+    }
+
+    html { scroll-behavior: smooth; font-size: 16px; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--green);
+      color: var(--white);
+      overflow-x: hidden;
+    }
+
+    /* ── NOISE TEXTURE OVERLAY ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.35;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 2.5rem;
+      background: rgba(0,77,46,0.7);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--glass-border);
+      transition: background 0.3s;
+    }
+
+    nav.scrolled { background: rgba(0,40,24,0.92); }
+
+    .nav-logo {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--white);
+      letter-spacing: -0.03em;
+    }
+    .nav-logo span { color: var(--gold); }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      list-style: none;
+    }
+    .nav-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--white); }
+
+    .nav-cta {
+      background: var(--gold);
+      color: #1a0a00;
+      border: none;
+      padding: 0.55rem 1.4rem;
+      border-radius: 100px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+      text-decoration: none;
+    }
+    .nav-cta:hover { background: var(--gold-hover); transform: translateY(-1px); }
+
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      cursor: pointer;
+      padding: 4px;
+    }
+    .hamburger span {
+      display: block;
+      width: 24px; height: 2px;
+      background: var(--white);
+      border-radius: 2px;
+      transition: all 0.3s;
+    }
+
+    /* ── SECTIONS ── */
+    section { position: relative; z-index: 1; }
+
+    .container {
+      max-width: 1140px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+
+    /* ── HERO ── */
+    #hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      padding-top: 5rem;
+      overflow: hidden;
+    }
+
+    .hero-bg {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 50% 0%, rgba(245,168,0,0.13) 0%, transparent 70%),
+        radial-gradient(ellipse 60% 80% at 80% 50%, rgba(0,107,63,0.4) 0%, transparent 70%),
+        radial-gradient(ellipse 50% 60% at 10% 80%, rgba(245,168,0,0.07) 0%, transparent 60%);
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: center;
+      padding: 5rem 0 6rem;
+    }
+
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(245,168,0,0.12);
+      border: 1px solid rgba(245,168,0,0.3);
+      border-radius: 100px;
+      padding: 0.35rem 1rem;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--gold);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 1.5rem;
+    }
+    .hero-eyebrow::before { content: '✦'; font-size: 0.65rem; }
+
+    .hero-headline {
+      font-size: clamp(2.4rem, 5vw, 3.8rem);
+      font-weight: 900;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      margin-bottom: 1.25rem;
+    }
+    .hero-headline .gold { color: var(--gold); }
+
+    .hero-sub {
+      font-size: 1.1rem;
+      line-height: 1.7;
+      color: var(--text-muted);
+      max-width: 480px;
+      margin-bottom: 2.5rem;
+    }
+
+    .hero-cta-group {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+    }
+
+    .btn-gold {
+      background: var(--gold);
+      color: #1a0a00;
+      border: none;
+      padding: 0.85rem 2rem;
+      border-radius: 100px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+      display: inline-block;
+      box-shadow: 0 8px 32px rgba(245,168,0,0.3);
+    }
+    .btn-gold:hover { background: var(--gold-hover); transform: translateY(-2px); box-shadow: 0 12px 40px rgba(245,168,0,0.4); }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--white);
+      border: 1.5px solid var(--glass-border);
+      padding: 0.85rem 2rem;
+      border-radius: 100px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+      display: inline-block;
+      backdrop-filter: blur(8px);
+    }
+    .btn-outline:hover { border-color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.06); }
+
+    .hero-anxiety {
+      font-size: 0.82rem;
+      color: var(--text-dim);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .hero-anxiety::before { content: '🔒'; font-size: 0.75rem; }
+
+    /* Hero visual mockup */
+    .hero-visual {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .mockup-phone {
+      width: 280px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid var(--glass-border);
+      border-radius: 32px;
+      padding: 1.5rem;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      box-shadow: 0 32px 80px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1);
+      position: relative;
+      z-index: 2;
+    }
+
+    .mockup-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.25rem;
+    }
+    .mockup-logo { font-size: 0.85rem; font-weight: 800; color: var(--gold); }
+    .mockup-avatar {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--gold), #e08000);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.65rem; font-weight: 700; color: #1a0a00;
+    }
+
+    .mockup-chat {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .chat-bubble {
+      padding: 0.65rem 0.9rem;
+      border-radius: 14px;
+      font-size: 0.78rem;
+      line-height: 1.5;
+      max-width: 85%;
+    }
+    .chat-bubble.ai {
+      background: rgba(245,168,0,0.15);
+      border: 1px solid rgba(245,168,0,0.2);
+      color: var(--white);
+      align-self: flex-start;
+      border-bottom-left-radius: 4px;
+    }
+    .chat-bubble.user {
+      background: rgba(255,255,255,0.1);
+      color: var(--white);
+      align-self: flex-end;
+      border-bottom-right-radius: 4px;
+    }
+    .chat-bubble .ai-label {
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: var(--gold);
+      display: block;
+      margin-bottom: 0.25rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .mockup-input {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      padding: 0.6rem 0.9rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .mockup-input span { font-size: 0.72rem; color: var(--text-dim); }
+    .mockup-send {
+      width: 24px; height: 24px;
+      background: var(--gold);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.7rem;
+    }
+
+    .mockup-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+    .stat-mini {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--glass-border);
+      border-radius: 10px;
+      padding: 0.6rem 0.75rem;
+    }
+    .stat-mini .label { font-size: 0.62rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.04em; }
+    .stat-mini .value { font-size: 1rem; font-weight: 800; color: var(--white); }
+    .stat-mini .value.gold { color: var(--gold); }
+
+    .float-card {
+      position: absolute;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid var(--glass-border);
+      border-radius: 14px;
+      padding: 0.75rem 1rem;
+      backdrop-filter: blur(16px);
+      font-size: 0.8rem;
+      white-space: nowrap;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    }
+    .float-card.top-left { top: -20px; left: -50px; }
+    .float-card.bottom-right { bottom: 10px; right: -55px; }
+    .float-card .badge { display: flex; align-items: center; gap: 0.5rem; }
+    .float-card .dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 6px #22c55e; }
+
+    /* ── SOCIAL PROOF ── */
+    #social-proof {
+      padding: 2.5rem 0;
+      border-top: 1px solid var(--glass-border);
+      border-bottom: 1px solid var(--glass-border);
+      background: rgba(0,0,0,0.15);
+    }
+
+    .stat-badges {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .stat-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 100px;
+      padding: 0.85rem 1.75rem;
+      backdrop-filter: blur(12px);
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    .stat-badge:hover { transform: translateY(-2px); border-color: rgba(245,168,0,0.3); }
+
+    .stat-badge .icon {
+      font-size: 1.3rem;
+      width: 36px; height: 36px;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(245,168,0,0.1);
+      border-radius: 50%;
+    }
+    .stat-badge .text .num {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: var(--gold);
+      display: block;
+      line-height: 1.1;
+    }
+    .stat-badge .text .desc {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      display: block;
+    }
+
+    .divider-dot {
+      width: 4px; height: 4px;
+      border-radius: 50%;
+      background: var(--glass-border);
+    }
+
+    /* ── SECTION HEADERS ── */
+    .section-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 0.75rem;
+    }
+
+    .section-title {
+      font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      line-height: 1.15;
+      margin-bottom: 1rem;
+    }
+
+    .section-sub {
+      font-size: 1.05rem;
+      color: var(--text-muted);
+      line-height: 1.7;
+      max-width: 560px;
+    }
+
+    /* ── PROBLEM ── */
+    #problem {
+      padding: 7rem 0;
+    }
+
+    .problem-header { text-align: center; margin-bottom: 4rem; }
+    .problem-header .section-sub { margin: 0 auto; }
+
+    .pain-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+    }
+
+    .pain-card {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      padding: 2rem;
+      backdrop-filter: blur(12px);
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.3s, border-color 0.3s;
+    }
+    .pain-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, rgba(245,168,0,0.4), transparent);
+    }
+    .pain-card:hover { transform: translateY(-4px); border-color: rgba(245,168,0,0.25); }
+
+    .pain-icon {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      display: block;
+    }
+    .pain-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 0.6rem;
+    }
+    .pain-desc {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      line-height: 1.65;
+    }
+
+    /* ── SOLUTION ── */
+    #solution {
+      padding: 7rem 0;
+      background: rgba(0,0,0,0.12);
+    }
+
+    .solution-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5rem;
+      align-items: center;
+    }
+
+    .solution-list {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+      margin-top: 2.5rem;
+    }
+
+    .solution-item {
+      display: flex;
+      gap: 1.25rem;
+      align-items: flex-start;
+    }
+
+    .solution-icon-wrap {
+      width: 48px; height: 48px;
+      border-radius: 14px;
+      background: rgba(245,168,0,0.1);
+      border: 1px solid rgba(245,168,0,0.2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem;
+      flex-shrink: 0;
+    }
+
+    .solution-text h4 { font-size: 1rem; font-weight: 700; margin-bottom: 0.35rem; }
+    .solution-text p { font-size: 0.88rem; color: var(--text-muted); line-height: 1.65; }
+
+    .solution-visual {
+      position: relative;
+    }
+
+    .dashboard-card {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      padding: 1.75rem;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 24px 64px rgba(0,0,0,0.35);
+    }
+
+    .dash-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+    }
+    .dash-title { font-size: 0.85rem; font-weight: 700; }
+    .dash-badge {
+      background: rgba(34,197,94,0.15);
+      border: 1px solid rgba(34,197,94,0.25);
+      color: #22c55e;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 0.25rem 0.75rem;
+      border-radius: 100px;
+    }
+
+    .progress-items {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .progress-row { display: flex; flex-direction: column; gap: 0.35rem; }
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.78rem;
+    }
+    .progress-label span:last-child { color: var(--gold); font-weight: 600; }
+    .progress-bar {
+      height: 6px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 100px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      border-radius: 100px;
+      background: linear-gradient(90deg, var(--gold), #ffcc44);
+      transition: width 1.5s ease;
+    }
+
+    .streak-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 1.5rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid var(--glass-border);
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+    .streak-fire { font-size: 1.1rem; }
+    .streak-num { font-size: 1.1rem; font-weight: 800; color: var(--gold); }
+
+    /* ── FEATURES ── */
+    #features {
+      padding: 7rem 0;
+    }
+
+    .features-header { text-align: center; margin-bottom: 4rem; }
+    .features-header .section-sub { margin: 0 auto; }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+    }
+
+    .feature-card {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 22px;
+      padding: 2.25rem;
+      backdrop-filter: blur(12px);
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+    .feature-card::after {
+      content: '';
+      position: absolute;
+      bottom: 0; right: 0;
+      width: 100px; height: 100px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(245,168,0,0.07) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .feature-card:hover { transform: translateY(-4px); border-color: rgba(245,168,0,0.3); box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+    .feature-card.large { grid-column: span 2; display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: center; }
+
+    .feature-emoji {
+      font-size: 2.5rem;
+      margin-bottom: 1.25rem;
+      display: block;
+    }
+    .feature-name {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+    .feature-desc {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      line-height: 1.65;
+      margin-bottom: 1.25rem;
+    }
+
+    .feature-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .pill {
+      background: rgba(245,168,0,0.1);
+      border: 1px solid rgba(245,168,0,0.2);
+      color: var(--gold);
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 0.3rem 0.75rem;
+      border-radius: 100px;
+    }
+
+    .feature-visual {
+      background: rgba(0,0,0,0.2);
+      border: 1px solid var(--glass-border);
+      border-radius: 14px;
+      padding: 1.25rem;
+      font-size: 0.8rem;
+    }
+
+    .timer-display {
+      text-align: center;
+      padding: 1rem 0;
+    }
+    .timer-num {
+      font-size: 2.5rem;
+      font-weight: 900;
+      color: var(--gold);
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.02em;
+    }
+    .timer-label { font-size: 0.72rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em; }
+
+    .timer-segments {
+      display: flex;
+      justify-content: center;
+      gap: 0.4rem;
+      margin-top: 0.75rem;
+    }
+    .seg {
+      width: 28px; height: 6px;
+      border-radius: 100px;
+      background: rgba(255,255,255,0.1);
+    }
+    .seg.active { background: var(--gold); }
+
+    /* ── PRICING ── */
+    #pricing {
+      padding: 7rem 0;
+      background: rgba(0,0,0,0.12);
+    }
+
+    .pricing-header { text-align: center; margin-bottom: 4rem; }
+    .pricing-header .section-sub { margin: 0 auto; }
+
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+      align-items: start;
+    }
+
+    .pricing-card {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      padding: 2.25rem;
+      backdrop-filter: blur(12px);
+      position: relative;
+      transition: transform 0.3s;
+    }
+    .pricing-card:hover { transform: translateY(-4px); }
+    .pricing-card.featured {
+      background: linear-gradient(160deg, rgba(245,168,0,0.12), rgba(0,77,46,0.5));
+      border-color: rgba(245,168,0,0.4);
+      box-shadow: 0 24px 64px rgba(245,168,0,0.15);
+    }
+
+    .popular-badge {
+      position: absolute;
+      top: -14px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--gold);
+      color: #1a0a00;
+      font-size: 0.7rem;
+      font-weight: 800;
+      padding: 0.3rem 1rem;
+      border-radius: 100px;
+      white-space: nowrap;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .plan-name {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+    }
+    .plan-price {
+      font-size: 2.8rem;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      line-height: 1;
+      margin-bottom: 0.25rem;
+    }
+    .plan-price sup {
+      font-size: 1.2rem;
+      font-weight: 700;
+      vertical-align: super;
+      line-height: 0;
+    }
+    .plan-price .period { font-size: 0.9rem; font-weight: 400; color: var(--text-muted); }
+    .plan-desc {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 1.75rem;
+      padding-bottom: 1.75rem;
+      border-bottom: 1px solid var(--glass-border);
+    }
+
+    .plan-features {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+      margin-bottom: 2rem;
+    }
+    .plan-features li {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.65rem;
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    .plan-features li::before {
+      content: '✓';
+      color: var(--gold);
+      font-weight: 700;
+      flex-shrink: 0;
+      margin-top: 0.05rem;
+    }
+    .plan-features li.disabled {
+      opacity: 0.35;
+      text-decoration: line-through;
+    }
+    .plan-features li.disabled::before { content: '–'; color: var(--text-dim); }
+
+    .btn-plan {
+      display: block;
+      width: 100%;
+      text-align: center;
+      padding: 0.85rem;
+      border-radius: 100px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      border: 1.5px solid transparent;
+      transition: all 0.2s;
+      text-decoration: none;
+    }
+    .btn-plan.ghost {
+      border-color: var(--glass-border);
+      color: var(--white);
+      background: transparent;
+    }
+    .btn-plan.ghost:hover { border-color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.06); }
+    .btn-plan.primary {
+      background: var(--gold);
+      color: #1a0a00;
+      box-shadow: 0 8px 24px rgba(245,168,0,0.3);
+    }
+    .btn-plan.primary:hover { background: var(--gold-hover); transform: translateY(-1px); }
+
+    /* ── FAQ ── */
+    #faq {
+      padding: 7rem 0;
+    }
+
+    .faq-header { text-align: center; margin-bottom: 4rem; }
+
+    .faq-list {
+      max-width: 720px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .faq-item {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+    .faq-item.open { border-color: rgba(245,168,0,0.3); }
+
+    .faq-q {
+      width: 100%;
+      background: none;
+      border: none;
+      color: var(--white);
+      font-family: 'Inter', sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      text-align: left;
+      padding: 1.25rem 1.5rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    .faq-q:hover { color: var(--gold); }
+
+    .faq-icon {
+      width: 24px; height: 24px;
+      border-radius: 50%;
+      background: rgba(245,168,0,0.1);
+      border: 1px solid rgba(245,168,0,0.2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.85rem;
+      flex-shrink: 0;
+      color: var(--gold);
+      transition: transform 0.3s, background 0.2s;
+    }
+    .faq-item.open .faq-icon { transform: rotate(45deg); background: rgba(245,168,0,0.2); }
+
+    .faq-a {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease, padding 0.3s;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      line-height: 1.7;
+      padding: 0 1.5rem;
+    }
+    .faq-a.open { max-height: 300px; padding: 0 1.5rem 1.25rem; }
+
+    /* ── FINAL CTA ── */
+    #final-cta {
+      padding: 8rem 0;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #final-cta::before {
+      content: '';
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 700px; height: 700px;
+      background: radial-gradient(circle, rgba(245,168,0,0.1) 0%, transparent 65%);
+      pointer-events: none;
+    }
+
+    .cta-box {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(245,168,0,0.2);
+      border-radius: 32px;
+      padding: 5rem 3rem;
+      backdrop-filter: blur(20px);
+      max-width: 700px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    .cta-box .section-title { margin-bottom: 1rem; }
+    .cta-box .section-sub { margin: 0 auto 2.5rem; color: var(--text-muted); }
+
+    .cta-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .cta-note {
+      margin-top: 1.25rem;
+      font-size: 0.8rem;
+      color: var(--text-dim);
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--glass-border);
+      padding: 3rem 0;
+      background: rgba(0,0,0,0.2);
+    }
+
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 3rem;
+      margin-bottom: 3rem;
+    }
+
+    .footer-brand .logo { font-size: 1.3rem; font-weight: 800; color: var(--white); }
+    .footer-brand .logo span { color: var(--gold); }
+    .footer-brand p { font-size: 0.85rem; color: var(--text-muted); line-height: 1.65; margin-top: 0.75rem; max-width: 240px; }
+
+    .footer-col h5 { font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-dim); margin-bottom: 1rem; }
+    .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 0.6rem; }
+    .footer-col a { color: var(--text-muted); text-decoration: none; font-size: 0.88rem; transition: color 0.2s; }
+    .footer-col a:hover { color: var(--white); }
+
+    .footer-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 2rem;
+      border-top: 1px solid var(--glass-border);
+      font-size: 0.82rem;
+      color: var(--text-dim);
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    /* ── ANIMATIONS ── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity 0.65s ease, transform 0.65s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .reveal-delay-1 { transition-delay: 0.1s; }
+    .reveal-delay-2 { transition-delay: 0.2s; }
+    .reveal-delay-3 { transition-delay: 0.3s; }
+    .reveal-delay-4 { transition-delay: 0.4s; }
+
+    .float-anim {
+      animation: floatY 4s ease-in-out infinite;
+    }
+    .float-anim-slow {
+      animation: floatY 6s ease-in-out infinite reverse;
+    }
+    @keyframes floatY {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    /* ── MOBILE ── */
+    @media (max-width: 900px) {
+      .nav-links { display: none; }
+      .nav-cta-desktop { display: none; }
+      .hamburger { display: flex; }
+
+      .hero-grid { grid-template-columns: 1fr; text-align: center; gap: 3rem; padding: 4rem 0 5rem; }
+      .hero-sub { margin: 0 auto 2.5rem; }
+      .hero-cta-group { justify-content: center; }
+      .hero-anxiety { justify-content: center; }
+      .hero-visual { display: none; }
+
+      .pain-grid { grid-template-columns: 1fr; }
+      .solution-grid { grid-template-columns: 1fr; gap: 3rem; }
+      .features-grid { grid-template-columns: 1fr; }
+      .feature-card.large { grid-column: span 1; grid-template-columns: 1fr; }
+      .pricing-grid { grid-template-columns: 1fr; max-width: 400px; margin: 0 auto; }
+      .footer-grid { grid-template-columns: 1fr 1fr; gap: 2rem; }
+
+      .float-card { display: none; }
+
+      .stat-badges { gap: 0.75rem; }
+      .stat-badge { padding: 0.7rem 1.25rem; }
+    }
+
+    @media (max-width: 600px) {
+      nav { padding: 1rem 1.25rem; }
+      .footer-grid { grid-template-columns: 1fr; }
+      .cta-box { padding: 3.5rem 1.5rem; }
+      .footer-bottom { flex-direction: column; text-align: center; }
+    }
+
+    /* Mobile nav open */
+    .mobile-nav {
+      display: none;
+      position: fixed;
+      top: 64px; left: 0; right: 0;
+      background: rgba(0,30,18,0.97);
+      backdrop-filter: blur(20px);
+      padding: 2rem 1.5rem;
+      border-bottom: 1px solid var(--glass-border);
+      z-index: 99;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+    .mobile-nav.open { display: flex; }
+    .mobile-nav a {
+      color: var(--white);
+      text-decoration: none;
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+    .mobile-nav .nav-cta { align-self: flex-start; }
+  </style>
+</head>
+<body>
+
+<!-- ── NAV ── -->
+<nav id="navbar">
+  <div class="nav-logo">Prime<span>.</span></div>
+  <ul class="nav-links">
+    <li><a href="#features">Features</a></li>
+    <li><a href="#pricing">Pricing</a></li>
+    <li><a href="#faq">FAQ</a></li>
+  </ul>
+  <a href="#final-cta" class="nav-cta nav-cta-desktop">Get Started Free</a>
+  <div class="hamburger" id="hamburger" onclick="toggleMenu()">
+    <span></span><span></span><span></span>
+  </div>
+</nav>
+
+<div class="mobile-nav" id="mobileNav">
+  <a href="#features" onclick="toggleMenu()">Features</a>
+  <a href="#pricing" onclick="toggleMenu()">Pricing</a>
+  <a href="#faq" onclick="toggleMenu()">FAQ</a>
+  <a href="#final-cta" class="nav-cta" onclick="toggleMenu()">Get Started Free</a>
+</div>
+
+<!-- ── 1. HERO ── -->
+<section id="hero">
+  <div class="hero-bg"></div>
+  <div class="container">
+    <div class="hero-grid">
+
+      <div class="hero-left">
+        <div class="hero-eyebrow reveal">AI-Powered Study App</div>
+        <h1 class="hero-headline reveal reveal-delay-1">
+          Study Smarter,<br><span class="gold">Not Harder.</span>
+        </h1>
+        <p class="hero-sub reveal reveal-delay-2">
+          Prime gives every student an AI tutor, report writer, and study coach — all in one app.
+        </p>
+        <div class="hero-cta-group reveal reveal-delay-3">
+          <a href="#final-cta" class="btn-gold">Start for Free →</a>
+          <a href="#features" class="btn-outline">See how it works</a>
+        </div>
+        <p class="hero-anxiety reveal reveal-delay-4">No credit card required. Free forever plan available.</p>
+      </div>
+
+      <div class="hero-visual float-anim">
+        <div class="float-card top-left float-anim-slow">
+          <div class="badge">
+            <span class="dot"></span>
+            <span style="font-size:0.78rem; font-weight:600;">StudyPal is ready</span>
+          </div>
+        </div>
+
+        <div class="mockup-phone">
+          <div class="mockup-topbar">
+            <span class="mockup-logo">Prime.</span>
+            <div class="mockup-avatar">AI</div>
+          </div>
+          <div class="mockup-chat">
+            <div class="chat-bubble ai">
+              <span class="ai-label">StudyPal</span>
+              Hey! What are we studying today? 📚
+            </div>
+            <div class="chat-bubble user">Help me understand photosynthesis</div>
+            <div class="chat-bubble ai">
+              <span class="ai-label">StudyPal</span>
+              Sure! Photosynthesis is how plants convert sunlight into energy using CO₂ and water...
+            </div>
+          </div>
+          <div class="mockup-input">
+            <span>Ask anything...</span>
+            <div class="mockup-send">→</div>
+          </div>
+          <div class="mockup-stats">
+            <div class="stat-mini">
+              <div class="label">Streak</div>
+              <div class="value gold">🔥 7d</div>
+            </div>
+            <div class="stat-mini">
+              <div class="label">Sessions</div>
+              <div class="value">42</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="float-card bottom-right">
+          <div style="font-size:0.7rem; color:var(--text-dim); margin-bottom:0.25rem;">REPORT GENERATED</div>
+          <div style="font-size:0.82rem; font-weight:600;">Biology Essay ✓</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── 2. SOCIAL PROOF ── -->
+<section id="social-proof">
+  <div class="container">
+    <div class="stat-badges">
+      <div class="stat-badge reveal">
+        <div class="icon">🎓</div>
+        <div class="text">
+          <span class="num">500+</span>
+          <span class="desc">Students Using Prime</span>
+        </div>
+      </div>
+      <div class="divider-dot"></div>
+      <div class="stat-badge reveal reveal-delay-1">
+        <div class="icon">🌍</div>
+        <div class="text">
+          <span class="num">EN & FR</span>
+          <span class="desc">English & French</span>
+        </div>
+      </div>
+      <div class="divider-dot"></div>
+      <div class="stat-badge reveal reveal-delay-2">
+        <div class="icon">🤖</div>
+        <div class="text">
+          <span class="num">AI Powered</span>
+          <span class="desc">Claude Anthropic Engine</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 3. PROBLEM ── -->
+<section id="problem">
+  <div class="container">
+    <div class="problem-header reveal">
+      <div class="section-label">The Problem</div>
+      <h2 class="section-title">Students are set up to struggle</h2>
+      <p class="section-sub">The tools students need are scattered, expensive, or just don't exist — until now.</p>
+    </div>
+    <div class="pain-grid">
+      <div class="pain-card reveal">
+        <span class="pain-icon">🗂️</span>
+        <h3 class="pain-title">Scattered study tools</h3>
+        <p class="pain-desc">Notes in one app, flashcards in another, timers somewhere else. Switching between tools kills focus and wastes time you don't have.</p>
+      </div>
+      <div class="pain-card reveal reveal-delay-1">
+        <span class="pain-icon">💸</span>
+        <h3 class="pain-title">Tutors cost too much</h3>
+        <p class="pain-desc">One-on-one tutoring can cost $50–$100/hour. Most students simply can't afford the personalized help they need to succeed.</p>
+      </div>
+      <div class="pain-card reveal reveal-delay-2">
+        <span class="pain-icon">📄</span>
+        <h3 class="pain-title">Reports sound unprofessional</h3>
+        <p class="pain-desc">Writing structured, well-researched reports is hard. Students spend hours on formatting instead of actually learning the content.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 4. SOLUTION ── -->
+<section id="solution">
+  <div class="container">
+    <div class="solution-grid">
+      <div>
+        <div class="reveal">
+          <div class="section-label">The Solution</div>
+          <h2 class="section-title">One app that has your back</h2>
+          <p class="section-sub" style="margin-bottom:0;">Prime brings every tool a student needs into one clean, AI-powered experience.</p>
+        </div>
+        <div class="solution-list">
+          <div class="solution-item reveal reveal-delay-1">
+            <div class="solution-icon-wrap">🧩</div>
+            <div class="solution-text">
+              <h4>Everything in one place</h4>
+              <p>Chat with your AI tutor, write reports, track study sessions, and view your analytics — no switching tabs, no losing momentum.</p>
+            </div>
+          </div>
+          <div class="solution-item reveal reveal-delay-2">
+            <div class="solution-icon-wrap">💡</div>
+            <div class="solution-text">
+              <h4>AI tutor available 24/7</h4>
+              <p>StudyPal answers questions, explains concepts, quizzes you, and adapts to your learning style — for the cost of a coffee per month.</p>
+            </div>
+          </div>
+          <div class="solution-item reveal reveal-delay-3">
+            <div class="solution-icon-wrap">✍️</div>
+            <div class="solution-text">
+              <h4>Reports that impress</h4>
+              <p>Our AI Report Writer structures your ideas into professional, well-cited reports in minutes — giving you more time to actually learn.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="solution-visual reveal reveal-delay-2">
+        <div class="dashboard-card">
+          <div class="dash-header">
+            <span class="dash-title">Your Progress</span>
+            <span class="dash-badge">On Track ✓</span>
+          </div>
+          <div class="progress-items">
+            <div class="progress-row">
+              <div class="progress-label"><span>Biology</span><span>87%</span></div>
+              <div class="progress-bar"><div class="progress-fill" style="width:87%" id="p1"></div></div>
+            </div>
+            <div class="progress-row">
+              <div class="progress-label"><span>Mathematics</span><span>72%</span></div>
+              <div class="progress-bar"><div class="progress-fill" style="width:72%" id="p2"></div></div>
+            </div>
+            <div class="progress-row">
+              <div class="progress-label"><span>French Lit.</span><span>65%</span></div>
+              <div class="progress-bar"><div class="progress-fill" style="width:65%" id="p3"></div></div>
+            </div>
+            <div class="progress-row">
+              <div class="progress-label"><span>History</span><span>91%</span></div>
+              <div class="progress-bar"><div class="progress-fill" style="width:91%" id="p4"></div></div>
+            </div>
+          </div>
+          <div class="streak-row">
+            <span class="streak-fire">🔥</span>
+            <span class="streak-num">12</span>
+            <span>day streak — keep it up!</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 5. FEATURES ── -->
+<section id="features">
+  <div class="container">
+    <div class="features-header reveal">
+      <div class="section-label">Features</div>
+      <h2 class="section-title">Built for how students actually learn</h2>
+      <p class="section-sub">Four powerful tools, one seamless experience.</p>
+    </div>
+
+    <div class="features-grid">
+      <!-- StudyPal -->
+      <div class="feature-card large reveal">
+        <div>
+          <span class="feature-emoji">🤖</span>
+          <h3 class="feature-name">StudyPal Chatbot</h3>
+          <p class="feature-desc">Your personal AI tutor that explains any topic, quizzes you, and adapts to how you learn. Ask anything — Biology, Math, History, French — and get clear, patient explanations instantly.</p>
+          <div class="feature-pills">
+            <span class="pill">Instant answers</span>
+            <span class="pill">Topic quizzes</span>
+            <span class="pill">Adaptive learning</span>
+            <span class="pill">English & French</span>
+          </div>
+        </div>
+        <div class="feature-visual">
+          <div style="font-size:0.7rem; color:var(--text-dim); margin-bottom:0.75rem; text-transform:uppercase; letter-spacing:0.06em;">Live conversation</div>
+          <div style="display:flex; flex-direction:column; gap:0.6rem;">
+            <div style="background:rgba(245,168,0,0.1); border:1px solid rgba(245,168,0,0.15); border-radius:10px; padding:0.6rem 0.8rem; font-size:0.75rem; border-bottom-left-radius:3px;">
+              <div style="color:var(--gold); font-size:0.62rem; font-weight:700; margin-bottom:0.2rem;">STUDYPAL</div>
+              Great! Let's break down the water cycle into 4 simple steps...
+            </div>
+            <div style="background:rgba(255,255,255,0.07); border-radius:10px; padding:0.6rem 0.8rem; font-size:0.75rem; align-self:flex-end; border-bottom-right-radius:3px;">
+              Quiz me on step 2
+            </div>
+            <div style="background:rgba(245,168,0,0.1); border:1px solid rgba(245,168,0,0.15); border-radius:10px; padding:0.6rem 0.8rem; font-size:0.75rem; border-bottom-left-radius:3px;">
+              <div style="color:var(--gold); font-size:0.62rem; font-weight:700; margin-bottom:0.2rem;">STUDYPAL</div>
+              What process involves water turning into vapor? 🌊
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI Report Writer -->
+      <div class="feature-card reveal reveal-delay-1">
+        <span class="feature-emoji">✍️</span>
+        <h3 class="feature-name">AI Report Writer</h3>
+        <p class="feature-desc">Turn your rough ideas into structured, professional reports. Pick a subject, give a topic, and Prime builds a full report with intro, body, and conclusion.</p>
+        <div class="feature-pills">
+          <span class="pill">Auto-structured</span>
+          <span class="pill">Multiple subjects</span>
+          <span class="pill">Export ready</span>
+        </div>
+      </div>
+
+      <!-- Study Timer -->
+      <div class="feature-card reveal reveal-delay-2">
+        <span class="feature-emoji">⏱️</span>
+        <h3 class="feature-name">Study Timer + Pomodoro</h3>
+        <p class="feature-desc">Built-in Pomodoro timer helps you focus in proven 25-minute blocks with short breaks. Track every session automatically.</p>
+        <div class="feature-visual" style="margin-top:1.25rem;">
+          <div class="timer-display">
+            <div class="timer-num" id="timerDisplay">24:38</div>
+            <div class="timer-label">Focus Session — Block 2 of 4</div>
+          </div>
+          <div class="timer-segments">
+            <div class="seg active"></div>
+            <div class="seg active"></div>
+            <div class="seg"></div>
+            <div class="seg"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Analytics -->
+      <div class="feature-card reveal reveal-delay-1">
+        <span class="feature-emoji">📊</span>
+        <h3 class="feature-name">Analytics + Streaks</h3>
+        <p class="feature-desc">See exactly how much you've studied, track subject progress, and maintain your daily streak to build unstoppable study habits.</p>
+        <div class="feature-pills" style="margin-top:1rem;">
+          <span class="pill">Daily streaks</span>
+          <span class="pill">Session logs</span>
+          <span class="pill">Progress charts</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 6. PRICING ── -->
+<section id="pricing">
+  <div class="container">
+    <div class="pricing-header reveal">
+      <div class="section-label">Pricing</div>
+      <h2 class="section-title">Invest less than a coffee a month</h2>
+      <p class="section-sub">Start free. Upgrade only when you're ready. No hidden fees.</p>
+    </div>
+
+    <div class="pricing-grid">
+
+      <!-- Free -->
+      <div class="pricing-card reveal">
+        <div class="plan-name">Free</div>
+        <div class="plan-price">$0<span class="period"> /month</span></div>
+        <p class="plan-desc">Perfect for getting started and exploring Prime's core features.</p>
+        <ul class="plan-features">
+          <li>StudyPal chatbot (20 messages/day)</li>
+          <li>1 AI Report per week</li>
+          <li>Study Timer & Pomodoro</li>
+          <li>Basic streak tracking</li>
+          <li class="disabled">Advanced analytics</li>
+          <li class="disabled">Unlimited AI reports</li>
+          <li class="disabled">Priority AI responses</li>
+        </ul>
+        <a href="#final-cta" class="btn-plan ghost">Get Started Free</a>
+      </div>
+
+      <!-- Basic -->
+      <div class="pricing-card featured reveal reveal-delay-1">
+        <div class="popular-badge">Most Popular</div>
+        <div class="plan-name">Basic</div>
+        <div class="plan-price"><sup>$</sup>4<span class="period"> /month</span></div>
+        <p class="plan-desc">For students who want consistent AI support throughout their studies.</p>
+        <ul class="plan-features">
+          <li>StudyPal chatbot (unlimited)</li>
+          <li>5 AI Reports per month</li>
+          <li>Study Timer & Pomodoro</li>
+          <li>Full streak tracking</li>
+          <li>Subject progress analytics</li>
+          <li class="disabled">Unlimited AI reports</li>
+          <li class="disabled">Priority AI responses</li>
+        </ul>
+        <a href="#final-cta" class="btn-plan primary">Start Basic Plan</a>
+      </div>
+
+      <!-- Pro -->
+      <div class="pricing-card reveal reveal-delay-2">
+        <div class="plan-name">Pro</div>
+        <div class="plan-price"><sup>$</sup>8<span class="period"> /month</span></div>
+        <p class="plan-desc">The full Prime experience — unlimited everything for serious students.</p>
+        <ul class="plan-features">
+          <li>StudyPal chatbot (unlimited)</li>
+          <li>Unlimited AI Reports</li>
+          <li>Study Timer & Pomodoro</li>
+          <li>Full streak tracking</li>
+          <li>Advanced analytics dashboard</li>
+          <li>Priority AI responses</li>
+          <li>Early access to new features</li>
+        </ul>
+        <a href="#final-cta" class="btn-plan ghost">Start Pro Plan</a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── 7. FAQ ── -->
+<section id="faq">
+  <div class="container">
+    <div class="faq-header reveal">
+      <div class="section-label">FAQ</div>
+      <h2 class="section-title">Questions? We've got answers.</h2>
+    </div>
+
+    <div class="faq-list">
+      <div class="faq-item reveal">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          What exactly is Prime?
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-a">
+          Prime is an AI-powered study app built for students. It combines a personal AI tutor (StudyPal), an AI Report Writer, a Pomodoro-based Study Timer, and an Analytics dashboard — all in one place. Think of it as having a smart study partner available 24/7.
+        </div>
+      </div>
+
+      <div class="faq-item reveal reveal-delay-1">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          Is Prime really free to start?
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-a">
+          Yes, completely. The Free plan requires no credit card and includes real access to StudyPal, the Study Timer, one report per week, and basic streak tracking. You can upgrade anytime to unlock more — but you never have to.
+        </div>
+      </div>
+
+      <div class="faq-item reveal reveal-delay-2">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          What languages does Prime support?
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-a">
+          Prime currently supports English and French. StudyPal can answer questions, explain concepts, and generate reports in both languages. More languages are on the roadmap — join the waitlist to get notified.
+        </div>
+      </div>
+
+      <div class="faq-item reveal reveal-delay-3">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          How is Prime different from ChatGPT?
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-a">
+          ChatGPT is a general tool. Prime is built specifically for students — it has structured study features like Pomodoro timers, streak tracking, subject-specific progress analytics, and an AI Report Writer with student-friendly templates. Everything is tuned for learning, not just chatting.
+        </div>
+      </div>
+
+      <div class="faq-item reveal reveal-delay-4">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          Can I cancel my subscription at any time?
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-a">
+          Absolutely. There are no lock-in contracts. You can cancel your Basic or Pro plan at any time from your account settings, and you'll keep access until the end of your billing period. No questions asked.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 8. FINAL CTA ── -->
+<section id="final-cta">
+  <div class="container">
+    <div class="cta-box reveal">
+      <div class="section-label" style="margin-bottom:1rem;">Ready to level up?</div>
+      <h2 class="section-title">Join Prime Today</h2>
+      <p class="section-sub">Thousands of students are already studying smarter. Your AI tutor, report writer, and study coach are waiting.</p>
+      <div class="cta-buttons">
+        <a href="#" class="btn-gold" style="font-size:1.05rem; padding:1rem 2.5rem;">Start for Free →</a>
+        <a href="#features" class="btn-outline">Explore Features</a>
+      </div>
+      <p class="cta-note">No credit card required &nbsp;·&nbsp; Free forever plan &nbsp;·&nbsp; Cancel anytime</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="logo">Prime<span>.</span></div>
+        <p>The AI-powered study app that gives every student a tutor, report writer, and study coach — all in one place.</p>
+      </div>
+      <div class="footer-col">
+        <h5>Product</h5>
+        <ul>
+          <li><a href="#features">Features</a></li>
+          <li><a href="#pricing">Pricing</a></li>
+          <li><a href="#faq">FAQ</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>Tools</h5>
+        <ul>
+          <li><a href="#">StudyPal</a></li>
+          <li><a href="#">Report Writer</a></li>
+          <li><a href="#">Study Timer</a></li>
+          <li><a href="#">Analytics</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>Company</h5>
+        <ul>
+          <li><a href="#">About</a></li>
+          <li><a href="#">Privacy Policy</a></li>
+          <li><a href="#">Terms of Service</a></li>
+          <li><a href="#">Contact</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 Prime. All rights reserved.</span>
+      <span>Built for students, by students.</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // ── NAV SCROLL ──
+  const navbar = document.getElementById('navbar');
+  window.addEventListener('scroll', () => {
+    navbar.classList.toggle('scrolled', window.scrollY > 50);
+  });
+
+  // ── MOBILE MENU ──
+  function toggleMenu() {
+    const nav = document.getElementById('mobileNav');
+    nav.classList.toggle('open');
+  }
+
+  // ── FAQ ACCORDION ──
+  function toggleFaq(btn) {
+    const item = btn.parentElement;
+    const answer = item.querySelector('.faq-a');
+    const isOpen = item.classList.contains('open');
+
+    // Close all
+    document.querySelectorAll('.faq-item').forEach(el => {
+      el.classList.remove('open');
+      el.querySelector('.faq-a').classList.remove('open');
+    });
+
+    if (!isOpen) {
+      item.classList.add('open');
+      answer.classList.add('open');
+    }
+  }
+
+  // ── SCROLL REVEAL ──
+  const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+  document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+  // Make hero elements visible immediately
+  document.querySelectorAll('#hero .reveal').forEach(el => {
+    setTimeout(() => el.classList.add('visible'), 100);
+  });
+
+  // ── LIVE TIMER ──
+  let seconds = 1478; // 24:38
+  const timerEl = document.getElementById('timerDisplay');
+  if (timerEl) {
+    setInterval(() => {
+      if (seconds > 0) seconds--;
+      else seconds = 1500;
+      const m = Math.floor(seconds / 60);
+      const s = seconds % 60;
+      timerEl.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    }, 1000);
+  }
+
+  // ── SMOOTH ANCHOR SCROLL ──
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      const id = a.getAttribute('href');
+      if (id === '#') return;
+      const target = document.querySelector(id);
+      if (target) {
+        e.preventDefault();
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  });
+</script>
+</body>
+</html>

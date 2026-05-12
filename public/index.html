@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prime — Study Smart with AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; font-size: 16px; }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: #001812;
+      color: #e8f5ee;
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+
+    :root {
+      --bg:           #001812;
+      --g-deep:       #004d2e;
+      --g-mid:        #006b40;
+      --g-light:      #00a86b;
+      --gold:         #F5A800;
+      --gold-dim:     #c98800;
+      --gold-pale:    rgba(245,168,0,0.12);
+      --t-primary:    #ffffff;
+      --t-secondary:  #a8c4b0;
+      --t-muted:      #5c7a67;
+      --gl1: rgba(255,255,255,0.05);
+      --gl2: rgba(255,255,255,0.09);
+      --gl3: rgba(255,255,255,0.15);
+      --gb:  rgba(255,255,255,0.11);
+      --gb2: rgba(255,255,255,0.2);
+      --sh-sm: 0 4px 16px rgba(0,0,0,0.18);
+      --sh-md: 0 8px 32px rgba(0,0,0,0.22);
+      --sh-lg: 0 16px 48px rgba(0,0,0,0.28);
+      --sh-gold: 0 8px 32px rgba(245,168,0,0.22);
+      --r-sm: 0.5rem; --r-md: 0.75rem; --r-lg: 1rem; --r-xl: 1.5rem; --r-full: 9999px;
+      --max: 1200px; --cp: 24px;
+    }
+
+    /* ── BACKGROUND ── */
+    .bg {
+      position: fixed; inset: 0; z-index: 0;
+      background: radial-gradient(ellipse 80% 60% at 10% 10%, rgba(0,77,46,0.55) 0%, transparent 60%),
+                  radial-gradient(ellipse 60% 50% at 90% 80%, rgba(245,168,0,0.14) 0%, transparent 55%),
+                  radial-gradient(ellipse 70% 70% at 50% 50%, rgba(0,40,25,0.7) 0%, transparent 70%),
+                  #001812;
+    }
+    .orb {
+      position: absolute; border-radius: 50%; filter: blur(90px); pointer-events: none;
+    }
+    .orb1 { width: 700px; height: 700px; background: radial-gradient(circle, rgba(0,77,46,0.7) 0%, transparent 65%); top: -200px; left: -180px; animation: f1 22s ease-in-out infinite; }
+    .orb2 { width: 500px; height: 500px; background: radial-gradient(circle, rgba(245,168,0,0.22) 0%, transparent 65%); bottom: 5%; right: -100px; animation: f2 28s ease-in-out infinite; }
+    .orb3 { width: 400px; height: 400px; background: radial-gradient(circle, rgba(0,60,36,0.5) 0%, transparent 65%); top: 40%; left: 30%; animation: f3 34s ease-in-out infinite; }
+    @keyframes f1 { 0%,100%{transform:translate(0,0)} 40%{transform:translate(60px,80px)} 70%{transform:translate(-30px,40px)} }
+    @keyframes f2 { 0%,100%{transform:translate(0,0)} 35%{transform:translate(-70px,-50px)} 70%{transform:translate(40px,-80px)} }
+    @keyframes f3 { 0%,100%{transform:translate(-50%,-50%)} 50%{transform:translate(-48%,-52%)} }
+
+    /* ── WRAPPER ── */
+    .pw { position: relative; z-index: 2; }
+    .c  { max-width: var(--max); margin: 0 auto; padding: 0 var(--cp); }
+    section { padding: 96px 0; }
+
+    /* ── GLASS HELPERS ── */
+    .g-card {
+      background: var(--gl2);
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--gb);
+      border-radius: var(--r-lg);
+      box-shadow: var(--sh-md);
+    }
+    .g-card-hi {
+      background: var(--gl3);
+      backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
+      border: 1px solid var(--gb2);
+      border-radius: var(--r-xl);
+      box-shadow: var(--sh-lg), inset 0 1px 0 rgba(255,255,255,0.07);
+    }
+
+    /* ── NAV ── */
+    .nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      transition: background 0.3s, border-color 0.3s, backdrop-filter 0.3s;
+    }
+    .nav.scrolled {
+      background: rgba(0,18,12,0.82);
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--gb);
+      box-shadow: var(--sh-sm);
+    }
+    .nav-in {
+      max-width: var(--max); margin: 0 auto; padding: 0 var(--cp);
+      display: flex; align-items: center; justify-content: space-between; height: 72px;
+    }
+    .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .logo-mark {
+      width: 36px; height: 36px; border-radius: var(--r-md);
+      background: linear-gradient(135deg, var(--gold), var(--gold-dim));
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 900; font-size: 17px; color: #001812;
+      box-shadow: 0 4px 14px rgba(245,168,0,0.32);
+    }
+    .logo-text { font-size: 20px; font-weight: 700; color: var(--t-primary); letter-spacing: -0.02em; }
+    .nav-links { display: flex; align-items: center; gap: 32px; list-style: none; }
+    .nav-links a { color: var(--t-secondary); text-decoration: none; font-size: 14px; font-weight: 500; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--t-primary); }
+    .nav-actions { display: flex; gap: 10px; }
+    .nav-toggle { display: none; background: none; border: none; cursor: pointer; color: var(--t-primary); padding: 6px; }
+
+    /* ── BUTTONS ── */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 0 24px; height: 48px; border-radius: var(--r-xl);
+      font-family: inherit; font-size: 14px; font-weight: 600; letter-spacing: 0.02em;
+      text-decoration: none; cursor: pointer; border: none;
+      transition: all 0.25s ease; white-space: nowrap;
+    }
+    .btn-gold {
+      background: linear-gradient(135deg, var(--gold) 0%, #e09500 100%);
+      color: #001812; box-shadow: var(--sh-gold);
+    }
+    .btn-gold:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(245,168,0,0.38); filter: brightness(1.08); }
+    .btn-ghost {
+      background: var(--gl1); color: var(--t-primary);
+      border: 1px solid var(--gb2);
+      backdrop-filter: blur(10px);
+    }
+    .btn-ghost:hover { background: var(--gl2); border-color: rgba(255,255,255,0.3); transform: translateY(-2px); }
+    .btn-lg { height: 56px; padding: 0 32px; font-size: 16px; }
+    .btn-sm { height: 36px; padding: 0 16px; font-size: 13px; }
+
+    /* ── LABELS ── */
+    .chip {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 5px 14px; border-radius: var(--r-full);
+      background: var(--gold-pale); border: 1px solid rgba(245,168,0,0.22);
+      font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--gold); margin-bottom: 20px;
+    }
+    .sec-title { font-size: clamp(28px,5vw,48px); font-weight: 700; letter-spacing: -0.025em; line-height: 1.2; color: var(--t-primary); margin-bottom: 14px; }
+    .sec-sub   { font-size: 17px; color: var(--t-secondary); line-height: 1.7; max-width: 560px; }
+    .sec-hd    { margin-bottom: 60px; }
+    .sec-hd.cx { text-align: center; }
+    .sec-hd.cx .sec-sub { margin: 0 auto; }
+
+    /* ── MOBILE NAV ── */
+    .mnav {
+      display: none; position: fixed; top: 72px; left: 0; right: 0; z-index: 99;
+      background: rgba(0,16,10,0.96); backdrop-filter: blur(24px);
+      border-bottom: 1px solid var(--gb);
+      padding: 20px var(--cp) 28px;
+    }
+    .mnav.open { display: block; }
+    .mnav ul { list-style: none; display: flex; flex-direction: column; gap: 4px; margin-bottom: 20px; }
+    .mnav ul a { display: block; padding: 11px 14px; color: var(--t-secondary); text-decoration: none; font-size: 15px; border-radius: var(--r-md); transition: all 0.2s; }
+    .mnav ul a:hover { color: var(--t-primary); background: var(--gl1); }
+    .mnav .btn { width: 100%; }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center; padding: 130px var(--cp) 80px;
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 7px 18px; background: var(--gold-pale); border: 1px solid rgba(245,168,0,0.2);
+      border-radius: var(--r-full); font-size: 13px; font-weight: 600; color: var(--gold);
+      margin-bottom: 32px; letter-spacing: 0.02em;
+    }
+    .pulse { width: 7px; height: 7px; background: var(--gold); border-radius: 50%; animation: pls 2s ease-in-out infinite; }
+    @keyframes pls { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.75)} }
+    .hero-h {
+      font-size: clamp(44px,8.5vw,88px); font-weight: 900;
+      letter-spacing: -0.045em; line-height: 1.03; color: var(--t-primary);
+      margin-bottom: 24px; max-width: 960px;
+    }
+    .hero-h .gold { color: var(--gold); }
+    .hero-p {
+      font-size: clamp(16px,2.2vw,20px); color: var(--t-secondary);
+      max-width: 580px; line-height: 1.72; margin-bottom: 48px;
+    }
+    .hero-ctas { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; justify-content: center; margin-bottom: 18px; }
+    .hero-reassure { font-size: 13px; color: var(--t-muted); }
+    .hero-reassure span { color: #3dba7e; font-weight: 500; }
+
+    /* hero mockup */
+    .hero-mock { margin-top: 72px; width: 100%; max-width: 820px; }
+    .mock-frame {
+      background: var(--gl2); backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px);
+      border: 1px solid var(--gb2); border-radius: 20px; padding: 28px 32px;
+      box-shadow: var(--sh-lg), inset 0 1px 0 rgba(255,255,255,0.08);
+    }
+    .mock-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 22px; }
+    .mock-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .mock-dot:nth-child(1){background:#ff5f57} .mock-dot:nth-child(2){background:#ffbd2e} .mock-dot:nth-child(3){background:#28ca40}
+    .mock-title { font-size: 13px; font-weight: 600; color: var(--t-muted); margin-left: 6px; }
+    .chat { display: flex; flex-direction: column; gap: 14px; }
+    .msg { display: flex; gap: 10px; align-items: flex-end; }
+    .msg.u { flex-direction: row-reverse; }
+    .av {
+      width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;
+    }
+    .av.ai { background: linear-gradient(135deg,var(--g-deep),var(--g-mid)); color: var(--gold); border: 1px solid rgba(0,107,64,0.4); }
+    .av.me { background: var(--gl2); border: 1px solid var(--gb); color: var(--t-secondary); }
+    .bbl { max-width: 500px; padding: 11px 15px; border-radius: 16px; font-size: 14px; line-height: 1.6; }
+    .bbl.ai { background: rgba(0,77,46,0.38); border: 1px solid rgba(0,107,64,0.35); color: var(--t-primary); border-bottom-left-radius: 4px; text-align: left; }
+    .bbl.me { background: rgba(245,168,0,0.14); border: 1px solid rgba(245,168,0,0.22); color: var(--t-primary); border-bottom-right-radius: 4px; text-align: left; }
+    .typing { display: flex; gap: 4px; align-items: center; padding: 10px 15px; }
+    .td { width: 6px; height: 6px; background: var(--t-muted); border-radius: 50%; animation: tb 1.4s ease-in-out infinite; }
+    .td:nth-child(2){animation-delay:.2s} .td:nth-child(3){animation-delay:.4s}
+    @keyframes tb { 0%,60%,100%{transform:translateY(0);opacity:.4} 30%{transform:translateY(-6px);opacity:1} }
+
+    /* ── TRUST BAR ── */
+    .trust { padding: 20px 0; border-top: 1px solid rgba(255,255,255,0.06); border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .trust-in { display: flex; align-items: center; justify-content: center; gap: 40px; flex-wrap: wrap; }
+    .ti { display: flex; align-items: center; gap: 7px; font-size: 13px; color: var(--t-muted); }
+
+    /* ── STATS ── */
+    .stats-sec { padding: 56px 0; }
+    .stats-g { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; }
+    .stat-card {
+      padding: 32px 24px; text-align: center;
+      transition: all 0.3s ease;
+    }
+    .stat-card:hover { transform: translateY(-5px); background: var(--gl3) !important; }
+    .stat-num { font-size: clamp(36px,5vw,52px); font-weight: 900; letter-spacing: -0.04em; color: var(--gold); line-height: 1; margin-bottom: 6px; }
+    .stat-lbl { font-size: 14px; color: var(--t-secondary); font-weight: 500; }
+
+    /* ── DIVIDER ── */
+    .div { height: 1px; background: linear-gradient(90deg,transparent,rgba(255,255,255,0.08),transparent); }
+
+    /* ── PROBLEM ── */
+    .prob-g { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; }
+    .prob-card { padding: 32px 28px; transition: all 0.3s ease; }
+    .prob-card:hover { transform: translateY(-5px); background: var(--gl3) !important; }
+    .prob-ico { width: 50px; height: 50px; background: rgba(245,168,0,0.1); border: 1px solid rgba(245,168,0,0.18); border-radius: var(--r-md); display: flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 18px; }
+    .prob-t { font-size: 18px; font-weight: 600; color: var(--t-primary); margin-bottom: 8px; line-height: 1.3; }
+    .prob-d { font-size: 15px; color: var(--t-secondary); line-height: 1.65; }
+
+    /* ── SOLUTION ── */
+    .sol-g { display: grid; grid-template-columns: 1fr 1fr; gap: 72px; align-items: center; }
+    .sol-pts { display: flex; flex-direction: column; gap: 22px; margin-top: 36px; }
+    .sol-pt { display: flex; gap: 14px; align-items: flex-start; }
+    .sol-pt-ico {
+      width: 40px; height: 40px; flex-shrink: 0;
+      background: linear-gradient(135deg,var(--g-deep),var(--g-mid));
+      border: 1px solid rgba(0,107,64,0.45); border-radius: var(--r-md);
+      display: flex; align-items: center; justify-content: center; font-size: 18px;
+      box-shadow: 0 4px 14px rgba(0,77,46,0.28);
+    }
+    .sol-pt-t h4 { font-size: 16px; font-weight: 600; color: var(--t-primary); margin-bottom: 3px; }
+    .sol-pt-t p  { font-size: 14px; color: var(--t-secondary); line-height: 1.6; }
+
+    /* dashboard card */
+    .dash-wrap { position: relative; }
+    .dash-shadow {
+      position: absolute; inset: 18px 0 0 18px;
+      background: var(--gl1); border: 1px solid var(--gb);
+      border-radius: 20px; transform: rotate(3deg); opacity: 0.5;
+    }
+    .dash-shadow2 {
+      position: absolute; inset: 9px 9px 9px 9px;
+      background: var(--gl1); border: 1px solid var(--gb);
+      border-radius: 20px; transform: rotate(-1.5deg); opacity: 0.65;
+    }
+    .dash-card {
+      position: relative;
+      background: var(--gl2); backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px);
+      border: 1px solid var(--gb2); border-radius: 20px; padding: 28px;
+      box-shadow: var(--sh-lg), inset 0 1px 0 rgba(255,255,255,0.07);
+    }
+    .dash-hd { display: flex; align-items: center; gap: 10px; padding-bottom: 18px; border-bottom: 1px solid var(--gb); margin-bottom: 18px; }
+    .dash-ico { width: 34px; height: 34px; background: linear-gradient(135deg,var(--gold),var(--gold-dim)); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 900; color: #001812; }
+    .dash-ht  { font-size: 15px; font-weight: 600; color: var(--t-primary); }
+    .dash-hs  { font-size: 12px; color: var(--t-secondary); }
+    .dash-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 20px; }
+    .ds { background: rgba(0,77,46,0.22); border: 1px solid rgba(0,107,64,0.22); border-radius: var(--r-md); padding: 12px; text-align: center; }
+    .ds-n { font-size: 20px; font-weight: 800; color: var(--gold); }
+    .ds-l { font-size: 11px; color: var(--t-secondary); margin-top: 2px; }
+    .prog-list { display: flex; flex-direction: column; gap: 12px; }
+    .prog-row { display: flex; flex-direction: column; gap: 5px; }
+    .prog-lbl { display: flex; justify-content: space-between; font-size: 12px; color: var(--t-secondary); }
+    .prog-lbl span:last-child { color: var(--gold); font-weight: 600; }
+    .prog-bg { height: 5px; background: var(--gl1); border-radius: var(--r-full); overflow: hidden; }
+    .prog-fill { height: 100%; background: linear-gradient(90deg,var(--g-mid),var(--gold)); border-radius: var(--r-full); }
+
+    /* ── FEATURES ── */
+    .feat-g { display: grid; grid-template-columns: repeat(2,1fr); gap: 20px; }
+    .feat-card {
+      padding: 36px 30px; border-radius: 20px; position: relative; overflow: hidden;
+      background: var(--gl1);
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--gb);
+      transition: all 0.35s ease;
+    }
+    .feat-card::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background: linear-gradient(90deg,transparent,rgba(255,255,255,0.13),transparent); }
+    .feat-card:hover { background: var(--gl2); border-color: rgba(255,255,255,0.18); transform: translateY(-6px); box-shadow: var(--sh-lg); }
+    .feat-card.star { border-color: rgba(245,168,0,0.25); background: rgba(245,168,0,0.04); }
+    .feat-card.star::after {
+      content: 'Most Used'; position: absolute; top: 18px; right: 18px;
+      background: var(--gold-pale); border: 1px solid rgba(245,168,0,0.28);
+      color: var(--gold); font-size: 11px; font-weight: 700; letter-spacing: 0.05em;
+      padding: 3px 10px; border-radius: var(--r-full);
+    }
+    .feat-ico {
+      width: 54px; height: 54px; margin-bottom: 22px;
+      background: linear-gradient(135deg,rgba(0,77,46,0.6),rgba(0,107,64,0.4));
+      border: 1px solid rgba(0,107,64,0.38); border-radius: var(--r-lg);
+      display: flex; align-items: center; justify-content: center; font-size: 26px;
+      box-shadow: 0 4px 16px rgba(0,77,46,0.2);
+    }
+    .feat-t { font-size: 20px; font-weight: 700; color: var(--t-primary); margin-bottom: 10px; letter-spacing: -0.01em; }
+    .feat-d { font-size: 15px; color: var(--t-secondary); line-height: 1.65; margin-bottom: 22px; }
+    .tags { display: flex; flex-wrap: wrap; gap: 7px; }
+    .tag { padding: 4px 11px; background: rgba(0,77,46,0.2); border: 1px solid rgba(0,107,64,0.22); border-radius: var(--r-full); font-size: 12px; font-weight: 500; color: var(--t-secondary); }
+
+    /* ── PRICING v2 (Glassmorphism) ── */
+    .pricing-section { position: relative; overflow: hidden; }
+    .pricing-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: block; z-index: 0; }
+    .price2-g {
+      display: flex; gap: 28px; justify-content: center; align-items: center; flex-wrap: wrap;
+      position: relative; z-index: 1;
+    }
+    .price2-card {
+      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      background: linear-gradient(135deg, rgba(255,255,255,0.055) 0%, rgba(255,255,255,0.0) 100%);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 16px; padding: 32px 28px;
+      flex: 1; max-width: 300px; min-width: 240px;
+      display: flex; flex-direction: column;
+      transition: all 0.3s ease; position: relative;
+    }
+    .price2-card:hover { transform: translateY(-6px); }
+    .price2-card.pop {
+      transform: scale(1.05);
+      background: linear-gradient(135deg, rgba(255,255,255,0.11) 0%, rgba(255,255,255,0.05) 100%);
+      border: 1px solid rgba(245,168,0,0.32);
+      box-shadow: 0 0 0 1px rgba(245,168,0,0.1), var(--sh-lg);
+    }
+    .price2-card.pop:hover { transform: scale(1.05) translateY(-6px); }
+    .pop2-badge {
+      position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
+      background: linear-gradient(135deg, var(--gold), var(--gold-dim));
+      color: #001812; font-size: 12px; font-weight: 700;
+      padding: 4px 16px; border-radius: var(--r-full);
+      box-shadow: 0 4px 12px rgba(245,168,0,0.3); white-space: nowrap;
+    }
+    .price2-name { font-size: 40px; font-weight: 300; letter-spacing: -0.03em; color: var(--t-primary); line-height: 1; margin-bottom: 7px; }
+    .price2-desc { font-size: 14px; color: var(--t-secondary); margin-bottom: 20px; line-height: 1.55; }
+    .price2-amt { display: flex; align-items: baseline; gap: 4px; margin-bottom: 20px; }
+    .price2-dollar { font-size: 42px; font-weight: 300; letter-spacing: -0.04em; color: var(--t-primary); }
+    .price2-per { font-size: 14px; color: var(--t-secondary); }
+    .price2-div { height: 1px; background: linear-gradient(90deg,transparent,rgba(255,255,255,0.09) 20%,rgba(255,255,255,0.2) 50%,rgba(255,255,255,0.09) 80%,transparent); margin-bottom: 20px; }
+    .price2-feats { list-style: none; display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; flex: 1; }
+    .price2-feats li { display: flex; align-items: center; gap: 9px; font-size: 13px; color: var(--t-secondary); line-height: 1.4; }
+    .price2-feats li svg { color: var(--gold); flex-shrink: 0; }
+    .ripple-btn {
+      position: relative; overflow: hidden; cursor: pointer;
+      border: none; border-radius: 12px;
+      width: 100%; padding: 11px 0;
+      font-size: 14px; font-weight: 600; font-family: inherit;
+      transition: all 0.2s ease; letter-spacing: 0.01em;
+    }
+    .ripple-btn-primary {
+      background: linear-gradient(135deg, var(--gold), var(--gold-dim));
+      color: #001812; box-shadow: 0 4px 16px rgba(245,168,0,0.28);
+    }
+    .ripple-btn-primary:hover { filter: brightness(1.1); box-shadow: 0 6px 24px rgba(245,168,0,0.42); transform: translateY(-1px); }
+    .ripple-btn-secondary {
+      background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.14);
+      color: var(--t-primary); backdrop-filter: blur(10px);
+    }
+    .ripple-btn-secondary:hover { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.24); transform: translateY(-1px); }
+    .ripple-circle {
+      position: absolute; border-radius: 50%; pointer-events: none;
+      transform: scale(0); animation: ripple-anim 0.6s ease-out forwards;
+    }
+    @keyframes ripple-anim { 0%{transform:scale(0);opacity:1} 100%{transform:scale(1);opacity:0} }
+
+    /* ── FAQ ── */
+    .faq-list { max-width: 700px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
+    .faq-item {
+      background: var(--gl1); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--gb); border-radius: var(--r-lg); overflow: hidden; transition: all 0.3s;
+    }
+    .faq-item.open { background: var(--gl2); border-color: var(--gb2); }
+    .faq-q {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 20px 22px; cursor: pointer; font-size: 15px; font-weight: 500;
+      color: var(--t-primary); gap: 14px; user-select: none; transition: color 0.2s;
+    }
+    .faq-q:hover { color: var(--gold); }
+    .faq-chev {
+      flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%;
+      background: var(--gl1); border: 1px solid var(--gb);
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.3s; color: var(--t-secondary); font-size: 11px;
+    }
+    .faq-item.open .faq-chev { transform: rotate(180deg); background: var(--gold-pale); border-color: rgba(245,168,0,0.28); color: var(--gold); }
+    .faq-a { max-height: 0; overflow: hidden; transition: max-height 0.4s ease; }
+    .faq-a.open { max-height: 200px; }
+    .faq-a-in { padding: 0 22px 20px; font-size: 14px; color: var(--t-secondary); line-height: 1.72; }
+
+    /* ── FINAL CTA ── */
+    .fcta { padding: 120px 0; text-align: center; }
+    .fcta-card {
+      max-width: 680px; margin: 0 auto;
+      background: var(--gl2); backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
+      border: 1px solid var(--gb2); border-radius: 28px;
+      padding: 72px 56px;
+      box-shadow: var(--sh-lg), inset 0 1px 0 rgba(255,255,255,0.07), 0 0 80px rgba(0,77,46,0.14);
+    }
+    .fcta-h { font-size: clamp(28px,5vw,44px); font-weight: 900; letter-spacing: -0.03em; line-height: 1.15; color: var(--t-primary); margin-bottom: 14px; }
+    .fcta-p { font-size: 17px; color: var(--t-secondary); margin-bottom: 38px; line-height: 1.6; }
+    .fcta-acts { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+    .fcta-note { margin-top: 18px; font-size: 13px; color: var(--t-muted); }
+
+    /* ── FOOTER ── */
+    .footer { border-top: 1px solid rgba(255,255,255,0.07); padding: 36px var(--cp); background: rgba(0,12,8,0.6); backdrop-filter: blur(20px); }
+    .footer-in { max-width: var(--max); margin: 0 auto; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 18px; }
+    .foot-brand { display: flex; align-items: center; gap: 9px; }
+    .foot-links { display: flex; gap: 22px; list-style: none; }
+    .foot-links a { font-size: 13px; color: var(--t-muted); text-decoration: none; transition: color 0.2s; }
+    .foot-links a:hover { color: var(--t-secondary); }
+    .foot-copy { font-size: 13px; color: var(--t-muted); }
+
+    /* ── BEAMS BACKGROUND ── */
+    #beamsCanvas {
+      position: fixed; inset: 0; z-index: 1;
+      pointer-events: none; filter: blur(15px);
+    }
+
+    /* ── REVEAL ── */
+    .rv { opacity: 0; transform: translateY(28px); transition: opacity 0.7s ease, transform 0.7s ease; }
+    .rv.vis { opacity: 1; transform: translateY(0); }
+    .d1{transition-delay:.1s} .d2{transition-delay:.2s} .d3{transition-delay:.3s} .d4{transition-delay:.4s}
+
+    /* ── RESPONSIVE ── */
+    @media(max-width:1024px){
+      .sol-g { grid-template-columns:1fr; gap:48px; }
+      .price2-card.pop { transform: none; }
+      .price2-card.pop:hover { transform: translateY(-6px); }
+    }
+    @media(max-width:768px){
+      section { padding: 68px 0; }
+      .stats-g,.prob-g { grid-template-columns:1fr; }
+      .feat-g { grid-template-columns:1fr; }
+      .nav-links,.nav-actions { display:none; }
+      .nav-toggle { display:flex; }
+      .hero { padding:110px var(--cp) 60px; }
+      .hero-ctas { flex-direction:column; width:100%; }
+      .hero-ctas .btn { width:100%; max-width:320px; }
+      .fcta-card { padding:44px 26px; }
+      .footer-in { flex-direction:column; text-align:center; }
+      .trust-in { gap:20px; }
+      .price2-g { flex-direction: column; align-items: center; }
+      .price2-card { max-width: 360px; width: 100%; }
+      .price2-card.pop { transform: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- BG -->
+<div class="bg">
+  <div class="orb orb1"></div>
+  <div class="orb orb2"></div>
+  <div class="orb orb3"></div>
+</div>
+
+<!-- BEAMS BACKGROUND CANVAS -->
+<canvas id="beamsCanvas"></canvas>
+
+<div class="pw">
+
+  <!-- NAV -->
+  <nav class="nav" id="nav">
+    <div class="nav-in">
+      <a href="#" class="logo">
+        <div class="logo-mark">P</div>
+        <span class="logo-text">Prime</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="#features">Features</a></li>
+        <li><a href="#pricing">Pricing</a></li>
+        <li><a href="#faq">FAQ</a></li>
+      </ul>
+      <div class="nav-actions">
+        <a href="/login" class="btn btn-ghost btn-sm">Sign In</a>
+        <a href="/login" class="btn btn-gold btn-sm">Start Free</a>
+      </div>
+      <button class="nav-toggle" id="navToggle" aria-label="Menu">
+        <svg width="22" height="16" viewBox="0 0 22 16" fill="none"><path d="M1 1h20M1 8h20M1 15h20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+  </nav>
+
+  <!-- MOBILE NAV -->
+  <div class="mnav" id="mnav">
+    <ul>
+      <li><a href="#features" onclick="closeMnav()">Features</a></li>
+      <li><a href="#pricing"  onclick="closeMnav()">Pricing</a></li>
+      <li><a href="#faq"      onclick="closeMnav()">FAQ</a></li>
+    </ul>
+    <a href="/login" class="btn btn-gold">Start for Free</a>
+  </div>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-badge rv vis">
+      <span class="pulse"></span>
+      AI-Powered Study Companion
+    </div>
+
+    <h1 class="hero-h rv vis">
+      Study <span class="gold">Smarter,</span><br>Not Harder.
+    </h1>
+
+    <p class="hero-p rv vis d1">
+      Prime is your personal AI study companion — it explains any topic, writes your reports, keeps you focused with science-backed timers, and tracks every step of your progress.
+    </p>
+
+    <div class="hero-ctas rv vis d2">
+      <a href="/login" class="btn btn-gold btn-lg">Start for Free</a>
+      <a href="#features" class="btn btn-ghost btn-lg">See How It Works</a>
+    </div>
+
+    <p class="hero-reassure rv vis d3">
+      <span>✓</span> No credit card required &nbsp;·&nbsp;
+      <span>✓</span> Free plan available &nbsp;·&nbsp;
+      <span>✓</span> Cancel anytime
+    </p>
+
+    <!-- Chat mockup -->
+    <div class="hero-mock rv vis d4">
+      <div class="mock-frame">
+        <div class="mock-bar">
+          <div class="mock-dot"></div><div class="mock-dot"></div><div class="mock-dot"></div>
+          <span class="mock-title">StudyPal — Prime AI Tutor</span>
+        </div>
+        <div class="chat">
+          <div class="msg">
+            <div class="av ai">P</div>
+            <div class="bbl ai">Hey! I'm Prime. What are we studying today? I can explain concepts, build study plans, quiz you, or write reports.</div>
+          </div>
+          <div class="msg u">
+            <div class="av me">U</div>
+            <div class="bbl me">I have a biology exam on cell division tomorrow and I don't understand mitosis at all.</div>
+          </div>
+          <div class="msg">
+            <div class="av ai">P</div>
+            <div class="bbl ai">Got you! Mitosis has 4 stages — remember <strong>"PMAT"</strong>: Prophase, Metaphase, Anaphase, Telophase. Think of it as a cell carefully splitting its DNA library in two. Want a visual breakdown, then a quick quiz to lock it in?</div>
+          </div>
+          <div class="msg">
+            <div class="av ai">P</div>
+            <div class="bbl ai" style="background:transparent;border:none;padding:0;">
+              <div class="typing"><div class="td"></div><div class="td"></div><div class="td"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TRUST BAR -->
+  <div class="trust">
+    <div class="c">
+      <div class="trust-in">
+        <div class="ti"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="flex-shrink:0"><rect x="2" y="6.5" width="10" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/><path d="M4.5 6.5V5A2.5 2.5 0 019.5 5v1.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg> End-to-end encrypted</div>
+        <div class="ti"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="flex-shrink:0"><path d="M8.5 1.5L3 7.5h4l-1.5 5L12 6H8l.5-4.5z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg> Instant AI responses</div>
+        <div class="ti"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="flex-shrink:0"><rect x="3" y="1" width="8" height="12" rx="1.5" stroke="currentColor" stroke-width="1.5"/><circle cx="7" cy="10.5" r="0.75" fill="currentColor"/></svg> Works on all devices</div>
+        <div class="ti"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="flex-shrink:0"><path d="M7 1.5L1.5 5l5.5 3L13 5 7 1.5z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M3.5 7v2.5C3.5 11 5 12 7 12s3.5-1 3.5-2.5V7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg> Built for students</div>
+        <div class="ti"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="flex-shrink:0"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.5"/><path d="M7 1.5c-2 2-2 7 0 11M7 1.5c2 2 2 7 0 11M1.5 7h11" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/></svg> All subjects supported</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SOCIAL PROOF -->
+  <section class="stats-sec">
+    <div class="c">
+      <div class="stats-g">
+        <div class="stat-card g-card rv">
+          <div class="stat-num" data-target="50" data-suffix="K+">50K+</div>
+          <div class="stat-lbl">Students studying with Prime daily</div>
+        </div>
+        <div class="stat-card g-card rv d1">
+          <div class="stat-num" data-target="4.9" data-suffix="/5" data-dec="1">4.9/5</div>
+          <div class="stat-lbl">Average rating from verified students</div>
+        </div>
+        <div class="stat-card g-card rv d2">
+          <div class="stat-num" data-target="2" data-suffix="M+">2M+</div>
+          <div class="stat-lbl">Study sessions completed</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="div"></div>
+
+  <!-- PROBLEM -->
+  <section>
+    <div class="c">
+      <div class="sec-hd cx">
+        <div class="chip">The Struggle Is Real</div>
+        <h2 class="sec-title rv">Sound familiar?</h2>
+        <p class="sec-sub rv d1">Every student hits these walls. You're not alone — and every single one of them is fixable.</p>
+      </div>
+      <div class="prob-g">
+        <div class="prob-card g-card rv">
+          <div class="prob-ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M2 17l10 5 10-5M2 12l10 5 10-5M12 2L2 7l10 5 10-5-10-5z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg></div>
+          <h3 class="prob-t">Drowning in information</h3>
+          <p class="prob-d">200 pages to study, a week of missed notes, and no idea where to start. The overwhelm is real — and paralysing.</p>
+        </div>
+        <div class="prob-card g-card rv d1">
+          <div class="prob-ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M8 12h4M14 12h2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M15 9l-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div>
+          <h3 class="prob-t">Focus keeps slipping</h3>
+          <p class="prob-d">You sit down to study and suddenly an hour has vanished into your phone. Deep, distraction-free focus feels impossible.</p>
+        </div>
+        <div class="prob-card g-card rv d2">
+          <div class="prob-ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M14 2v6h6M8 14h8M8 18h5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div>
+          <h3 class="prob-t">The blank page nightmare</h3>
+          <p class="prob-d">Every essay or report starts the same way — staring at a cursor for an hour, no words coming, deadline creeping closer.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="div"></div>
+
+  <!-- SOLUTION -->
+  <section>
+    <div class="c">
+      <div class="sol-g">
+        <div>
+          <div class="chip">The Prime Way</div>
+          <h2 class="sec-title rv" style="font-size:clamp(26px,4.5vw,42px);">One app that solves all of it</h2>
+          <p class="sec-sub rv d1">Prime combines AI intelligence with proven study science — less stress, better focus, stronger grades.</p>
+          <div class="sol-pts">
+            <div class="sol-pt rv">
+              <div class="sol-pt-ico"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="3" stroke="currentColor" stroke-width="1.75"/><path d="M10 2v2.5M10 15.5V18M2 10h2.5M15.5 10H18M4.4 4.4l1.77 1.77M12.83 12.83l1.77 1.77M4.4 15.6l1.77-1.77M12.83 7.17l1.77-1.77" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></svg></div>
+              <div class="sol-pt-t">
+                <h4>AI that actually understands you</h4>
+                <p>Ask anything. Get clear explanations tailored to your level — like a tutor who's always available.</p>
+              </div>
+            </div>
+            <div class="sol-pt rv d1">
+              <div class="sol-pt-ico"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="12" r="6.5" stroke="currentColor" stroke-width="1.75"/><path d="M10 8.5v4l2.5 1.5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/><path d="M7.5 2.5h5M10 2.5v3" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></svg></div>
+              <div class="sol-pt-t">
+                <h4>Science-backed focus sessions</h4>
+                <p>Pomodoro timers that build real study habits, one focused sprint at a time.</p>
+              </div>
+            </div>
+            <div class="sol-pt rv d2">
+              <div class="sol-pt-ico"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M12 2H5.5A1.5 1.5 0 004 3.5v13A1.5 1.5 0 005.5 18h9a1.5 1.5 0 001.5-1.5V6L12 2z" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"/><path d="M12 2v4h4M7 10.5h6M7 13.5h4" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></svg></div>
+              <div class="sol-pt-t">
+                <h4>Reports that practically write themselves</h4>
+                <p>Drop in your notes. Prime structures them into polished essays and reports in minutes.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dashboard card -->
+        <div class="rv d1">
+          <div class="dash-wrap">
+            <div class="dash-shadow"></div>
+            <div class="dash-shadow2"></div>
+            <div class="dash-card">
+              <div class="dash-hd">
+                <div class="dash-ico">P</div>
+                <div>
+                  <div class="dash-ht">Prime Dashboard</div>
+                  <div class="dash-hs">This week's overview</div>
+                </div>
+              </div>
+              <div class="dash-stats">
+                <div class="ds"><div class="ds-n">14</div><div class="ds-l">Sessions</div></div>
+                <div class="ds"><div class="ds-n">7</div><div class="ds-l">Day streak</div></div>
+                <div class="ds"><div class="ds-n">94%</div><div class="ds-l">Quiz score</div></div>
+              </div>
+              <div class="prog-list">
+                <div class="prog-row">
+                  <div class="prog-lbl"><span>Biology</span><span>82%</span></div>
+                  <div class="prog-bg"><div class="prog-fill" style="width:82%"></div></div>
+                </div>
+                <div class="prog-row">
+                  <div class="prog-lbl"><span>History</span><span>67%</span></div>
+                  <div class="prog-bg"><div class="prog-fill" style="width:67%"></div></div>
+                </div>
+                <div class="prog-row">
+                  <div class="prog-lbl"><span>Mathematics</span><span>91%</span></div>
+                  <div class="prog-bg"><div class="prog-fill" style="width:91%"></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="div"></div>
+
+  <!-- FEATURES -->
+  <section id="features">
+    <div class="c">
+      <div class="sec-hd cx">
+        <div class="chip">Features</div>
+        <h2 class="sec-title rv">Everything you need to excel</h2>
+        <p class="sec-sub rv d1">Four powerful tools, one seamless experience — built for how students actually study.</p>
+      </div>
+      <div class="feat-g">
+        <div class="feat-card star rv">
+          <div class="feat-ico"><svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M24 4H4a2 2 0 00-2 2v14a2 2 0 002 2h6l4 4 4-4h6a2 2 0 002-2V6a2 2 0 00-2-2z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M8 12h12M8 17h7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div>
+          <h3 class="feat-t">StudyPal Chatbot</h3>
+          <p class="feat-d">Your 24/7 AI tutor. Ask anything — complex topics, exam prep, concept breakdowns, practice questions. Prime adapts to your level and explains things in a way that actually sticks.</p>
+          <div class="tags">
+            <span class="tag">Any subject</span>
+            <span class="tag">Practice quizzes</span>
+            <span class="tag">Custom study plans</span>
+            <span class="tag">Exam prep</span>
+          </div>
+        </div>
+        <div class="feat-card rv d1">
+          <div class="feat-ico"><svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M19.5 3.5l5 5L10 23H5v-5L19.5 3.5z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M15.5 7.5l5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div>
+          <h3 class="feat-t">AI Report Writer</h3>
+          <p class="feat-d">Transform bullet points and rough notes into polished essays and academic reports. Structure, tone, citations — Prime handles the hard parts so you can focus on the thinking.</p>
+          <div class="tags">
+            <span class="tag">Essay drafts</span>
+            <span class="tag">Report structure</span>
+            <span class="tag">Citation guidance</span>
+            <span class="tag">Editing & polish</span>
+          </div>
+        </div>
+        <div class="feat-card rv d2">
+          <div class="feat-ico"><svg width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="17" r="8.5" stroke="currentColor" stroke-width="2"/><path d="M14 12v5.5l3.5 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 4h8M14 4v4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div>
+          <h3 class="feat-t">Study Timer + Pomodoro</h3>
+          <p class="feat-d">Science-backed focus sessions built on the Pomodoro technique. Work in powerful 25-minute sprints with smart break reminders. Build real habits that compound over time.</p>
+          <div class="tags">
+            <span class="tag">Pomodoro cycles</span>
+            <span class="tag">Smart breaks</span>
+            <span class="tag">Focus mode</span>
+            <span class="tag">Session history</span>
+          </div>
+        </div>
+        <div class="feat-card rv d3">
+          <div class="feat-ico"><svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M4 24h20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M7 17v7M12 11v13M17 14v10M22 7v17" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg></div>
+          <h3 class="feat-t">Analytics &amp; Streaks</h3>
+          <p class="feat-d">See exactly how you're progressing. Track study hours, subject coverage, quiz scores, and daily streaks. Stay motivated with visual progress that shows how far you've come.</p>
+          <div class="tags">
+            <span class="tag">Daily streaks</span>
+            <span class="tag">Progress charts</span>
+            <span class="tag">Score tracking</span>
+            <span class="tag">Weekly reports</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="div"></div>
+
+  <!-- PRICING -->
+  <section id="pricing" class="pricing-section">
+    <canvas id="pricingCanvas" class="pricing-canvas"></canvas>
+    <div class="c" style="position:relative;z-index:1;">
+      <div class="sec-hd cx">
+        <div class="chip">Pricing</div>
+        <h2 class="sec-title rv">Simple, student-friendly pricing</h2>
+        <p class="sec-sub rv d1">Start free, upgrade when you need more. No hidden fees, no surprises — ever.</p>
+      </div>
+      <div class="price2-g">
+
+        <!-- FREE -->
+        <div class="price2-card rv">
+          <div class="price2-name">Free</div>
+          <p class="price2-desc">Perfect for exploring what Prime can do before committing.</p>
+          <div class="price2-amt"><span class="price2-dollar">$0</span><span class="price2-per">/mo</span></div>
+          <div class="price2-div"></div>
+          <ul class="price2-feats">
+            <li><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> 3 AI chats per day</li>
+            <li><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> 1 AI report per day</li>
+            <li><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Basic Pomodoro timer</li>
+            <li><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Study analytics</li>
+          </ul>
+          <button class="ripple-btn ripple-btn-secondary" onclick="window.location.href='/login'">Get Started Free</button>
+        </div>
+
+        <!-- BASIC -->
+        <div class="price2-card pop rv d1">
+          <div class="pop2-badge">Most Popular</div>
+          <div class="price2-name">Basic</div>
+          <p class="price2-desc">For students who study regularly and want real AI power.</p>
+          <div class="price2-amt"><span class="price2-dollar">$4</span><span class="price2-per">/mo</span></div>
+          <div class="price2-div"></div>
+          <ul class="price2-feats">
+            <li><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Unlimited AI chat</li>
+            <li><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> 10 AI reports per day</li>
+            <li><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> All features unlocked</li>
+            <li><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Pomodoro mode</li>
+            <li><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Streak tracking</li>
+          </ul>
+          <button class="ripple-btn ripple-btn-primary" onclick="window.location.href='/login'">Start Basic — $4/mo</button>
+        </div>
+
+        <!-- PRO -->
+        <div class="price2-card rv d2">
+          <div class="price2-name">Pro</div>
+          <p class="price2-desc">Unlimited everything for the most serious students.</p>
+          <div class="price2-amt"><span class="price2-dollar">$8</span><span class="price2-per">/mo</span></div>
+          <div class="price2-div"></div>
+          <ul class="price2-feats">
+            <li><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Unlimited everything</li>
+            <li><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Smarter AI (Sonnet)</li>
+            <li><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Priority support</li>
+            <li><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Full analytics dashboard</li>
+            <li><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Weekly progress reports</li>
+          </ul>
+          <button class="ripple-btn ripple-btn-primary" onclick="window.location.href='/login'">Go Pro — $8/mo</button>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <div class="div"></div>
+
+  <!-- FAQ -->
+  <section id="faq">
+    <div class="c">
+      <div class="sec-hd cx">
+        <div class="chip">FAQ</div>
+        <h2 class="sec-title rv">Common questions</h2>
+        <p class="sec-sub rv d1">Everything you need to know before you dive in.</p>
+      </div>
+      <div class="faq-list">
+
+        <div class="faq-item rv">
+          <div class="faq-q" onclick="toggleFaq(this)">
+            <span>How is Prime different from just using ChatGPT?</span>
+            <div class="faq-chev">▼</div>
+          </div>
+          <div class="faq-a">
+            <div class="faq-a-in">Prime is built specifically for students. While ChatGPT is general-purpose, Prime combines a study-focused chatbot with a Pomodoro timer, progress analytics, streak tracking, and a dedicated report writer — all in one place. It's not just chat, it's a complete study system designed around how you actually learn.</div>
+          </div>
+        </div>
+
+        <div class="faq-item rv d1">
+          <div class="faq-q" onclick="toggleFaq(this)">
+            <span>What subjects does Prime support?</span>
+            <div class="faq-chev">▼</div>
+          </div>
+          <div class="faq-a">
+            <div class="faq-a-in">All of them. Prime covers every school and university subject — Mathematics, Sciences, History, Literature, Languages, Economics, Computer Science, and everything in between. If you can study it, Prime can help you with it.</div>
+          </div>
+        </div>
+
+        <div class="faq-item rv d2">
+          <div class="faq-q" onclick="toggleFaq(this)">
+            <span>Is my data private and secure?</span>
+            <div class="faq-chev">▼</div>
+          </div>
+          <div class="faq-a">
+            <div class="faq-a-in">Absolutely. Your conversations, reports, and study data are encrypted and never sold to third parties. Your academic content belongs to you alone. We comply with GDPR, COPPA, and follow strict data privacy principles across every part of the platform.</div>
+          </div>
+        </div>
+
+        <div class="faq-item rv d3">
+          <div class="faq-q" onclick="toggleFaq(this)">
+            <span>Can I cancel my subscription anytime?</span>
+            <div class="faq-chev">▼</div>
+          </div>
+          <div class="faq-a">
+            <div class="faq-a-in">Yes, completely. No lock-in contracts, no cancellation fees. Cancel Basic or Pro from your account settings anytime and you'll retain full access until the end of your current billing period. No questions asked.</div>
+          </div>
+        </div>
+
+        <div class="faq-item rv d4">
+          <div class="faq-q" onclick="toggleFaq(this)">
+            <span>Does Prime work on mobile and tablet?</span>
+            <div class="faq-chev">▼</div>
+          </div>
+          <div class="faq-a">
+            <div class="faq-a-in">Yes — Prime is fully responsive and works great on desktop, tablet, and mobile browser. A dedicated native app with offline support is on the roadmap, so you'll soon be able to study anywhere, with or without a connection.</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <div class="div"></div>
+
+  <!-- FINAL CTA -->
+  <section class="fcta">
+    <div class="c">
+      <div class="fcta-card rv">
+        <div class="chip" style="margin-bottom:24px;">Join 50,000+ students</div>
+        <h2 class="fcta-h">Your best grades<br>start here.</h2>
+        <p class="fcta-p">Stop grinding alone. Let Prime help you study smarter, stay focused, and actually understand what you're learning.</p>
+        <div class="fcta-acts">
+          <a href="/login" class="btn btn-gold btn-lg">Start for Free Today</a>
+          <a href="#pricing" class="btn btn-ghost btn-lg">View Pricing</a>
+        </div>
+        <p class="fcta-note">No credit card required · Cancel anytime · Free plan always available</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-in">
+      <div class="foot-brand">
+        <div class="logo-mark" style="width:28px;height:28px;font-size:13px;">P</div>
+        <span style="font-size:16px;font-weight:700;color:var(--t-primary)">Prime</span>
+        <span style="font-size:13px;color:var(--t-muted);margin-left:2px">· Study Smart</span>
+      </div>
+      <ul class="foot-links">
+        <li><a href="/privacy.html" target="_blank">Privacy Policy</a></li>
+        <li><a href="/terms.html" target="_blank">Terms of Service</a></li>
+        <li><a href="mailto:primelow070@gmail.com">Contact</a></li>
+        <li><a href="#">Blog</a></li>
+      </ul>
+      <div class="foot-copy">© 2025 Prime. All rights reserved.</div>
+    </div>
+  </footer>
+
+</div><!-- /pw -->
+
+<script>
+  // Nav scroll
+  const nav = document.getElementById('nav');
+  window.addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', window.scrollY > 48);
+  }, { passive: true });
+
+  // Mobile nav
+  const toggle = document.getElementById('navToggle');
+  const mnav   = document.getElementById('mnav');
+  toggle.addEventListener('click', () => mnav.classList.toggle('open'));
+  function closeMnav() { mnav.classList.remove('open'); }
+
+  // Smooth scroll on anchor links
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      const href = a.getAttribute('href');
+      if (href === '#') return;
+      e.preventDefault();
+      const target = document.querySelector(href);
+      if (target) {
+        window.scrollTo({ top: target.getBoundingClientRect().top + scrollY - 80, behavior: 'smooth' });
+        closeMnav();
+      }
+    });
+  });
+
+  // Scroll reveal
+  const ro = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('vis'); ro.unobserve(e.target); } });
+  }, { threshold: 0.08, rootMargin: '0px 0px -32px 0px' });
+  document.querySelectorAll('.rv').forEach(el => {
+    if (!el.closest('.hero')) ro.observe(el);
+  });
+
+  // FAQ accordion
+  function toggleFaq(btn) {
+    const item = btn.closest('.faq-item');
+    const ans  = item.querySelector('.faq-a');
+    const open = item.classList.contains('open');
+    document.querySelectorAll('.faq-item').forEach(i => {
+      i.classList.remove('open');
+      i.querySelector('.faq-a').classList.remove('open');
+    });
+    if (!open) { item.classList.add('open'); ans.classList.add('open'); }
+  }
+
+  // Counter animation
+  function animateCount(el) {
+    const target = parseFloat(el.dataset.target);
+    const suffix = el.dataset.suffix || '';
+    const dec    = parseInt(el.dataset.dec  || '0');
+    const dur    = 1800;
+    const start  = performance.now();
+    (function tick(now) {
+      const p = Math.min((now - start) / dur, 1);
+      const v = target * (1 - Math.pow(1 - p, 3));
+      el.textContent = v.toFixed(dec) + suffix;
+      if (p < 1) requestAnimationFrame(tick);
+    })(start);
+  }
+  const co = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { animateCount(e.target); co.unobserve(e.target); } });
+  }, { threshold: 0.5 });
+  document.querySelectorAll('.stat-num[data-target]').forEach(el => co.observe(el));
+
+  // ── PRICING WEBGL SHADER ──
+  (function initPricingShader() {
+    const canvas = document.getElementById('pricingCanvas');
+    if (!canvas) return;
+    const gl = canvas.getContext('webgl');
+    if (!gl) return;
+
+    const vertSrc = `attribute vec2 aPosition; void main(){ gl_Position=vec4(aPosition,0.0,1.0); }`;
+    const fragSrc = `
+      precision highp float;
+      uniform float iTime;
+      uniform vec2 iResolution;
+      mat2 rotate2d(float a){ float c=cos(a),s=sin(a); return mat2(c,-s,s,c); }
+      float variation(vec2 v1,vec2 v2,float str,float spd){ return sin(dot(normalize(v1),normalize(v2))*str+iTime*spd)/100.0; }
+      vec3 paintCircle(vec2 uv,vec2 center,float rad,float width){
+        vec2 diff=center-uv; float len=length(diff);
+        len+=variation(diff,vec2(0.,1.),5.,2.);
+        len-=variation(diff,vec2(1.,0.),5.,2.);
+        float circle=smoothstep(rad-width,rad,len)-smoothstep(rad,rad+width,len);
+        return vec3(circle);
+      }
+      void main(){
+        vec2 uv=gl_FragCoord.xy/iResolution.xy;
+        uv.x*=1.5; uv.x-=0.25;
+        float mask=0.0; float radius=.35; vec2 center=vec2(.5);
+        mask+=paintCircle(uv,center,radius,.035).r;
+        mask+=paintCircle(uv,center,radius-.018,.01).r;
+        mask+=paintCircle(uv,center,radius+.018,.005).r;
+        vec2 v=rotate2d(iTime)*uv;
+        vec3 gold=vec3(0.961,0.659,0.0);
+        vec3 dgreen=vec3(0.0,0.38,0.20);
+        float t=clamp(v.x*0.5+0.5,0.0,1.0);
+        vec3 fg=mix(dgreen,gold,t+v.y*0.28);
+        vec3 bg=vec3(0.0,0.094,0.071);
+        vec3 color=mix(bg,fg,mask);
+        color=mix(color,gold,paintCircle(uv,center,radius,.003).r);
+        gl_FragColor=vec4(color,1.0);
+      }`;
+
+    const compile = (type, src) => {
+      const s = gl.createShader(type);
+      gl.shaderSource(s, src); gl.compileShader(s);
+      if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) console.error(gl.getShaderInfoLog(s));
+      return s;
+    };
+    const prog = gl.createProgram();
+    gl.attachShader(prog, compile(gl.VERTEX_SHADER, vertSrc));
+    gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, fragSrc));
+    gl.linkProgram(prog); gl.useProgram(prog);
+
+    const buf = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]), gl.STATIC_DRAW);
+    const aPos = gl.getAttribLocation(prog, 'aPosition');
+    gl.enableVertexAttribArray(aPos); gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
+
+    const iTimeLoc = gl.getUniformLocation(prog, 'iTime');
+    const iResLoc  = gl.getUniformLocation(prog, 'iResolution');
+
+    const section = canvas.closest('section');
+    const resize = () => {
+      canvas.width  = section ? section.offsetWidth  : canvas.parentElement.offsetWidth;
+      canvas.height = section ? section.offsetHeight : canvas.parentElement.offsetHeight;
+      gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+    };
+    resize();
+    if (typeof ResizeObserver !== 'undefined') {
+      new ResizeObserver(resize).observe(section || canvas.parentElement);
+    }
+    window.addEventListener('resize', resize, { passive: true });
+
+    const render = (t) => {
+      gl.uniform1f(iTimeLoc, t * 0.001);
+      gl.uniform2f(iResLoc, canvas.width, canvas.height);
+      gl.drawArrays(gl.TRIANGLES, 0, 6);
+      requestAnimationFrame(render);
+    };
+    requestAnimationFrame(render);
+  })();
+
+  // ── BEAMS BACKGROUND ──
+  (function initBeams() {
+    const canvas = document.getElementById('beamsCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const MINIMUM_BEAMS = 20;
+    const INTENSITY_OPACITY = 0.7; // subtle
+    let beams = [];
+    let logicalW = 0;
+    let logicalH = 0;
+
+    function createBeam(w, h) {
+      const angle = -35 + Math.random() * 10;
+      return {
+        x: Math.random() * w * 1.5 - w * 0.25,
+        y: Math.random() * h * 1.5 - h * 0.25,
+        width: 30 + Math.random() * 60,
+        length: h * 2.5,
+        angle: angle,
+        speed: 0.6 + Math.random() * 1.2,
+        opacity: 0.12 + Math.random() * 0.16,
+        hue: 40 + Math.random() * 20, // gold/amber to match #F5A800
+        pulse: Math.random() * Math.PI * 2,
+        pulseSpeed: 0.02 + Math.random() * 0.03,
+      };
+    }
+
+    function resetBeam(beam, index, totalBeams) {
+      const column = index % 3;
+      const spacing = logicalW / 3;
+      beam.y = logicalH + 100;
+      beam.x = column * spacing + spacing / 2 + (Math.random() - 0.5) * spacing * 0.5;
+      beam.width = 100 + Math.random() * 100;
+      beam.speed = 0.5 + Math.random() * 0.4;
+      beam.hue = 40 + (index * 20) / totalBeams;
+      beam.opacity = 0.2 + Math.random() * 0.1;
+      return beam;
+    }
+
+    function drawBeam(beam) {
+      ctx.save();
+      ctx.translate(beam.x, beam.y);
+      ctx.rotate((beam.angle * Math.PI) / 180);
+
+      const pulsingOpacity = beam.opacity * (0.8 + Math.sin(beam.pulse) * 0.2) * INTENSITY_OPACITY;
+
+      const gradient = ctx.createLinearGradient(0, 0, 0, beam.length);
+      gradient.addColorStop(0,   `hsla(${beam.hue}, 85%, 65%, 0)`);
+      gradient.addColorStop(0.1, `hsla(${beam.hue}, 85%, 65%, ${pulsingOpacity * 0.5})`);
+      gradient.addColorStop(0.4, `hsla(${beam.hue}, 85%, 65%, ${pulsingOpacity})`);
+      gradient.addColorStop(0.6, `hsla(${beam.hue}, 85%, 65%, ${pulsingOpacity})`);
+      gradient.addColorStop(0.9, `hsla(${beam.hue}, 85%, 65%, ${pulsingOpacity * 0.5})`);
+      gradient.addColorStop(1,   `hsla(${beam.hue}, 85%, 65%, 0)`);
+
+      ctx.fillStyle = gradient;
+      ctx.fillRect(-beam.width / 2, 0, beam.width, beam.length);
+      ctx.restore();
+    }
+
+    function updateCanvasSize() {
+      const dpr = window.devicePixelRatio || 1;
+      logicalW = window.innerWidth;
+      logicalH = window.innerHeight;
+      canvas.width  = logicalW * dpr;
+      canvas.height = logicalH * dpr;
+      canvas.style.width  = logicalW + 'px';
+      canvas.style.height = logicalH + 'px';
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      beams = Array.from({ length: Math.floor(MINIMUM_BEAMS * 1.5) }, () =>
+        createBeam(logicalW, logicalH)
+      );
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, logicalW, logicalH);
+      ctx.filter = 'blur(35px)';
+
+      const totalBeams = beams.length;
+      beams.forEach(function(beam, index) {
+        beam.y -= beam.speed;
+        beam.pulse += beam.pulseSpeed;
+        if (beam.y + beam.length < -100) {
+          resetBeam(beam, index, totalBeams);
+        }
+        drawBeam(beam);
+      });
+
+      requestAnimationFrame(animate);
+    }
+
+    updateCanvasSize();
+    window.addEventListener('resize', function() {
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      updateCanvasSize();
+    }, { passive: true });
+    animate();
+  })();
+
+  // ── RIPPLE BUTTONS ──
+  document.querySelectorAll('.ripple-btn').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      const rect = this.getBoundingClientRect();
+      const size = Math.max(rect.width, rect.height) * 2;
+      const x = e.clientX - rect.left - size / 2;
+      const y = e.clientY - rect.top  - size / 2;
+      const ripple = document.createElement('span');
+      ripple.className = 'ripple-circle';
+      const isPrimary = this.classList.contains('ripple-btn-primary');
+      ripple.style.cssText = `left:${x}px;top:${y}px;width:${size}px;height:${size}px;background:${isPrimary ? 'rgba(0,0,0,0.18)' : 'rgba(255,255,255,0.22)'};animation-duration:600ms;`;
+      this.appendChild(ripple);
+      setTimeout(() => ripple.remove(), 650);
+    });
+  });
+</script>
+</body>
+</html>
