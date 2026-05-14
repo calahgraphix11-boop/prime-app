@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from './AuthContext';
 import en from '../i18n/en';
@@ -31,6 +31,16 @@ export function AppProvider({ children }) {
   const [dailyUsage, setDailyUsage] = useState({ chat_messages: 0, report_rewrites: 0 });
   const [dataLoading, setDataLoading] = useState(false);
 
+  // ── Global timer state ────────────────────────────────────
+  const [activeSession, setActiveSession] = useState(null);
+  const [remaining, setRemaining] = useState(0);
+  const [running, setRunning] = useState(false);
+  const [pomodoroPhase, setPomodoroPhase] = useState("study");
+  const [pomodoroRounds, setPomodoroRounds] = useState(0);
+  const [pendingCompletedSession, setPendingCompletedSession] = useState(null);
+  const intervalRef = useRef(null);
+  const sessionStartTimeRef = useRef(null);
+
   useEffect(() => {
     if (!user) {
       setSessions([]);
@@ -39,6 +49,13 @@ export function AppProvider({ children }) {
       setCourses([]);
       setWeeklyGoalMinutesState(300);
       setDailyUsage({ chat_messages: 0, report_rewrites: 0 });
+      clearInterval(intervalRef.current);
+      setActiveSession(null);
+      setRunning(false);
+      setRemaining(0);
+      setPomodoroPhase("study");
+      setPomodoroRounds(0);
+      setPendingCompletedSession(null);
       return;
     }
     setDataLoading(true);
@@ -80,6 +97,85 @@ export function AppProvider({ children }) {
 
   const toggleLang = () => setLang((l) => (l === 'en' ? 'fr' : 'en'));
 
+  // ── Global timer tick ─────────────────────────────────────
+  useEffect(() => {
+    clearInterval(intervalRef.current);
+    if (!running) return;
+
+    if (remaining > 0) {
+      intervalRef.current = setInterval(() => setRemaining((r) => r - 1), 1000);
+      return () => clearInterval(intervalRef.current);
+    }
+
+    if (!activeSession) return;
+
+    if (activeSession.pomodoroEnabled) {
+      if (pomodoroPhase === "study") {
+        setPomodoroRounds((r) => r + 1);
+        setPomodoroPhase("break");
+        setRemaining(5 * 60);
+      } else {
+        setPomodoroPhase("study");
+        setRemaining(25 * 60);
+      }
+    } else {
+      setRunning(false);
+      setPendingCompletedSession({
+        title: activeSession.title,
+        course: activeSession.course,
+        duration: activeSession.duration,
+        pomodoroEnabled: false,
+        startTime: sessionStartTimeRef.current,
+        endTime: new Date().toISOString(),
+      });
+      setActiveSession(null);
+    }
+  }, [running, remaining, pomodoroPhase, activeSession]);
+
+  // ── Timer controls ────────────────────────────────────────
+  const startTimerSession = (sessionData) => {
+    sessionStartTimeRef.current = new Date().toISOString();
+    setActiveSession(sessionData);
+    setRemaining((sessionData.pomodoroEnabled ? 25 : sessionData.duration) * 60);
+    setRunning(true);
+    setPomodoroPhase("study");
+    setPomodoroRounds(0);
+  };
+
+  const pauseTimer = () => setRunning(false);
+  const resumeTimer = () => setRunning(true);
+
+  const cancelTimer = () => {
+    clearInterval(intervalRef.current);
+    setActiveSession(null);
+    setRunning(false);
+    setRemaining(0);
+    setPomodoroPhase("study");
+    setPomodoroRounds(0);
+  };
+
+  const endTimerSession = () => {
+    clearInterval(intervalRef.current);
+    setRunning(false);
+    let totalMinutes = pomodoroRounds * 25;
+    if (pomodoroPhase === "study") {
+      totalMinutes += Math.floor((25 * 60 - remaining) / 60);
+    }
+    const snap = { title: activeSession.title, course: activeSession.course };
+    setActiveSession(null);
+    setPomodoroPhase("study");
+    setPomodoroRounds(0);
+    if (totalMinutes > 0) {
+      setPendingCompletedSession({
+        ...snap,
+        duration: totalMinutes,
+        pomodoroEnabled: true,
+        startTime: sessionStartTimeRef.current,
+        endTime: new Date().toISOString(),
+      });
+    }
+  };
+
   // ── Sessions ──────────────────────────────────────────────
   const addSession = async (session) => {
     const { data, error } = await supabase
@@ -102,6 +198,29 @@ export function AppProvider({ children }) {
     const { error } = await supabase.from('study_sessions').delete().eq('id', id);
     if (!error) setSessions((prev) => prev.filter((s) => s.id !== id));
   };
+
+  const logSessionAnalytics = async (session) => {
+    if (!user) return;
+    await supabase.from('study_sessions_log').insert({
+      user_id: user.id,
+      session_title: session.title,
+      subject: session.course || session.subject || '',
+      start_time: session.startTime,
+      end_time: session.endTime,
+      duration_minutes: session.duration,
+      pomodoro_enabled: session.pomodoroEnabled || false,
+    });
+  };
+
+  const saveCompletedSession = async (notes) => {
+    if (!pendingCompletedSession) return;
+    const s = pendingCompletedSession;
+    setPendingCompletedSession(null);
+    await addSession({ ...s, notes, status: 'completed' });
+    await logSessionAnalytics(s);
+  };
+
+  const dismissCompletedSession = () => setPendingCompletedSession(null);
 
   // ── Reports ───────────────────────────────────────────────
   const addReport = async (report) => {
@@ -263,6 +382,9 @@ export function AppProvider({ children }) {
       chatRemaining, rewriteRemaining, incrementChat, incrementRewrite,
       todayMinutes, weekMinutes, monthMinutes,
       weeklyData,
+      activeSession, remaining, running, pomodoroPhase, pomodoroRounds,
+      startTimerSession, pauseTimer, resumeTimer, cancelTimer, endTimerSession,
+      pendingCompletedSession, saveCompletedSession, dismissCompletedSession,
     }}>
       {children}
     </AppContext.Provider>

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import { Plus, Trash2, BookOpen, Clock, ChevronDown, Timer, Coffee, MessageCircle, X } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { useAuth } from "../context/AuthContext";
@@ -48,7 +48,11 @@ function CircularTimer({ totalSeconds, remaining, running, phase }) {
 const DURATIONS = [15, 25, 45, 60];
 
 export default function StudySessions() {
-  const { t, sessions, addSession, deleteSession, courses } = useApp();
+  const {
+    t, sessions, deleteSession, courses,
+    activeSession, remaining, running, pomodoroPhase, pomodoroRounds,
+    startTimerSession, pauseTimer, resumeTimer, cancelTimer, endTimerSession,
+  } = useApp();
   const { profile } = useAuth();
 
   const [showForm, setShowForm] = useState(false);
@@ -57,54 +61,10 @@ export default function StudySessions() {
   const [duration, setDuration] = useState(25);
   const [pomodoroEnabled, setPomodoroEnabled] = useState(false);
 
-  const [activeSession, setActiveSession] = useState(null);
-  const [remaining, setRemaining] = useState(0);
-  const [running, setRunning] = useState(false);
-  const [pomodoroPhase, setPomodoroPhase] = useState("study");
-  const [pomodoroRounds, setPomodoroRounds] = useState(0);
-
   const [chatOpen, setChatOpen] = useState(false);
   const [motivation, setMotivation] = useState("");
   const [motivationVisible, setMotivationVisible] = useState(false);
   const motivationTimerRef = useRef(null);
-
-  const [showNotesModal, setShowNotesModal] = useState(false);
-  const [sessionNote, setSessionNote] = useState("");
-  const [pendingSession, setPendingSession] = useState(null);
-
-  const intervalRef = useRef(null);
-
-  useEffect(() => {
-    if (courses.length > 0 && !course) setCourse(courses[0].name);
-  }, [courses]);
-
-  useEffect(() => {
-    clearInterval(intervalRef.current);
-    if (!running) return;
-
-    if (remaining > 0) {
-      intervalRef.current = setInterval(() => setRemaining((r) => r - 1), 1000);
-      return () => clearInterval(intervalRef.current);
-    }
-
-    if (!activeSession) return;
-
-    if (activeSession.pomodoroEnabled) {
-      if (pomodoroPhase === "study") {
-        setPomodoroRounds((r) => r + 1);
-        setPomodoroPhase("break");
-        setRemaining(5 * 60);
-      } else {
-        setPomodoroPhase("study");
-        setRemaining(25 * 60);
-      }
-    } else {
-      setRunning(false);
-      setPendingSession({ title: activeSession.title, course: activeSession.course, duration: activeSession.duration });
-      setActiveSession(null);
-      setShowNotesModal(true);
-    }
-  }, [running, remaining, pomodoroPhase, activeSession]);
 
   const dismissMotivation = () => {
     clearTimeout(motivationTimerRef.current);
@@ -115,11 +75,7 @@ export default function StudySessions() {
   const startSession = () => {
     if (!title.trim()) return;
     const selectedCourse = course || courses[0]?.name || "General";
-    setActiveSession({ title, course: selectedCourse, duration: pomodoroEnabled ? 25 : duration, pomodoroEnabled });
-    setRemaining((pomodoroEnabled ? 25 : duration) * 60);
-    setRunning(true);
-    setPomodoroPhase("study");
-    setPomodoroRounds(0);
+    startTimerSession({ title: title.trim(), course: selectedCourse, duration: pomodoroEnabled ? 25 : duration, pomodoroEnabled });
     setShowForm(false);
 
     if (pomodoroEnabled) {
@@ -141,41 +97,6 @@ export default function StudySessions() {
     setTitle("");
   };
 
-  const cancelActive = () => {
-    clearInterval(intervalRef.current);
-    setActiveSession(null);
-    setRunning(false);
-    setRemaining(0);
-    setPomodoroPhase("study");
-    setPomodoroRounds(0);
-  };
-
-  const endPomodoroSession = () => {
-    clearInterval(intervalRef.current);
-    setRunning(false);
-    let totalMinutes = pomodoroRounds * 25;
-    if (pomodoroPhase === "study") {
-      totalMinutes += Math.floor((25 * 60 - remaining) / 60);
-    }
-    const snap = { title: activeSession.title, course: activeSession.course };
-    setActiveSession(null);
-    setPomodoroPhase("study");
-    setPomodoroRounds(0);
-    if (totalMinutes > 0) {
-      setPendingSession({ ...snap, duration: totalMinutes });
-      setShowNotesModal(true);
-    }
-  };
-
-  const saveSessionWithNote = async () => {
-    if (pendingSession) {
-      await addSession({ ...pendingSession, notes: sessionNote, status: "completed" });
-    }
-    setShowNotesModal(false);
-    setSessionNote("");
-    setPendingSession(null);
-  };
-
   return (
     <div className="space-y-5 pt-2">
       <div className="flex items-center justify-between">
@@ -185,7 +106,7 @@ export default function StudySessions() {
         </div>
         {!activeSession && (
           <button
-            onClick={() => setShowForm(true)}
+            onClick={() => { setShowForm(true); if (courses.length > 0 && !course) setCourse(courses[0].name); }}
             className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-semibold btn-gold shadow-md"
           >
             <Plus size={16} />{t.newSession}
@@ -319,21 +240,21 @@ export default function StudySessions() {
 
           <div className="flex gap-3">
             <button
-              onClick={() => setRunning((r) => !r)}
+              onClick={() => running ? pauseTimer() : resumeTimer()}
               className="flex-1 py-2.5 rounded-xl text-sm font-semibold btn-gold"
             >
               {running ? t.pause : t.resume}
             </button>
             {activeSession.pomodoroEnabled ? (
               <button
-                onClick={endPomodoroSession}
+                onClick={endTimerSession}
                 className="flex-1 py-2.5 rounded-xl text-sm font-medium btn-ghost"
               >
                 {t.endSession}
               </button>
             ) : (
               <button
-                onClick={cancelActive}
+                onClick={cancelTimer}
                 className="flex-1 py-2.5 rounded-xl text-sm font-medium btn-ghost"
               >
                 {t.cancelSession}
@@ -445,38 +366,6 @@ export default function StudySessions() {
           </div>
           <div className="flex-1 overflow-hidden">
             <AIChatbot />
-          </div>
-        </div>
-      )}
-
-      {/* Notes modal */}
-      {showNotesModal && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" style={{ backdropFilter: 'blur(4px)' }}>
-          <div className="glass-elevated rounded-2xl p-6 max-w-sm w-full">
-            <div className="text-center mb-5">
-              <div className="text-4xl mb-2">🎉</div>
-              <h3 className="text-lg font-bold text-white">Session Complete!</h3>
-              {pendingSession && (
-                <p className="text-sm text-white/50 mt-1">
-                  {pendingSession.duration} min · {pendingSession.course}
-                </p>
-              )}
-            </div>
-            <label className="text-sm font-medium text-white/75">{t.sessionNotes}</label>
-            <textarea
-              value={sessionNote}
-              onChange={(e) => setSessionNote(e.target.value)}
-              placeholder={t.addNoteOptional}
-              rows={3}
-              autoFocus
-              className="mt-1.5 w-full px-3 py-2.5 rounded-xl glass-input text-sm resize-none"
-            />
-            <button
-              onClick={saveSessionWithNote}
-              className="w-full mt-4 py-2.5 rounded-xl text-sm font-semibold btn-gold"
-            >
-              {t.saveSession}
-            </button>
           </div>
         </div>
       )}

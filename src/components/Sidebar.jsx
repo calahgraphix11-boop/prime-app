@@ -7,7 +7,7 @@ import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 
 export default function Sidebar({ open, onClose }) {
-  const { darkMode, setDarkMode, toggleLang, t } = useApp();
+  const { darkMode, setDarkMode, toggleLang, t, activeSession, remaining, running } = useApp();
   const { user, profile, signOut } = useAuth();
 
   const displayName = profile?.username || profile?.full_name || user?.email || '';
@@ -96,6 +96,27 @@ export default function Sidebar({ open, onClose }) {
             </NavLink>
           ))}
         </nav>
+
+        {/* Active session mini timer */}
+        {activeSession && (() => {
+          const m = Math.floor(remaining / 60).toString().padStart(2, "0");
+          const s = (remaining % 60).toString().padStart(2, "0");
+          return (
+            <div
+              className="mx-3 mb-2 px-3 py-2.5 rounded-xl flex items-center gap-2.5"
+              style={{ background: 'rgba(245,168,0,0.1)', border: '1px solid rgba(245,168,0,0.25)' }}
+            >
+              <div
+                className={`w-2 h-2 rounded-full flex-shrink-0 ${running ? 'animate-pulse' : ''}`}
+                style={{ background: running ? '#F5A800' : 'rgba(255,255,255,0.3)' }}
+              />
+              <div className="flex-1 min-w-0">
+                <div className="text-xs font-medium truncate" style={{ color: '#F5A800' }}>{activeSession.title}</div>
+                <div className="text-xs font-mono text-white/50">{m}:{s} {running ? '· studying' : '· paused'}</div>
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Bottom controls */}
         <div className="p-4 space-y-1" style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}>
