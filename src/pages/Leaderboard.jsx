@@ -167,7 +167,10 @@ export default function Leaderboard() {
 
     const weekStart = getWeekStart();
 
-    const [{ data: scores }, { data: friendships }] = await Promise.all([
+    const [{ data: allProfiles }, { data: scores }, { data: friendships }] = await Promise.all([
+      supabase
+        .from('profiles')
+        .select('id, username, full_name, avatar_url, is_active, active_status_visible'),
       supabase
         .from('leaderboard_scores')
         .select('user_id, study_minutes, sessions_completed, streak')
@@ -184,39 +187,19 @@ export default function Leaderboard() {
     ));
     setFriendIds(fIds);
 
-    // Build entries from scores (all users who studied this week)
-    const allUserIds = new Set((scores || []).map((s) => s.user_id));
-    allUserIds.add(user.id); // always include current user even with 0 minutes
+    // Build a Map of scores keyed by user_id for O(1) lookup
+    const scoresMap = new Map((scores || []).map((s) => [s.user_id, s]));
 
-    const { data: profiles } = await supabase
-      .from('profiles')
-      .select('id, username, full_name, avatar_url, is_active, active_status_visible')
-      .in('id', [...allUserIds]);
-
-    const profileMap = {};
-    for (const p of (profiles || [])) profileMap[p.id] = p;
-
-    // Use scores as the base so every user with a score appears regardless of profile RLS
-    const scoreEntries = (scores || []).map((s) => ({
-      id: s.user_id,
-      study_minutes: s.study_minutes,
-      sessions_completed: s.sessions_completed,
-      streak: s.user_id === user.id ? streak : (s.streak || 0),
-      ...(profileMap[s.user_id] || {}),
-    }));
-
-    // Ensure current user appears even if they have no score this week
-    if (!scoreEntries.find((e) => e.id === user.id)) {
-      scoreEntries.push({
-        id: user.id,
-        study_minutes: 0,
-        sessions_completed: 0,
-        streak,
-        ...(profileMap[user.id] || {}),
-      });
-    }
-
-    const merged = scoreEntries;
+    // Every profile gets a row; score defaults to 0 if no entry this week
+    const merged = (allProfiles || []).map((p) => {
+      const s = scoresMap.get(p.id);
+      return {
+        ...p,
+        study_minutes: s?.study_minutes || 0,
+        sessions_completed: s?.sessions_completed || 0,
+        streak: p.id === user.id ? streak : (s?.streak || 0),
+      };
+    });
 
     merged.sort((a, b) => b.study_minutes - a.study_minutes);
     setEntries(merged);
