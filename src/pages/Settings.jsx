@@ -1,9 +1,12 @@
 import { useState } from "react";
-import { Plus, Pencil, Trash2, Check, X, BookOpen, Target } from "lucide-react";
+import { Plus, Pencil, Trash2, Check, X, BookOpen, Target, Eye } from "lucide-react";
 import { useApp } from "../context/AppContext";
+import { useAuth } from "../context/AuthContext";
 
 export default function Settings() {
   const { courses, addCourse, renameCourse, deleteCourse, weeklyGoalMinutes, setWeeklyGoal, t } = useApp();
+  const { profile, updateProfile } = useAuth();
+  const activeStatusVisible = profile?.active_status_visible ?? true;
 
   const [newCourseName, setNewCourseName] = useState("");
   const [editingId, setEditingId] = useState(null);
@@ -137,6 +140,31 @@ export default function Settings() {
             style={goalSaved ? { background: '#34d399', color: '#001a10' } : {}}
           >
             {goalSaved ? '✓ Saved' : 'Save'}
+          </button>
+        </div>
+      </div>
+      {/* Privacy */}
+      <div className="glass rounded-2xl p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.08)' }}>
+            <Eye size={16} className="text-white/50" />
+          </div>
+          <h2 className="text-base font-semibold text-white">Privacy</h2>
+        </div>
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <p className="text-sm font-medium text-white/80">Active Status</p>
+            <p className="text-xs text-white/35 mt-0.5">Show friends when you're in a study session</p>
+          </div>
+          <button
+            onClick={() => updateProfile({ active_status_visible: !activeStatusVisible })}
+            className="relative w-11 h-6 rounded-full transition-all flex-shrink-0"
+            style={{ background: activeStatusVisible ? '#F5A800' : 'rgba(255,255,255,0.12)' }}
+          >
+            <span
+              className="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all"
+              style={{ left: activeStatusVisible ? '22px' : '2px' }}
+            />
           </button>
         </div>
       </div>

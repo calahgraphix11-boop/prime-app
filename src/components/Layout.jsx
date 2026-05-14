@@ -3,6 +3,8 @@ import { Menu } from 'lucide-react';
 import Sidebar from './Sidebar';
 import ChatBubble from './ChatBubble';
 import { useApp } from '../context/AppContext';
+import { useAuth } from '../context/AuthContext';
+import { supabase } from '../lib/supabase';
 
 export default function Layout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -13,6 +15,12 @@ export default function Layout({ children }) {
     pendingCompletedSession, saveCompletedSession,
     t,
   } = useApp();
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (!user) return;
+    supabase.from('profiles').update({ is_active: !!activeSession }).eq('id', user.id);
+  }, [activeSession, user?.id]);
 
   useEffect(() => {
     if (pendingCompletedSession) setSessionNote("");

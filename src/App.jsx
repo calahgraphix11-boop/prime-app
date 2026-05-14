@@ -9,6 +9,7 @@ import AIReportWriter from "./pages/AIReportWriter";
 import AIChatbot from "./pages/AIChatbot";
 import Settings from "./pages/Settings";
 import Profile from "./pages/Profile";
+import Friends from "./pages/Friends";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 
@@ -53,6 +54,7 @@ function AppRoutes() {
       <Route path="/report" element={<ProtectedRoute><Layout><AIReportWriter /></Layout></ProtectedRoute>} />
       <Route path="/chat" element={<ProtectedRoute><Layout><AIChatbot /></Layout></ProtectedRoute>} />
       <Route path="/settings" element={<ProtectedRoute><Layout><Settings /></Layout></ProtectedRoute>} />
+      <Route path="/friends" element={<ProtectedRoute><Layout><Friends /></Layout></ProtectedRoute>} />
       <Route path="/profile" element={<ProtectedRoute><Layout><Profile /></Layout></ProtectedRoute>} />
     </Routes>
   );
