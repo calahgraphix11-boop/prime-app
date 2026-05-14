@@ -1,39 +1,46 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Search, Users, Check, X, Clock } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 
 function UserRow({ profile, action }) {
+  const navigate = useNavigate();
   const initials = (profile?.full_name || profile?.username || '?').charAt(0).toUpperCase();
   return (
     <div
       className="flex items-center gap-3 px-4 py-3 rounded-xl"
       style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}
     >
-      <div className="relative flex-shrink-0">
-        <div
-          className="w-9 h-9 rounded-full overflow-hidden flex items-center justify-center text-sm font-bold text-gray-900 select-none"
-          style={{ background: profile?.avatar_url ? 'transparent' : '#F5A800' }}
-        >
-          {profile?.avatar_url ? (
-            <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
-          ) : initials}
+      <button
+        onClick={() => navigate(`/profile/${profile?.id}`)}
+        className="flex items-center gap-3 flex-1 min-w-0 text-left hover:opacity-80 transition-opacity"
+      >
+        <div className="relative flex-shrink-0">
+          <div
+            className="w-9 h-9 rounded-full overflow-hidden flex items-center justify-center text-sm font-bold text-gray-900 select-none"
+            style={{ background: profile?.avatar_url ? 'transparent' : '#F5A800' }}
+          >
+            {profile?.avatar_url ? (
+              <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
+            ) : initials}
+          </div>
+          {profile?.active_status_visible && profile?.is_active && (
+            <span
+              className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2"
+              style={{ background: '#22c55e', borderColor: 'rgba(0,22,12,0.98)' }}
+            />
+          )}
         </div>
-        {profile?.active_status_visible && profile?.is_active && (
-          <span
-            className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2"
-            style={{ background: '#22c55e', borderColor: 'rgba(0,22,12,0.98)' }}
-          />
-        )}
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-white truncate">
-          {profile?.username || profile?.full_name || 'Unknown'}
-        </p>
-        {profile?.username && profile?.full_name && (
-          <p className="text-xs text-white/35 truncate">{profile.full_name}</p>
-        )}
-      </div>
+        <div className="min-w-0">
+          <p className="text-sm font-medium text-white truncate">
+            {profile?.username || profile?.full_name || 'Unknown'}
+          </p>
+          {profile?.username && profile?.full_name && (
+            <p className="text-xs text-white/35 truncate">{profile.full_name}</p>
+          )}
+        </div>
+      </button>
       {action}
     </div>
   );
