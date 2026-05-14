@@ -61,7 +61,13 @@ export default function Friends() {
   const loadFriendships = useCallback(async () => {
     if (!user) return;
     setLoading(true);
-    const { data } = await supabase
+
+    // Verify which user the Supabase client is authenticated as
+    const { data: { user: authUser } } = await supabase.auth.getUser();
+    console.log('[Friends] auth user id:', authUser?.id, '| context user id:', user.id, '| match:', authUser?.id === user.id);
+
+    // Main query: all rows touching this user
+    const { data, error } = await supabase
       .from('friendships')
       .select(`
         id, status, requester_id, receiver_id,
@@ -70,23 +76,38 @@ export default function Friends() {
       `)
       .or(`requester_id.eq.${user.id},receiver_id.eq.${user.id}`);
 
-    if (!data) { setLoading(false); return; }
+    console.log('[Friends] combined query — data:', data, '| error:', error);
+
+    // Separate query specifically for incoming pending requests (receiver_id = user.id)
+    const { data: incomingData, error: incomingError } = await supabase
+      .from('friendships')
+      .select(`
+        id, status, requester_id, receiver_id,
+        requester:profiles!requester_id(id, username, full_name, avatar_url, active_status_visible, is_active)
+      `)
+      .eq('receiver_id', user.id)
+      .eq('status', 'pending');
+
+    console.log('[Friends] receiver_id query — data:', incomingData, '| error:', incomingError);
+
+    if (!data && !incomingData) { setLoading(false); return; }
 
     const accepted = [];
     const incoming = [];
     const sent = new Set();
 
-    for (const row of data) {
+    for (const row of (data || [])) {
       const iAmRequester = row.requester_id === user.id;
       if (row.status === 'accepted') {
         accepted.push({ rowId: row.id, profile: iAmRequester ? row.receiver : row.requester });
-      } else if (row.status === 'pending') {
-        if (iAmRequester) {
-          sent.add(row.receiver_id);
-        } else {
-          incoming.push({ rowId: row.id, profile: row.requester });
-        }
+      } else if (row.status === 'pending' && iAmRequester) {
+        sent.add(row.receiver_id);
       }
+    }
+
+    // Use the dedicated receiver_id query as the source of truth for incoming requests
+    for (const row of (incomingData || [])) {
+      incoming.push({ rowId: row.id, profile: row.requester });
     }
 
     setFriends(accepted);
