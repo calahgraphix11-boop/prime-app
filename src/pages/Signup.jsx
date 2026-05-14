@@ -20,9 +20,13 @@ export default function Signup() {
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
   const [loading, setLoading] = useState(false);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [emailUpdates, setEmailUpdates] = useState(false);
+  const [termsError, setTermsError] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!agreedToTerms) { setTermsError(true); return; }
     setError("");
     setInfo("");
     setLoading(true);
@@ -95,6 +99,68 @@ export default function Signup() {
                   className="mt-1.5 w-full px-3 py-2.5 rounded-xl glass-input text-sm"
                 />
               </div>
+              <div className="space-y-3">
+                {/* Required: terms & privacy */}
+                <label className="flex items-start gap-3 cursor-pointer select-none">
+                  <div className="relative flex-shrink-0 mt-0.5">
+                    <input
+                      type="checkbox"
+                      checked={agreedToTerms}
+                      onChange={(e) => { setAgreedToTerms(e.target.checked); if (e.target.checked) setTermsError(false); }}
+                      className="sr-only"
+                    />
+                    <div
+                      className="w-4 h-4 rounded flex items-center justify-center transition-all"
+                      style={{
+                        border: `1.5px solid ${agreedToTerms ? '#F5A800' : termsError ? 'rgba(239,68,68,0.7)' : 'rgba(255,255,255,0.25)'}`,
+                        backgroundColor: agreedToTerms ? '#F5A800' : 'transparent',
+                      }}
+                    >
+                      {agreedToTerms && (
+                        <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+                          <path d="M1 4L3.5 6.5L9 1" stroke="#0a1a0a" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      )}
+                    </div>
+                  </div>
+                  <span className="text-sm text-white/70 leading-snug">
+                    I agree to the{" "}
+                    <Link to="/terms.html" className="font-medium hover:text-yellow-300 underline underline-offset-2 transition-colors" style={{ color: '#F5A800' }}>Terms of Service</Link>
+                    {" "}and{" "}
+                    <Link to="/privacy.html" className="font-medium hover:text-yellow-300 underline underline-offset-2 transition-colors" style={{ color: '#F5A800' }}>Privacy Policy</Link>
+                  </span>
+                </label>
+                {termsError && (
+                  <p className="text-xs text-red-300 pl-7">You must agree to the Terms of Service and Privacy Policy to create an account.</p>
+                )}
+
+                {/* Optional: marketing emails */}
+                <label className="flex items-start gap-3 cursor-pointer select-none">
+                  <div className="relative flex-shrink-0 mt-0.5">
+                    <input
+                      type="checkbox"
+                      checked={emailUpdates}
+                      onChange={(e) => setEmailUpdates(e.target.checked)}
+                      className="sr-only"
+                    />
+                    <div
+                      className="w-4 h-4 rounded flex items-center justify-center transition-all"
+                      style={{
+                        border: `1.5px solid ${emailUpdates ? '#F5A800' : 'rgba(255,255,255,0.25)'}`,
+                        backgroundColor: emailUpdates ? '#F5A800' : 'transparent',
+                      }}
+                    >
+                      {emailUpdates && (
+                        <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+                          <path d="M1 4L3.5 6.5L9 1" stroke="#0a1a0a" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      )}
+                    </div>
+                  </div>
+                  <span className="text-sm text-white/70 leading-snug">Email me about product updates and resources.</span>
+                </label>
+              </div>
+
               {error && (
                 <p className="text-sm text-red-300 px-3 py-2 rounded-lg" style={{ background: 'rgba(239,68,68,0.18)', border: '1px solid rgba(239,68,68,0.3)' }}>
                   {error}
