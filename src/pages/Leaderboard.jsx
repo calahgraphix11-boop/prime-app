@@ -184,24 +184,39 @@ export default function Leaderboard() {
     ));
     setFriendIds(fIds);
 
-    const scoresMap = {};
-    const userIds = new Set([user.id]);
-    for (const s of (scores || [])) {
-      scoresMap[s.user_id] = s;
-      userIds.add(s.user_id);
-    }
+    // Build entries from scores (all users who studied this week)
+    const allUserIds = new Set((scores || []).map((s) => s.user_id));
+    allUserIds.add(user.id); // always include current user even with 0 minutes
 
     const { data: profiles } = await supabase
       .from('profiles')
       .select('id, username, full_name, avatar_url, is_active, active_status_visible')
-      .in('id', [...userIds]);
+      .in('id', [...allUserIds]);
 
-    const merged = (profiles || []).map((p) => ({
-      ...p,
-      study_minutes: scoresMap[p.id]?.study_minutes || 0,
-      sessions_completed: scoresMap[p.id]?.sessions_completed || 0,
-      streak: p.id === user.id ? streak : (scoresMap[p.id]?.streak || 0),
+    const profileMap = {};
+    for (const p of (profiles || [])) profileMap[p.id] = p;
+
+    // Use scores as the base so every user with a score appears regardless of profile RLS
+    const scoreEntries = (scores || []).map((s) => ({
+      id: s.user_id,
+      study_minutes: s.study_minutes,
+      sessions_completed: s.sessions_completed,
+      streak: s.user_id === user.id ? streak : (s.streak || 0),
+      ...(profileMap[s.user_id] || {}),
     }));
+
+    // Ensure current user appears even if they have no score this week
+    if (!scoreEntries.find((e) => e.id === user.id)) {
+      scoreEntries.push({
+        id: user.id,
+        study_minutes: 0,
+        sessions_completed: 0,
+        streak,
+        ...(profileMap[user.id] || {}),
+      });
+    }
+
+    const merged = scoreEntries;
 
     merged.sort((a, b) => b.study_minutes - a.study_minutes);
     setEntries(merged);
