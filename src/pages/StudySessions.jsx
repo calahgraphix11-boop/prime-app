@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
-import { Plus, Trash2, BookOpen, Clock, ChevronDown, Timer, Coffee } from "lucide-react";
+import { Plus, Trash2, BookOpen, Clock, ChevronDown, Timer, Coffee, MessageCircle, X } from "lucide-react";
 import { useApp } from "../context/AppContext";
+import AIChatbot from "./AIChatbot";
 
 function formatDate(iso) {
   const d = new Date(iso);
@@ -58,6 +59,8 @@ export default function StudySessions() {
   const [running, setRunning] = useState(false);
   const [pomodoroPhase, setPomodoroPhase] = useState("study");
   const [pomodoroRounds, setPomodoroRounds] = useState(0);
+
+  const [chatOpen, setChatOpen] = useState(false);
 
   const [showNotesModal, setShowNotesModal] = useState(false);
   const [sessionNote, setSessionNote] = useState("");
@@ -350,6 +353,54 @@ export default function StudySessions() {
           )}
         </div>
       </div>
+
+      {/* StudyPal FAB */}
+      <button
+        onClick={() => setChatOpen((o) => !o)}
+        className="fixed bottom-6 right-6 z-40 w-12 h-12 rounded-full shadow-lg flex items-center justify-center transition-all"
+        style={chatOpen
+          ? { background: 'rgba(245,168,0,0.15)', border: '1.5px solid #F5A800' }
+          : { background: '#F5A800', border: 'none' }}
+        aria-label="Toggle StudyPal"
+      >
+        {chatOpen
+          ? <X size={18} style={{ color: '#F5A800' }} />
+          : <MessageCircle size={18} style={{ color: '#1a0c00' }} />}
+      </button>
+
+      {/* StudyPal slide-in panel */}
+      {chatOpen && (
+        <div
+          className="fixed top-0 right-0 bottom-0 z-50 flex flex-col"
+          style={{
+            width: 'min(420px, 100vw)',
+            background: 'rgba(0, 18, 8, 0.97)',
+            backdropFilter: 'blur(30px)',
+            WebkitBackdropFilter: 'blur(30px)',
+            borderLeft: '1px solid rgba(255,255,255,0.08)',
+            overflow: 'hidden',
+          }}
+        >
+          <div
+            className="flex items-center justify-between px-4 py-3 flex-shrink-0"
+            style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}
+          >
+            <div className="flex items-center gap-2">
+              <MessageCircle size={15} style={{ color: '#F5A800' }} />
+              <span className="text-sm font-semibold text-white">StudyPal</span>
+            </div>
+            <button
+              onClick={() => setChatOpen(false)}
+              className="p-1.5 rounded-lg text-white/40 hover:text-white hover:bg-white/10 transition-colors"
+            >
+              <X size={15} />
+            </button>
+          </div>
+          <div className="flex-1 overflow-hidden">
+            <AIChatbot />
+          </div>
+        </div>
+      )}
 
       {/* Notes modal */}
       {showNotesModal && (
