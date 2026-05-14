@@ -62,52 +62,52 @@ export default function Friends() {
     if (!user) return;
     setLoading(true);
 
-    // Verify which user the Supabase client is authenticated as
-    const { data: { user: authUser } } = await supabase.auth.getUser();
-    console.log('[Friends] auth user id:', authUser?.id, '| context user id:', user.id, '| match:', authUser?.id === user.id);
-
-    // Main query: all rows touching this user
-    const { data, error } = await supabase
+    // Step 1: flat fetch of all friendship rows touching this user
+    const { data: rows, error: rowsError } = await supabase
       .from('friendships')
-      .select(`
-        id, status, requester_id, receiver_id,
-        requester:profiles!requester_id(id, username, full_name, avatar_url, active_status_visible, is_active),
-        receiver:profiles!receiver_id(id, username, full_name, avatar_url, active_status_visible, is_active)
-      `)
+      .select('id, status, requester_id, receiver_id')
       .or(`requester_id.eq.${user.id},receiver_id.eq.${user.id}`);
 
-    console.log('[Friends] combined query — data:', data, '| error:', error);
+    console.log('[Friends] friendship rows:', rows, '| error:', rowsError);
 
-    // Separate query specifically for incoming pending requests (receiver_id = user.id)
-    const { data: incomingData, error: incomingError } = await supabase
-      .from('friendships')
-      .select(`
-        id, status, requester_id, receiver_id,
-        requester:profiles!requester_id(id, username, full_name, avatar_url, active_status_visible, is_active)
-      `)
-      .eq('receiver_id', user.id)
-      .eq('status', 'pending');
+    if (!rows || rows.length === 0) { setLoading(false); return; }
 
-    console.log('[Friends] receiver_id query — data:', incomingData, '| error:', incomingError);
+    // Step 2: collect all profile IDs we need, then fetch profiles in one query
+    const profileIds = new Set();
+    for (const row of rows) {
+      if (row.requester_id !== user.id) profileIds.add(row.requester_id);
+      if (row.receiver_id !== user.id) profileIds.add(row.receiver_id);
+    }
 
-    if (!data && !incomingData) { setLoading(false); return; }
+    const { data: profiles, error: profilesError } = await supabase
+      .from('profiles')
+      .select('id, username, full_name, avatar_url, active_status_visible, is_active')
+      .in('id', [...profileIds]);
 
+    console.log('[Friends] profiles:', profiles, '| error:', profilesError);
+
+    const profileMap = {};
+    for (const p of (profiles || [])) profileMap[p.id] = p;
+
+    // Step 3: classify rows
     const accepted = [];
     const incoming = [];
     const sent = new Set();
 
-    for (const row of (data || [])) {
+    for (const row of rows) {
       const iAmRequester = row.requester_id === user.id;
-      if (row.status === 'accepted') {
-        accepted.push({ rowId: row.id, profile: iAmRequester ? row.receiver : row.requester });
-      } else if (row.status === 'pending' && iAmRequester) {
-        sent.add(row.receiver_id);
-      }
-    }
+      const otherId = iAmRequester ? row.receiver_id : row.requester_id;
+      const otherProfile = profileMap[otherId];
 
-    // Use the dedicated receiver_id query as the source of truth for incoming requests
-    for (const row of (incomingData || [])) {
-      incoming.push({ rowId: row.id, profile: row.requester });
+      if (row.status === 'accepted') {
+        accepted.push({ rowId: row.id, profile: otherProfile });
+      } else if (row.status === 'pending') {
+        if (iAmRequester) {
+          sent.add(row.receiver_id);
+        } else {
+          incoming.push({ rowId: row.id, profile: otherProfile });
+        }
+      }
     }
 
     setFriends(accepted);
