@@ -52,6 +52,17 @@ Provide a well-structured, polished rewrite. Return only the rewritten content.`
   return generateContent(prompt, model);
 }
 
+const SUPPORT_SYSTEM = "You are Prime's friendly support assistant. You help students with questions about the Prime app. Prime is a student productivity app with these features: StudyPal AI chat, AI Report Writer, Note Summarizer, Study Sessions with Pomodoro timer, Analytics dashboard, and Course Manager. Daily limits are 10 chats, 5 report rewrites, and 5 note summaries on the free plan. Paid plans are $4 Basic and $8 Pro. For payment or account issues you cannot resolve, tell the user to contact the team on WhatsApp. Be concise, friendly, and helpful. Do not answer questions unrelated to the app.";
+
+export async function supportChat(messages) {
+  return callAnthropic(
+    messages.map((m) => ({ role: m.role === 'user' ? 'user' : 'assistant', content: m.content })),
+    'claude-haiku-4-5-20251001',
+    SUPPORT_SYSTEM,
+    512
+  );
+}
+
 export async function chatWithAssistant(messages, model = DEFAULT_MODEL, username) {
   const greeting = username ? `If this is the first message in the conversation, open with "Hey ${username}!" then go straight into your answer.` : '';
   const system = [
