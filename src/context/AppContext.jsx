@@ -11,6 +11,15 @@ export const REPORT_LIMIT = 5;
 
 const today = () => new Date().toISOString().split('T')[0];
 
+const getWeekStart = () => {
+  const now = new Date();
+  const day = now.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  const monday = new Date(now);
+  monday.setDate(now.getDate() + diff);
+  return monday.toISOString().split('T')[0];
+};
+
 const DEFAULT_COURSES = [
   'Mathematics', 'French', 'Biology', 'Physics',
   'History', 'Chemistry', 'English', 'Computer Science',
@@ -212,12 +221,40 @@ export function AppProvider({ children }) {
     });
   };
 
+  const upsertLeaderboardScore = async (durationMinutes, currentStreak) => {
+    if (!user || !durationMinutes) return;
+    const weekStart = getWeekStart();
+    const { data: existing } = await supabase
+      .from('leaderboard_scores')
+      .select('id, study_minutes, sessions_completed')
+      .eq('user_id', user.id)
+      .eq('week_start', weekStart)
+      .maybeSingle();
+    if (existing) {
+      await supabase.from('leaderboard_scores').update({
+        study_minutes: existing.study_minutes + durationMinutes,
+        sessions_completed: existing.sessions_completed + 1,
+        streak: currentStreak,
+        updated_at: new Date().toISOString(),
+      }).eq('id', existing.id);
+    } else {
+      await supabase.from('leaderboard_scores').insert({
+        user_id: user.id,
+        week_start: weekStart,
+        study_minutes: durationMinutes,
+        sessions_completed: 1,
+        streak: currentStreak,
+      });
+    }
+  };
+
   const saveCompletedSession = async (notes) => {
     if (!pendingCompletedSession) return;
     const s = pendingCompletedSession;
     setPendingCompletedSession(null);
     await addSession({ ...s, notes, status: 'completed' });
     await logSessionAnalytics(s);
+    await upsertLeaderboardScore(s.duration, streak);
   };
 
   const dismissCompletedSession = () => setPendingCompletedSession(null);

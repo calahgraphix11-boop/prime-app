@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard, Clock, FileText, MessageCircle,
-  Moon, Sun, Globe, LogOut, X, Settings, UserCircle, HelpCircle, Users,
+  Moon, Sun, Globe, LogOut, X, Settings, UserCircle, HelpCircle, Users, Trophy,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
@@ -22,6 +22,7 @@ export default function Sidebar({ open, onClose }) {
     { to: '/report', icon: FileText, label: t.aiReportWriter },
     { to: '/chat', icon: MessageCircle, label: t.aiChatbot },
     { to: '/friends', icon: Users, label: 'Friends' },
+    { to: '/leaderboard', icon: Trophy, label: 'Leaderboard' },
     { to: '/profile', icon: UserCircle, label: 'Profile' },
     { to: '/settings', icon: Settings, label: t.settings },
   ];
