@@ -125,9 +125,9 @@ export default function Signup() {
                   </div>
                   <span className="text-sm text-white/70 leading-snug">
                     I agree to the{" "}
-                    <Link to="/terms.html" className="font-medium hover:text-yellow-300 underline underline-offset-2 transition-colors" style={{ color: '#F5A800' }}>Terms of Service</Link>
+                    <a href="/terms.html" target="_blank" rel="noreferrer" className="font-medium hover:text-yellow-300 underline underline-offset-2 transition-colors" style={{ color: '#F5A800' }}>Terms of Service</a>
                     {" "}and{" "}
-                    <Link to="/privacy.html" className="font-medium hover:text-yellow-300 underline underline-offset-2 transition-colors" style={{ color: '#F5A800' }}>Privacy Policy</Link>
+                    <a href="/privacy.html" target="_blank" rel="noreferrer" className="font-medium hover:text-yellow-300 underline underline-offset-2 transition-colors" style={{ color: '#F5A800' }}>Privacy Policy</a>
                   </span>
                 </label>
                 {termsError && (
