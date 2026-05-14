@@ -153,6 +153,9 @@ export default function Sidebar({ open, onClose }) {
             <LogOut size={18} />
             {t.logout}
           </button>
+          <p className="text-center text-xs pt-1" style={{ color: 'rgba(255,255,255,0.18)' }}>
+            Prime v1.1.0
+          </p>
         </div>
       </aside>
       {supportOpen && <SupportModal onClose={() => setSupportOpen(false)} />}
