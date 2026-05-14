@@ -57,11 +57,11 @@ export default function Friends() {
     const { data } = await supabase
       .from('friendships')
       .select(`
-        id, status, requester_id, addressee_id,
+        id, status, requester_id, receiver_id,
         requester:profiles!requester_id(id, username, full_name, avatar_url, active_status_visible, is_active),
-        addressee:profiles!addressee_id(id, username, full_name, avatar_url, active_status_visible, is_active)
+        receiver:profiles!receiver_id(id, username, full_name, avatar_url, active_status_visible, is_active)
       `)
-      .or(`requester_id.eq.${user.id},addressee_id.eq.${user.id}`);
+      .or(`requester_id.eq.${user.id},receiver_id.eq.${user.id}`);
 
     if (!data) { setLoading(false); return; }
 
@@ -72,10 +72,10 @@ export default function Friends() {
     for (const row of data) {
       const iAmRequester = row.requester_id === user.id;
       if (row.status === 'accepted') {
-        accepted.push({ rowId: row.id, profile: iAmRequester ? row.addressee : row.requester });
+        accepted.push({ rowId: row.id, profile: iAmRequester ? row.receiver : row.requester });
       } else if (row.status === 'pending') {
         if (iAmRequester) {
-          sent.add(row.addressee_id);
+          sent.add(row.receiver_id);
         } else {
           incoming.push({ rowId: row.id, profile: row.requester });
         }
@@ -111,7 +111,7 @@ export default function Friends() {
   const sendRequest = async (addresseeId) => {
     const { error } = await supabase
       .from('friendships')
-      .insert({ requester_id: user.id, addressee_id: addresseeId, status: 'pending' });
+      .insert({ requester_id: user.id, receiver_id: addresseeId, status: 'pending' });
     if (!error) setSentIds((prev) => new Set([...prev, addresseeId]));
   };
 
