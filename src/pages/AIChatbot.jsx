@@ -170,16 +170,29 @@ export default function AIChatbot() {
         </div>
 
         <div className="flex-1 flex items-center justify-center p-6">
-          <div className="glass rounded-2xl p-8 max-w-sm w-full text-center" style={{ border: '1px solid rgba(245,168,0,0.25)' }}>
-            <div className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center" style={{ background: 'rgba(52,211,153,0.12)', border: '1px solid rgba(52,211,153,0.25)' }}>
-              <MessageCircle size={24} style={{ color: '#34d399' }} />
+          {chatRemaining === 0 ? (
+            <div className="glass rounded-2xl p-8 max-w-sm w-full text-center" style={{ border: '1px solid rgba(239,68,68,0.3)' }}>
+              <div className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center" style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.25)' }}>
+                <MessageCircle size={24} style={{ color: '#f87171' }} />
+              </div>
+              <h2 className="text-lg font-bold text-white mb-2">Daily Limit Reached</h2>
+              <p className="text-sm text-white/50 leading-relaxed">You've reached your daily limit — upgrade to Pro for more.</p>
+              <div className="mt-5 px-4 py-2 rounded-full text-xs font-semibold inline-block" style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171' }}>
+                {10} / {10} messages used today
+              </div>
             </div>
-            <h2 className="text-lg font-bold text-white mb-2">AI Features Coming Soon</h2>
-            <p className="text-sm text-white/50 leading-relaxed">StudyPal is almost ready. Stay tuned — AI-powered chat will be live shortly!</p>
-            <div className="mt-5 px-4 py-2 rounded-full text-xs font-semibold inline-block" style={{ background: 'rgba(245,168,0,0.12)', border: '1px solid rgba(245,168,0,0.3)', color: '#F5A800' }}>
-              Coming Soon
+          ) : (
+            <div className="glass rounded-2xl p-8 max-w-sm w-full text-center" style={{ border: '1px solid rgba(245,168,0,0.25)' }}>
+              <div className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center" style={{ background: 'rgba(52,211,153,0.12)', border: '1px solid rgba(52,211,153,0.25)' }}>
+                <MessageCircle size={24} style={{ color: '#34d399' }} />
+              </div>
+              <h2 className="text-lg font-bold text-white mb-2">AI Features Coming Soon</h2>
+              <p className="text-sm text-white/50 leading-relaxed">StudyPal is almost ready. Stay tuned — AI-powered chat will be live shortly!</p>
+              <div className="mt-5 px-4 py-2 rounded-full text-xs font-semibold inline-block" style={{ background: 'rgba(245,168,0,0.12)', border: '1px solid rgba(245,168,0,0.3)', color: '#F5A800' }}>
+                Coming Soon
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>

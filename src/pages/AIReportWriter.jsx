@@ -109,16 +109,29 @@ export default function AIReportWriter() {
           </div>
         </div>
 
-        <div className="rounded-2xl p-6 text-center" style={{ background: 'rgba(52,211,153,0.06)', border: '1px solid rgba(52,211,153,0.2)' }}>
-          <div className="w-12 h-12 rounded-xl mx-auto mb-3 flex items-center justify-center" style={{ background: 'rgba(245,168,0,0.12)', border: '1px solid rgba(245,168,0,0.25)' }}>
-            <Sparkles size={20} style={{ color: '#F5A800' }} />
+        {rewriteRemaining === 0 ? (
+          <div className="rounded-2xl p-6 text-center" style={{ background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.25)' }}>
+            <div className="w-12 h-12 rounded-xl mx-auto mb-3 flex items-center justify-center" style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.25)' }}>
+              <Sparkles size={20} style={{ color: '#f87171' }} />
+            </div>
+            <h3 className="text-base font-bold text-white mb-1.5">Daily Limit Reached</h3>
+            <p className="text-sm text-white/50 leading-relaxed">You've reached your daily limit — upgrade to Pro for more.</p>
+            <div className="mt-4 px-4 py-1.5 rounded-full text-xs font-semibold inline-block" style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171' }}>
+              {5} / {5} rewrites used today
+            </div>
           </div>
-          <h3 className="text-base font-bold text-white mb-1.5">AI Features Coming Soon</h3>
-          <p className="text-sm text-white/50 leading-relaxed">The AI Report Writer will be live shortly. Stay tuned!</p>
-          <div className="mt-4 px-4 py-1.5 rounded-full text-xs font-semibold inline-block" style={{ background: 'rgba(245,168,0,0.12)', border: '1px solid rgba(245,168,0,0.3)', color: '#F5A800' }}>
-            Coming Soon
+        ) : (
+          <div className="rounded-2xl p-6 text-center" style={{ background: 'rgba(52,211,153,0.06)', border: '1px solid rgba(52,211,153,0.2)' }}>
+            <div className="w-12 h-12 rounded-xl mx-auto mb-3 flex items-center justify-center" style={{ background: 'rgba(245,168,0,0.12)', border: '1px solid rgba(245,168,0,0.25)' }}>
+              <Sparkles size={20} style={{ color: '#F5A800' }} />
+            </div>
+            <h3 className="text-base font-bold text-white mb-1.5">AI Features Coming Soon</h3>
+            <p className="text-sm text-white/50 leading-relaxed">The AI Report Writer will be live shortly. Stay tuned!</p>
+            <div className="mt-4 px-4 py-1.5 rounded-full text-xs font-semibold inline-block" style={{ background: 'rgba(245,168,0,0.12)', border: '1px solid rgba(245,168,0,0.3)', color: '#F5A800' }}>
+              Coming Soon
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Report History */}
