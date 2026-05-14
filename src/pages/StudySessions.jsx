@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { Plus, Trash2, BookOpen, Clock, ChevronDown, Timer, Coffee, MessageCircle, X } from "lucide-react";
 import { useApp } from "../context/AppContext";
+import { useAuth } from "../context/AuthContext";
+import { generateContent, DEFAULT_MODEL } from "../lib/gemini";
 import AIChatbot from "./AIChatbot";
 
 function formatDate(iso) {
@@ -47,6 +49,7 @@ const DURATIONS = [15, 25, 45, 60];
 
 export default function StudySessions() {
   const { t, sessions, addSession, deleteSession, courses } = useApp();
+  const { profile } = useAuth();
 
   const [showForm, setShowForm] = useState(false);
   const [title, setTitle] = useState("");
@@ -61,6 +64,9 @@ export default function StudySessions() {
   const [pomodoroRounds, setPomodoroRounds] = useState(0);
 
   const [chatOpen, setChatOpen] = useState(false);
+  const [motivation, setMotivation] = useState("");
+  const [motivationVisible, setMotivationVisible] = useState(false);
+  const motivationTimerRef = useRef(null);
 
   const [showNotesModal, setShowNotesModal] = useState(false);
   const [sessionNote, setSessionNote] = useState("");
@@ -100,6 +106,12 @@ export default function StudySessions() {
     }
   }, [running, remaining, pomodoroPhase, activeSession]);
 
+  const dismissMotivation = () => {
+    clearTimeout(motivationTimerRef.current);
+    setMotivationVisible(false);
+    setTimeout(() => setMotivation(""), 500);
+  };
+
   const startSession = () => {
     if (!title.trim()) return;
     const selectedCourse = course || courses[0]?.name || "General";
@@ -109,6 +121,23 @@ export default function StudySessions() {
     setPomodoroPhase("study");
     setPomodoroRounds(0);
     setShowForm(false);
+
+    if (pomodoroEnabled) {
+      const name = profile?.full_name || profile?.username || "you";
+      const sessionTitle = title.trim();
+      generateContent(
+        `Generate a short, funny but locked-in motivational message for ${name} who is about to study ${sessionTitle}. Keep it under 2 sentences. Be creative and different every time. No hashtags, no emojis.`,
+        DEFAULT_MODEL
+      ).then((msg) => {
+        setMotivation(msg);
+        setMotivationVisible(true);
+        motivationTimerRef.current = setTimeout(() => {
+          setMotivationVisible(false);
+          setTimeout(() => setMotivation(""), 500);
+        }, 6000);
+      }).catch(() => {});
+    }
+
     setTitle("");
   };
 
@@ -353,6 +382,24 @@ export default function StudySessions() {
           )}
         </div>
       </div>
+
+      {/* Motivational toast */}
+      {motivation && (
+        <div
+          className="fixed top-4 left-1/2 z-50 max-w-sm w-full px-4"
+          style={{ transform: 'translateX(-50%)', transition: 'opacity 500ms ease', opacity: motivationVisible ? 1 : 0 }}
+        >
+          <div
+            className="flex items-start gap-3 px-4 py-3 rounded-2xl"
+            style={{ background: 'rgba(0,18,8,0.92)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid rgba(245,168,0,0.35)', boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}
+          >
+            <p className="flex-1 text-sm text-white/90 leading-snug">{motivation}</p>
+            <button onClick={dismissMotivation} className="flex-shrink-0 text-white/35 hover:text-white/70 transition-colors mt-0.5">
+              <X size={14} />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* StudyPal FAB */}
       <button
