@@ -1,5 +1,23 @@
-import { useState, useEffect } from 'react';
-import { Menu } from 'lucide-react';
+/*
+  -- Run this in Supabase SQL Editor to create the notifications table:
+
+  create table if not exists notifications (
+    id uuid primary key default gen_random_uuid(),
+    user_id uuid references auth.users(id) on delete cascade not null,
+    message text not null,
+    is_read boolean default false not null,
+    created_at timestamptz default now() not null
+  );
+  alter table notifications enable row level security;
+  create policy "Users can read own notifications" on notifications
+    for select using (auth.uid() = user_id);
+  create policy "Anyone can insert notifications" on notifications
+    for insert with check (true);
+  create policy "Users can update own notifications" on notifications
+    for update using (auth.uid() = user_id);
+*/
+import { useState, useEffect, useRef } from 'react';
+import { Menu, Bell } from 'lucide-react';
 import Sidebar from './Sidebar';
 import ChatBubble from './ChatBubble';
 import { useApp } from '../context/AppContext';
@@ -9,6 +27,9 @@ import { supabase } from '../lib/supabase';
 export default function Layout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sessionNote, setSessionNote] = useState("");
+  const [notifications, setNotifications] = useState([]);
+  const [bellOpen, setBellOpen] = useState(false);
+  const bellRef = useRef(null);
 
   const {
     activeSession, remaining, running,
@@ -25,6 +46,54 @@ export default function Layout({ children }) {
   useEffect(() => {
     if (pendingCompletedSession) setSessionNote("");
   }, [pendingCompletedSession]);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from('notifications')
+      .select('id, message, is_read, created_at')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(20)
+      .then(({ data }) => setNotifications(data || []));
+  }, [user?.id]);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    if (!bellOpen) return;
+    const handler = (e) => {
+      if (bellRef.current && !bellRef.current.contains(e.target)) setBellOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [bellOpen]);
+
+  const unreadCount = notifications.filter((n) => !n.is_read).length;
+
+  const handleBellClick = async () => {
+    const opening = !bellOpen;
+    setBellOpen(opening);
+    if (opening && unreadCount > 0) {
+      await supabase
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('user_id', user.id)
+        .eq('is_read', false);
+      setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
+    }
+  };
+
+  const formatTime = (iso) => {
+    const d = new Date(iso);
+    const now = new Date();
+    const diffMs = now - d;
+    const diffMins = Math.floor(diffMs / 60000);
+    if (diffMins < 1) return 'just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `${diffHours}h ago`;
+    return d.toLocaleDateString();
+  };
 
   const mins = Math.floor(remaining / 60).toString().padStart(2, "0");
   const secs = (remaining % 60).toString().padStart(2, "0");
@@ -65,6 +134,69 @@ export default function Layout({ children }) {
                 <span className="text-white/50 max-w-[100px] truncate hidden sm:inline">{activeSession.title}</span>
               </div>
             )}
+
+            {/* Bell */}
+            <div ref={bellRef} className="relative">
+              <button
+                onClick={handleBellClick}
+                className="relative p-2 rounded-lg transition-colors"
+                style={{ background: 'rgba(255,255,255,0.1)' }}
+              >
+                <Bell size={20} className="text-white" />
+                {unreadCount > 0 && (
+                  <span
+                    className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full"
+                    style={{ background: '#ef4444', boxShadow: '0 0 0 2px rgba(0,20,10,0.8)' }}
+                  />
+                )}
+              </button>
+
+              {bellOpen && (
+                <div
+                  className="absolute right-0 top-full mt-2 w-72 rounded-2xl z-50 overflow-hidden"
+                  style={{
+                    background: 'rgba(0, 22, 12, 0.97)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    backdropFilter: 'blur(20px)',
+                    WebkitBackdropFilter: 'blur(20px)',
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+                  }}
+                >
+                  <div
+                    className="px-4 py-3"
+                    style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}
+                  >
+                    <p className="text-sm font-semibold text-white">Notifications</p>
+                  </div>
+
+                  <div className="max-h-72 overflow-y-auto">
+                    {notifications.length === 0 ? (
+                      <p className="text-xs text-white/30 text-center py-8">No notifications yet</p>
+                    ) : (
+                      notifications.map((n) => (
+                        <div
+                          key={n.id}
+                          className="px-4 py-3 flex items-start gap-3"
+                          style={{
+                            borderBottom: '1px solid rgba(255,255,255,0.04)',
+                            background: n.is_read ? 'transparent' : 'rgba(245,168,0,0.05)',
+                          }}
+                        >
+                          <div
+                            className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0"
+                            style={{ background: n.is_read ? 'rgba(255,255,255,0.1)' : '#F5A800' }}
+                          />
+                          <div className="min-w-0">
+                            <p className="text-xs text-white/80 leading-relaxed">{n.message}</p>
+                            <p className="text-xs text-white/30 mt-0.5">{formatTime(n.created_at)}</p>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </header>
 

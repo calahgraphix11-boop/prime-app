@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Users, Check, X, Clock } from 'lucide-react';
+import { Search, Users, Clock } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 
@@ -47,7 +47,7 @@ function UserRow({ profile, action }) {
 }
 
 export default function Friends() {
-  const { user } = useAuth();
+  const { user, profile: currentProfile } = useAuth();
 
   const [tab, setTab] = useState('friends');
   const [query, setQuery] = useState('');
@@ -143,14 +143,19 @@ export default function Friends() {
     if (!error) setSentIds((prev) => new Set([...prev, addresseeId]));
   };
 
-  const accept = async (rowId, profile) => {
+  const accept = async (rowId, requesterProfile) => {
     const { error } = await supabase
       .from('friendships')
       .update({ status: 'accepted' })
       .eq('id', rowId);
     if (!error) {
       setRequests((prev) => prev.filter((r) => r.rowId !== rowId));
-      setFriends((prev) => [...prev, { rowId, profile }]);
+      setFriends((prev) => [...prev, { rowId, profile: requesterProfile }]);
+      const accepterName = currentProfile?.username || currentProfile?.full_name || 'Someone';
+      await supabase.from('notifications').insert({
+        user_id: requesterProfile.id,
+        message: `${accepterName} accepted your friend request.`,
+      });
     }
   };
 
@@ -279,22 +284,20 @@ export default function Friends() {
               key={rowId}
               profile={profile}
               action={
-                <div className="flex gap-1 flex-shrink-0">
+                <div className="flex gap-2 flex-shrink-0">
                   <button
                     onClick={() => accept(rowId, profile)}
-                    className="p-2 rounded-lg transition-colors hover:bg-white/8"
-                    style={{ color: '#34d399' }}
-                    title="Accept"
+                    className="text-xs font-semibold px-3 py-1.5 rounded-full transition-all hover:opacity-85"
+                    style={{ background: '#F5A800', color: '#111' }}
                   >
-                    <Check size={16} />
+                    Accept
                   </button>
                   <button
                     onClick={() => decline(rowId)}
-                    className="p-2 rounded-lg transition-colors hover:bg-red-500/10"
-                    style={{ color: '#f87171' }}
-                    title="Decline"
+                    className="text-xs font-medium px-3 py-1.5 rounded-full transition-colors hover:bg-white/10"
+                    style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.4)' }}
                   >
-                    <X size={16} />
+                    Decline
                   </button>
                 </div>
               }
