@@ -42,10 +42,17 @@ function ProtectedRoute({ children }) {
   return children;
 }
 
+function ExternalRedirect({ to }) {
+  window.location.href = to;
+  return null;
+}
+
 function AppRoutes() {
   const { user } = useAuth();
   return (
     <Routes>
+      <Route path="/terms" element={<ExternalRedirect to="/terms.html" />} />
+      <Route path="/privacy" element={<ExternalRedirect to="/privacy.html" />} />
       <Route path="/login" element={user ? <Navigate to="/" replace /> : <Login />} />
       <Route path="/signup" element={user ? <Navigate to="/" replace /> : <Signup />} />
       <Route path="/" element={<ProtectedRoute><Layout><Dashboard /></Layout></ProtectedRoute>} />
