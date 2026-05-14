@@ -88,17 +88,81 @@ export default function ChatBubble() {
             </button>
           </div>
 
-          <div className="flex-1 flex items-center justify-center p-5">
-            <div className="text-center">
-              <div className="w-12 h-12 rounded-2xl mx-auto mb-3 flex items-center justify-center" style={{ background: 'rgba(52,211,153,0.12)', border: '1px solid rgba(52,211,153,0.25)' }}>
-                <MessageCircle size={20} style={{ color: '#34d399' }} />
+          <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
+            {messages.length === 0 && !loading && (
+              <div className="flex flex-col items-center justify-center h-full gap-4 text-center">
+                <p className="text-xs text-white/40">{t.askAnything || 'Ask me anything about your studies'}</p>
+                <div className="flex flex-wrap gap-2 justify-center">
+                  {chips.map((chip) => (
+                    <button
+                      key={chip}
+                      onClick={() => send(chip)}
+                      className="px-3 py-1.5 rounded-full text-xs text-white/70 hover:text-white transition-all hover:bg-white/10"
+                      style={{ border: '1px solid rgba(255,255,255,0.12)' }}
+                    >
+                      {chip}
+                    </button>
+                  ))}
+                </div>
               </div>
-              <p className="text-sm font-semibold text-white mb-1">AI Features Coming Soon</p>
-              <p className="text-xs text-white/45 leading-relaxed">StudyPal will be live shortly.<br />Stay tuned!</p>
-              <div className="mt-4 px-3 py-1 rounded-full text-xs font-semibold inline-block" style={{ background: 'rgba(245,168,0,0.12)', border: '1px solid rgba(245,168,0,0.3)', color: '#F5A800' }}>
-                Coming Soon
+            )}
+            {messages.map((m, i) => (
+              <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                <div
+                  className="max-w-[80%] px-3 py-2 rounded-2xl text-xs leading-relaxed whitespace-pre-wrap"
+                  style={
+                    m.role === 'user'
+                      ? { background: '#F5A800', color: '#111' }
+                      : { background: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.88)', border: '1px solid rgba(255,255,255,0.08)' }
+                  }
+                >
+                  {m.content}
+                </div>
               </div>
-            </div>
+            ))}
+            {loading && (
+              <div className="flex justify-start">
+                <div className="px-3 py-2 rounded-2xl text-xs" style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                  <span className="text-white/40 animate-pulse">Thinking…</span>
+                </div>
+              </div>
+            )}
+            <div ref={bottomRef} />
+          </div>
+
+          <div className="px-3 py-3 flex-shrink-0" style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+            {chatRemaining === 0 ? (
+              <p className="text-xs text-center py-1" style={{ color: '#f87171' }}>Daily limit reached</p>
+            ) : (
+              <div
+                className="flex items-end gap-2 rounded-xl px-3 py-2"
+                style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}
+              >
+                <textarea
+                  rows={1}
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
+                  placeholder={t.chatPlaceholder || 'Ask anything…'}
+                  className="flex-1 bg-transparent text-xs text-white placeholder-white/30 resize-none outline-none"
+                  style={{ maxHeight: '80px' }}
+                />
+                <button
+                  onClick={toggleVoice}
+                  className={`p-1 rounded-lg transition-colors ${listening ? 'text-red-400' : 'text-white/40 hover:text-white'}`}
+                >
+                  {listening ? <MicOff size={14} /> : <Mic size={14} />}
+                </button>
+                <button
+                  onClick={() => send()}
+                  disabled={!input.trim() || loading}
+                  className="p-1 rounded-lg disabled:opacity-30"
+                  style={{ color: '#F5A800' }}
+                >
+                  <Send size={14} />
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}

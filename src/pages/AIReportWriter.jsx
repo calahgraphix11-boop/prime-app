@@ -121,18 +121,47 @@ export default function AIReportWriter() {
             </div>
           </div>
         ) : (
-          <div className="rounded-2xl p-6 text-center" style={{ background: 'rgba(52,211,153,0.06)', border: '1px solid rgba(52,211,153,0.2)' }}>
-            <div className="w-12 h-12 rounded-xl mx-auto mb-3 flex items-center justify-center" style={{ background: 'rgba(245,168,0,0.12)', border: '1px solid rgba(245,168,0,0.25)' }}>
-              <Sparkles size={20} style={{ color: '#F5A800' }} />
-            </div>
-            <h3 className="text-base font-bold text-white mb-1.5">AI Features Coming Soon</h3>
-            <p className="text-sm text-white/50 leading-relaxed">The AI Report Writer will be live shortly. Stay tuned!</p>
-            <div className="mt-4 px-4 py-1.5 rounded-full text-xs font-semibold inline-block" style={{ background: 'rgba(245,168,0,0.12)', border: '1px solid rgba(245,168,0,0.3)', color: '#F5A800' }}>
-              Coming Soon
-            </div>
-          </div>
+          <button
+            onClick={handleRewrite}
+            disabled={!content.trim() || loading}
+            className="w-full py-3 rounded-xl text-sm font-semibold btn-gold flex items-center justify-center gap-2 disabled:opacity-50"
+          >
+            {loading ? (
+              <>
+                <span className="w-4 h-4 border-2 border-gray-900/30 border-t-gray-900 rounded-full animate-spin inline-block" />
+                Rewriting…
+              </>
+            ) : (
+              <><Sparkles size={16} /> Rewrite with AI</>
+            )}
+          </button>
         )}
       </div>
+
+      {error && (
+        <p className="text-sm px-1" style={{ color: '#f87171' }}>{error}</p>
+      )}
+
+      {result && (
+        <div className="glass rounded-2xl p-5 space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-white">Result</h3>
+            <button
+              onClick={handleCopy}
+              className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg btn-ghost"
+            >
+              {copied ? <Check size={13} /> : <Copy size={13} />}
+              {copied ? 'Copied' : 'Copy'}
+            </button>
+          </div>
+          <div
+            className="p-4 rounded-xl text-sm text-white/80 whitespace-pre-wrap leading-relaxed max-h-96 overflow-y-auto"
+            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}
+          >
+            {result}
+          </div>
+        </div>
+      )}
 
       {/* Report History */}
       <div>

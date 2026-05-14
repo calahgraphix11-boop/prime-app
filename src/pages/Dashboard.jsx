@@ -1,5 +1,9 @@
-import { Clock, TrendingUp, FileText, MessageCircle, BookOpen, Flame } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip } from "recharts";
+import { useState, useMemo } from "react";
+import { Clock, Flame, BookOpen, Zap, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import {
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip,
+  PieChart, Pie, Cell,
+} from "recharts";
 import { useApp } from "../context/AppContext";
 
 function formatTime(minutes) {
@@ -9,21 +13,22 @@ function formatTime(minutes) {
   return m > 0 ? `${h}h ${m}m` : `${h}h`;
 }
 
-function StatCard({ icon: Icon, label, value, iconBg, iconColor }) {
-  return (
-    <div className="glass rounded-2xl p-5 flex items-center justify-between">
-      <div>
-        <div className="text-sm text-white/55 mb-1">{label}</div>
-        <div className="text-3xl font-bold text-white">{value}</div>
-      </div>
-      <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0" style={{ background: iconBg }}>
-        <Icon size={22} style={{ color: iconColor }} />
-      </div>
-    </div>
-  );
+function formatDate(dateStr) {
+  const d = new Date(dateStr);
+  const diff = Math.floor((Date.now() - d) / 86400000);
+  if (diff === 0) return "Today";
+  if (diff === 1) return "Yesterday";
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
-const GlassTooltip = ({ active, payload, label }) => {
+function calcTrend(curr, prev) {
+  if (prev === 0) return curr > 0 ? 100 : 0;
+  return Math.round(((curr - prev) / prev) * 100);
+}
+
+const DONUT_COLORS = ["#F5A800", "#34d399", "#a78bfa", "#f472b6", "#60a5fa", "#fb923c", "#e879f9", "#4ade80"];
+
+function GlassTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
   return (
     <div className="glass-elevated rounded-xl px-3 py-2 text-xs text-white">
@@ -31,133 +36,367 @@ const GlassTooltip = ({ active, payload, label }) => {
       <div className="text-white/70">{payload[0].value} min</div>
     </div>
   );
-};
+}
+
+function DonutTooltip({ active, payload }) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="glass-elevated rounded-xl px-3 py-2 text-xs text-white">
+      <div className="font-semibold">{payload[0].name}</div>
+      <div className="text-white/70">{formatTime(payload[0].value)}</div>
+    </div>
+  );
+}
+
+function TrendBadge({ trend }) {
+  if (trend === 0) {
+    return (
+      <span
+        className="flex items-center gap-0.5 text-xs font-medium px-2 py-0.5 rounded-full"
+        style={{ background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.38)" }}
+      >
+        <Minus size={9} /> 0%
+      </span>
+    );
+  }
+  const up = trend > 0;
+  return (
+    <span
+      className="flex items-center gap-0.5 text-xs font-semibold px-2 py-0.5 rounded-full"
+      style={{
+        background: up ? "rgba(52,211,153,0.15)" : "rgba(248,113,113,0.15)",
+        color: up ? "#34d399" : "#f87171",
+      }}
+    >
+      {up ? <TrendingUp size={9} /> : <TrendingDown size={9} />}
+      {Math.abs(trend)}%
+    </span>
+  );
+}
+
+function StatCard({ icon: Icon, label, value, iconColor, iconBg, borderColor, trend }) {
+  return (
+    <div
+      className="glass rounded-2xl p-4 flex flex-col gap-3"
+      style={{
+        borderLeft: `3px solid ${borderColor}`,
+        boxShadow: `0 4px 20px ${borderColor}20`,
+      }}
+    >
+      <div className="flex items-start justify-between">
+        <div
+          className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+          style={{ background: iconBg }}
+        >
+          <Icon size={17} style={{ color: iconColor }} />
+        </div>
+        <TrendBadge trend={trend} />
+      </div>
+      <div>
+        <div className="text-2xl font-bold text-white leading-tight">{value}</div>
+        <div className="text-xs text-white/50 mt-0.5">{label}</div>
+      </div>
+    </div>
+  );
+}
 
 export default function Dashboard() {
-  const {
-    t, sessions, reports, chatSessions,
-    todayMinutes, weekMinutes, monthMinutes, weeklyData,
-    streak, weeklyGoalMinutes,
-  } = useApp();
+  const { sessions, reports, chatSessions, streak } = useApp();
+  const [period, setPeriod] = useState("7d");
+  const periodDays = period === "7d" ? 7 : 30;
+
+  const cutoff = useMemo(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - periodDays);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }, [periodDays]);
+
+  const prevCutoff = useMemo(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - periodDays * 2);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }, [periodDays]);
+
+  const periodSessions = useMemo(
+    () => sessions.filter((s) => new Date(s.date) >= cutoff),
+    [sessions, cutoff]
+  );
+
+  const prevSessions = useMemo(
+    () => sessions.filter((s) => { const d = new Date(s.date); return d >= prevCutoff && d < cutoff; }),
+    [sessions, prevCutoff, cutoff]
+  );
+
+  const totalMinutes = useMemo(
+    () => periodSessions.reduce((sum, s) => sum + s.duration, 0),
+    [periodSessions]
+  );
+
+  const prevMinutes = useMemo(
+    () => prevSessions.reduce((sum, s) => sum + s.duration, 0),
+    [prevSessions]
+  );
+
+  const aiUsed = useMemo(() => {
+    const r = reports.filter((r) => new Date(r.date) >= cutoff).length;
+    const c = chatSessions.filter((c) => new Date(c.date) >= cutoff).length;
+    return r + c;
+  }, [reports, chatSessions, cutoff]);
+
+  const prevAiUsed = useMemo(() => {
+    const r = reports.filter((r) => { const d = new Date(r.date); return d >= prevCutoff && d < cutoff; }).length;
+    const c = chatSessions.filter((c) => { const d = new Date(c.date); return d >= prevCutoff && d < cutoff; }).length;
+    return r + c;
+  }, [reports, chatSessions, prevCutoff, cutoff]);
+
+  const areaData = useMemo(() => {
+    const days = [];
+    for (let i = periodDays - 1; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dateStr = d.toDateString();
+      const mins = sessions
+        .filter((s) => new Date(s.date).toDateString() === dateStr)
+        .reduce((sum, s) => sum + s.duration, 0);
+      const label =
+        period === "7d"
+          ? d.toLocaleDateString("en-US", { weekday: "short" })
+          : d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+      days.push({ label, minutes: mins });
+    }
+    return days;
+  }, [sessions, period, periodDays]);
+
+  const subjectData = useMemo(() => {
+    const map = {};
+    periodSessions.forEach((s) => {
+      const subj = s.subject || "Other";
+      map[subj] = (map[subj] || 0) + s.duration;
+    });
+    return Object.entries(map)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 8)
+      .map(([name, value]) => ({ name, value }));
+  }, [periodSessions]);
 
   const recentSessions = sessions.slice(0, 5);
 
-  const weekProgress = weeklyGoalMinutes > 0 ? Math.min((weekMinutes / weeklyGoalMinutes) * 100, 100) : 0;
-  const weekGoalHours = (weeklyGoalMinutes / 60).toFixed(1);
-  const weekStudiedHours = (weekMinutes / 60).toFixed(1);
-
-  const MONTHLY_GOAL = 3000;
-  const monthProgress = Math.min((monthMinutes / MONTHLY_GOAL) * 100, 100);
-
-  const dayKeys = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
-  const dayIds = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-  const chartDays = weeklyData.map((d) => {
-    const idx = dayIds.indexOf(d.day);
-    return { day: t[dayKeys[idx]] || d.day, minutes: d.minutes };
-  });
+  const timeTrend = calcTrend(totalMinutes, prevMinutes);
+  const sessionTrend = calcTrend(periodSessions.length, prevSessions.length);
+  const aiTrend = calcTrend(aiUsed, prevAiUsed);
 
   return (
     <div className="space-y-5 pt-2">
-      <div>
-        <h1 className="text-2xl font-bold text-white">{t.dashboard}</h1>
-        <p className="text-sm text-white/50 mt-0.5">{t.studyCompanion}</p>
+      {/* Header */}
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div>
+          <h1 className="text-2xl font-bold text-white">Analytics Dashboard</h1>
+          <p className="text-sm text-white/50 mt-0.5">Track your study progress</p>
+        </div>
+        <div
+          className="flex items-center gap-0.5 p-1 rounded-full flex-shrink-0"
+          style={{
+            background: "rgba(255,255,255,0.08)",
+            border: "1px solid rgba(255,255,255,0.14)",
+          }}
+        >
+          {[["7d", "Last 7 Days"], ["30d", "Last 30 Days"]].map(([val, lbl]) => (
+            <button
+              key={val}
+              onClick={() => setPeriod(val)}
+              className="px-3 py-1.5 rounded-full text-xs font-semibold transition-all"
+              style={
+                period === val
+                  ? { background: "#F5A800", color: "#1a0c00" }
+                  : { color: "rgba(255,255,255,0.55)" }
+              }
+            >
+              {lbl}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Stat cards */}
-      <div className="grid grid-cols-2 gap-4">
-        <StatCard icon={Clock} label={t.studyToday} value={formatTime(todayMinutes)} iconBg="rgba(167,139,250,0.2)" iconColor="#a78bfa" />
-        <StatCard icon={TrendingUp} label={t.thisWeek} value={formatTime(weekMinutes)} iconBg="rgba(251,191,36,0.2)" iconColor="#fbbf24" />
-        <StatCard icon={FileText} label={t.reportsGenerated} value={reports.length} iconBg="rgba(52,211,153,0.2)" iconColor="#34d399" />
-        <StatCard icon={MessageCircle} label={t.chatSessions} value={chatSessions.length} iconBg="rgba(244,114,182,0.2)" iconColor="#f472b6" />
+      <div className="grid grid-cols-2 gap-3">
+        <StatCard
+          icon={Clock}
+          label="Total Study Time"
+          value={formatTime(totalMinutes)}
+          iconColor="#F5A800"
+          iconBg="rgba(245,168,0,0.18)"
+          borderColor="#F5A800"
+          trend={timeTrend}
+        />
+        <StatCard
+          icon={Flame}
+          label="Current Streak"
+          value={`${streak}d`}
+          iconColor="#fb923c"
+          iconBg="rgba(251,146,60,0.18)"
+          borderColor="#fb923c"
+          trend={0}
+        />
+        <StatCard
+          icon={BookOpen}
+          label="Sessions Completed"
+          value={periodSessions.length}
+          iconColor="#34d399"
+          iconBg="rgba(52,211,153,0.18)"
+          borderColor="#34d399"
+          trend={sessionTrend}
+        />
+        <StatCard
+          icon={Zap}
+          label="AI Features Used"
+          value={aiUsed}
+          iconColor="#a78bfa"
+          iconBg="rgba(167,139,250,0.18)"
+          borderColor="#a78bfa"
+          trend={aiTrend}
+        />
+      </div>
 
-        {/* Streak — full width */}
-        <div className="col-span-2 glass rounded-2xl p-5 flex items-center justify-between">
-          <div>
-            <div className="text-sm text-white/55 mb-1">{t.dayStreak}</div>
-            <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-bold text-white">{streak}</span>
-              <span className="text-sm text-white/40">{streak === 1 ? "day" : "days"}</span>
+      {/* Area chart */}
+      <div
+        className="glass rounded-2xl p-5"
+        style={{ boxShadow: "0 4px 24px rgba(245,168,0,0.07)" }}
+      >
+        <h2 className="text-base font-semibold text-white mb-4">Study Time per Day</h2>
+        <ResponsiveContainer width="100%" height={200}>
+          <AreaChart data={areaData} margin={{ top: 4, right: 4, left: -24, bottom: 0 }}>
+            <defs>
+              <linearGradient id="goldFill" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#F5A800" stopOpacity={0.28} />
+                <stop offset="95%" stopColor="#F5A800" stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid
+              strokeDasharray="3 3"
+              vertical={false}
+              stroke="rgba(255,255,255,0.07)"
+            />
+            <XAxis
+              dataKey="label"
+              tick={{ fontSize: 11, fill: "rgba(255,255,255,0.4)" }}
+              axisLine={false}
+              tickLine={false}
+              interval={period === "7d" ? 0 : 4}
+            />
+            <YAxis
+              tick={{ fontSize: 11, fill: "rgba(255,255,255,0.4)" }}
+              axisLine={false}
+              tickLine={false}
+            />
+            <Tooltip
+              content={<GlassTooltip />}
+              cursor={{ stroke: "rgba(245,168,0,0.25)", strokeWidth: 1 }}
+            />
+            <Area
+              type="monotone"
+              dataKey="minutes"
+              stroke="#F5A800"
+              strokeWidth={2}
+              fill="url(#goldFill)"
+              dot={false}
+              activeDot={{ r: 4, fill: "#F5A800", strokeWidth: 0 }}
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
+
+      {/* Donut chart */}
+      <div className="glass rounded-2xl p-5">
+        <h2 className="text-base font-semibold text-white mb-4">Time by Subject</h2>
+        {subjectData.length === 0 ? (
+          <p className="text-sm text-white/35 text-center py-6">No data for this period</p>
+        ) : (
+          <div className="flex items-center gap-4">
+            <div className="relative flex-shrink-0" style={{ width: 160, height: 160 }}>
+              <PieChart width={160} height={160}>
+                <Pie
+                  data={subjectData}
+                  cx={80}
+                  cy={80}
+                  innerRadius={50}
+                  outerRadius={72}
+                  dataKey="value"
+                  strokeWidth={0}
+                  paddingAngle={2}
+                >
+                  {subjectData.map((_, i) => (
+                    <Cell key={i} fill={DONUT_COLORS[i % DONUT_COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip content={<DonutTooltip />} />
+              </PieChart>
+              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <span className="text-base font-bold text-white leading-none">
+                  {formatTime(totalMinutes)}
+                </span>
+                <span className="text-xs text-white/40 mt-0.5">total</span>
+              </div>
+            </div>
+            <div className="flex-1 space-y-2.5 min-w-0">
+              {subjectData.map((item, i) => (
+                <div key={item.name} className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div
+                      className="w-2 h-2 rounded-full flex-shrink-0"
+                      style={{ background: DONUT_COLORS[i % DONUT_COLORS.length] }}
+                    />
+                    <span className="text-xs text-white/65 truncate">{item.name}</span>
+                  </div>
+                  <span className="text-xs font-semibold text-white/80 flex-shrink-0">
+                    {formatTime(item.value)}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
-          <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: 'rgba(245,168,0,0.2)' }}>
-            <Flame size={22} style={{ color: '#F5A800' }} />
-          </div>
-        </div>
-      </div>
-
-      {/* Weekly goal progress */}
-      <div className="glass rounded-2xl p-5">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-base font-semibold text-white">{t.weeklyProgress}</h2>
-          {weekProgress >= 100 && (
-            <span className="text-xs font-semibold px-2.5 py-1 rounded-full" style={{ background: 'rgba(245,168,0,0.2)', color: '#F5A800', border: '1px solid rgba(245,168,0,0.35)' }}>
-              {t.goalReached}
-            </span>
-          )}
-        </div>
-        <div className="flex items-baseline gap-2 mb-3">
-          <span className="text-2xl font-bold text-white">{weekStudiedHours}h</span>
-          <span className="text-sm text-white/45">/ {weekGoalHours}h {t.weeklyGoal}</span>
-        </div>
-        <div className="h-2.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.1)' }}>
-          <div
-            className="h-full rounded-full transition-all duration-500"
-            style={{ width: `${weekProgress}%`, background: weekProgress >= 100 ? '#34d399' : '#F5A800' }}
-          />
-        </div>
-        <div className="text-xs text-white/35 mt-2">{weekMinutes} / {weeklyGoalMinutes} min this week</div>
-      </div>
-
-      {/* Weekly chart */}
-      <div className="glass rounded-2xl p-5">
-        <h2 className="text-base font-semibold text-white mb-4">{t.weeklyOverview}</h2>
-        <ResponsiveContainer width="100%" height={180}>
-          <BarChart data={chartDays} barSize={32}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.08)" />
-            <XAxis dataKey="day" tick={{ fontSize: 12, fill: 'rgba(255,255,255,0.45)' }} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fontSize: 12, fill: 'rgba(255,255,255,0.45)' }} axisLine={false} tickLine={false} />
-            <Tooltip content={<GlassTooltip />} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
-            <Bar dataKey="minutes" fill="#F5A800" radius={[6, 6, 0, 0]} />
-          </BarChart>
-        </ResponsiveContainer>
+        )}
       </div>
 
       {/* Recent sessions */}
       <div className="glass rounded-2xl p-5">
-        <h2 className="text-base font-semibold text-white mb-4">{t.recentSessions}</h2>
-        <div className="space-y-3">
+        <h2 className="text-base font-semibold text-white mb-4">Recent Sessions</h2>
+        <div className="space-y-2">
           {recentSessions.length === 0 ? (
             <p className="text-sm text-white/35 text-center py-4">No sessions yet</p>
           ) : (
             recentSessions.map((s) => (
-              <div key={s.id} className="flex items-center gap-3 p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.06)' }}>
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(167,139,250,0.2)' }}>
-                  <BookOpen size={16} style={{ color: '#a78bfa' }} />
+              <div
+                key={s.id}
+                className="flex items-center gap-3 p-3 rounded-xl"
+                style={{ background: "rgba(255,255,255,0.055)" }}
+              >
+                <div
+                  className="w-9 h-9 rounded-xl flex-shrink-0 flex items-center justify-center"
+                  style={{ background: "rgba(245,168,0,0.15)" }}
+                >
+                  <BookOpen size={15} style={{ color: "#F5A800" }} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-medium text-white truncate">{s.title}</div>
-                  <div className="text-xs text-white/45">{s.subject} · {s.duration} {t.min}</div>
+                  <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                    {s.subject && (
+                      <span
+                        className="text-xs px-1.5 py-0.5 rounded-md font-medium"
+                        style={{ background: "rgba(167,139,250,0.15)", color: "#a78bfa" }}
+                      >
+                        {s.subject}
+                      </span>
+                    )}
+                    <span className="text-xs text-white/40">{formatTime(s.duration)}</span>
+                  </div>
                 </div>
-                <span className="text-xs font-medium px-2.5 py-1 rounded-full flex-shrink-0" style={{ background: 'rgba(52,211,153,0.18)', color: '#34d399', border: '1px solid rgba(52,211,153,0.3)' }}>
-                  {t.completed}
-                </span>
+                <span className="text-xs text-white/35 flex-shrink-0">{formatDate(s.date)}</span>
               </div>
             ))
           )}
         </div>
-      </div>
-
-      {/* Monthly total */}
-      <div className="glass rounded-2xl p-5">
-        <h2 className="text-base font-semibold text-white mb-1">{t.thisMonth}</h2>
-        <div className="flex items-baseline gap-2 mb-3">
-          <span className="text-3xl font-bold text-white">{formatTime(monthMinutes)}</span>
-          <span className="text-sm text-white/45">{t.totalThisMonth}</span>
-        </div>
-        <div className="h-2.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.1)' }}>
-          <div className="h-full rounded-full transition-all duration-500" style={{ width: `${monthProgress}%`, background: '#F5A800' }} />
-        </div>
-        <div className="text-xs text-white/35 mt-2">{monthMinutes} / {MONTHLY_GOAL} {t.monthlyGoal}</div>
       </div>
     </div>
   );

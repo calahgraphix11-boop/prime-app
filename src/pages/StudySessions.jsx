@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Plus, Trash2, BookOpen, Clock, ChevronDown, Timer, Coffee, MessageCircle, X } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { useAuth } from "../context/AuthContext";
@@ -66,6 +66,10 @@ export default function StudySessions() {
   const [motivationVisible, setMotivationVisible] = useState(false);
   const motivationTimerRef = useRef(null);
 
+  useEffect(() => {
+    if (!activeSession) setChatOpen(false);
+  }, [activeSession]);
+
   const dismissMotivation = () => {
     clearTimeout(motivationTimerRef.current);
     setMotivationVisible(false);
@@ -78,21 +82,19 @@ export default function StudySessions() {
     startTimerSession({ title: title.trim(), course: selectedCourse, duration: pomodoroEnabled ? 25 : duration, pomodoroEnabled });
     setShowForm(false);
 
-    if (pomodoroEnabled) {
-      const name = profile?.full_name || profile?.username || "you";
-      const sessionTitle = title.trim();
-      generateContent(
-        `Generate a short, funny but locked-in motivational message for ${name} who is about to study ${sessionTitle}. Keep it under 2 sentences. Be creative and different every time. No hashtags, no emojis.`,
-        DEFAULT_MODEL
-      ).then((msg) => {
-        setMotivation(msg);
-        setMotivationVisible(true);
-        motivationTimerRef.current = setTimeout(() => {
-          setMotivationVisible(false);
-          setTimeout(() => setMotivation(""), 500);
-        }, 6000);
-      }).catch(() => {});
-    }
+    const name = profile?.full_name || profile?.username || "you";
+    const sessionTitle = title.trim();
+    generateContent(
+      `Generate a short, funny but locked-in motivational message for ${name} who is about to study ${sessionTitle}. Keep it under 2 sentences. Be creative and different every time. No hashtags, no emojis.`,
+      DEFAULT_MODEL
+    ).then((msg) => {
+      setMotivation(msg);
+      setMotivationVisible(true);
+      motivationTimerRef.current = setTimeout(() => {
+        setMotivationVisible(false);
+        setTimeout(() => setMotivation(""), 500);
+      }, 6000);
+    }).catch(() => {});
 
     setTitle("");
   };
@@ -322,10 +324,10 @@ export default function StudySessions() {
         </div>
       )}
 
-      {/* StudyPal FAB */}
-      <button
+      {/* StudyPal FAB — only visible during an active session, above ChatBubble (z-50) */}
+      {activeSession && <button
         onClick={() => setChatOpen((o) => !o)}
-        className="fixed bottom-6 right-6 z-40 w-12 h-12 rounded-full shadow-lg flex items-center justify-center transition-all"
+        className="fixed bottom-6 right-6 z-[60] w-12 h-12 rounded-full shadow-lg flex items-center justify-center transition-all"
         style={chatOpen
           ? { background: 'rgba(245,168,0,0.15)', border: '1.5px solid #F5A800' }
           : { background: '#F5A800', border: 'none' }}
@@ -334,12 +336,12 @@ export default function StudySessions() {
         {chatOpen
           ? <X size={18} style={{ color: '#F5A800' }} />
           : <MessageCircle size={18} style={{ color: '#1a0c00' }} />}
-      </button>
+      </button>}
 
       {/* StudyPal slide-in panel */}
       {chatOpen && (
         <div
-          className="fixed top-0 right-0 bottom-0 z-50 flex flex-col"
+          className="fixed top-0 right-0 bottom-0 z-[70] flex flex-col"
           style={{
             width: 'min(420px, 100vw)',
             background: 'rgba(0, 18, 8, 0.97)',
