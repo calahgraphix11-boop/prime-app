@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import {
-  LayoutDashboard, Clock, FileText, MessageCircle,
+  LayoutDashboard, Clock, FileText, GraduationCap, MessageCircle,
   Moon, Sun, Globe, LogOut, X, Settings, UserCircle, HelpCircle, Users, Trophy,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
@@ -20,6 +20,7 @@ export default function Sidebar({ open, onClose }) {
     { to: '/', icon: LayoutDashboard, label: t.dashboard },
     { to: '/sessions', icon: Clock, label: t.studySessions },
     { to: '/report', icon: FileText, label: t.aiReportWriter },
+    { to: '/exam-prep', icon: GraduationCap, label: 'Exam Coach' },
     { to: '/chat', icon: MessageCircle, label: t.aiChatbot },
     { to: '/friends', icon: Users, label: 'Friends' },
     { to: '/leaderboard', icon: Trophy, label: 'Leaderboard' },
