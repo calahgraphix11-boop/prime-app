@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { Sparkles, List, BookOpen, HelpCircle, Paperclip, X } from "lucide-react";
-import { kimiGenerate } from "../lib/kimi";
+import { generateWithFile } from "../lib/gemini";
 import { useApp } from "../context/AppContext";
 import { ACCEPTED_FILE_TYPES, MAX_FILE_SIZE, getMediaType, readFileAsBase64 } from "../lib/fileUtils";
 
@@ -38,7 +38,7 @@ export default function NoteSummarizer() {
     const subjectLabel = subject === "__custom__" ? customSubject : subject;
     const fileArg = attachedFile ? { base64: attachedFile.base64, mediaType: attachedFile.mediaType, filename: attachedFile.file.name } : undefined;
     try {
-      const raw = await kimiGenerate({
+      const raw = await generateWithFile({
         systemPrompt: SYSTEM_PROMPT,
         userPrompt: `Subject: ${subjectLabel || "General"}\n\nNotes:\n${notes}`,
         file: fileArg,

@@ -104,3 +104,14 @@ export async function chatWithAssistant(messages, model = DEFAULT_MODEL, usernam
 
   return callAnthropic(apiMessages, model, system, 1024);
 }
+
+export async function generateWithFile({ systemPrompt, userPrompt, file }) {
+  const content = [];
+  if (userPrompt) content.push({ type: 'text', text: userPrompt });
+  if (file) {
+    const block = buildAnthropicFileBlock(file);
+    if (block) content.push(block);
+  }
+  const userMsg = content.length === 1 ? userPrompt : content;
+  return callAnthropic([{ role: 'user', content: userMsg }], DEFAULT_MODEL, systemPrompt, 4096);
+}
