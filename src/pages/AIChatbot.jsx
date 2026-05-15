@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Plus, MessageCircle, Mic, MicOff, PanelLeft } from "lucide-react";
+import { Send, Plus, MessageCircle, Mic, MicOff, PanelLeft, Zap } from "lucide-react";
 import { chatWithAssistant, MODELS, DEFAULT_MODEL } from "../lib/gemini";
 import { useApp } from "../context/AppContext";
 import { useAuth } from "../context/AuthContext";
+import UpgradeModal from "../components/UpgradeModal";
 
 export default function AIChatbot() {
   const { t, chatSessions, createChatSession, updateChatSession, dataLoading, chatRemaining, incrementChat, trialExpired } = useApp();
@@ -12,6 +13,7 @@ export default function AIChatbot() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [showSidebar, setShowSidebar] = useState(false);
+  const [showUpgrade, setShowUpgrade] = useState(false);
   const [model, setModel] = useState(DEFAULT_MODEL);
   const bottomRef = useRef(null);
 
@@ -105,6 +107,7 @@ export default function AIChatbot() {
 
   return (
     <div className="-mx-4 -mt-6 flex h-[calc(100vh-5rem)] overflow-hidden">
+      {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} />}
       {showSidebar && (
         <div className="fixed inset-0 bg-black/50 z-30 md:hidden" onClick={() => setShowSidebar(false)} />
       )}
@@ -180,6 +183,12 @@ export default function AIChatbot() {
               <div className="mt-5 px-4 py-2 rounded-full text-xs font-semibold inline-block" style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171' }}>
                 {trialExpired ? '7-day free trial ended' : `${10} / ${10} messages used today`}
               </div>
+              <button
+                onClick={() => setShowUpgrade(true)}
+                className="mt-5 w-full py-2.5 rounded-xl text-sm font-semibold btn-gold flex items-center justify-center gap-2"
+              >
+                <Zap size={15} /> Upgrade Plan
+              </button>
             </div>
           </div>
         ) : (

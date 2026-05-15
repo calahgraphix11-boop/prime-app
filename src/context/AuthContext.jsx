@@ -92,8 +92,12 @@ export function AuthProvider({ children }) {
   const trialActive = daysSinceTrial !== null && daysSinceTrial <= 7;
   const trialExpired = daysSinceTrial !== null && daysSinceTrial > 7;
 
+  const userPlan = profile?.plan || 'free';
+  const planExpiry = profile?.plan_expiry ? new Date(profile.plan_expiry) : null;
+  const planActive = userPlan !== 'free' && planExpiry !== null && planExpiry > new Date();
+
   return (
-    <AuthContext.Provider value={{ user, loading, profile, signIn, signUp, signInWithGoogle, signOut, updateProfile, uploadAvatar, trialActive, trialExpired }}>
+    <AuthContext.Provider value={{ user, loading, profile, signIn, signUp, signInWithGoogle, signOut, updateProfile, uploadAvatar, trialActive, trialExpired, userPlan, planActive }}>
       {children}
     </AuthContext.Provider>
   );

@@ -15,6 +15,7 @@ import PublicProfile from "./pages/PublicProfile";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import VerifyEmail from "./pages/VerifyEmail";
+import PaymentSuccess from "./pages/PaymentSuccess";
 
 class ErrorBoundary extends Component {
   state = { error: null };
@@ -62,6 +63,7 @@ function AppRoutes() {
       <Route path="/leaderboard" element={<ProtectedRoute><Layout><Leaderboard /></Layout></ProtectedRoute>} />
       <Route path="/profile/:userId" element={<ProtectedRoute><Layout><PublicProfile /></Layout></ProtectedRoute>} />
       <Route path="/profile" element={<ProtectedRoute><Layout><Profile /></Layout></ProtectedRoute>} />
+      <Route path="/payment-success" element={<ProtectedRoute><PaymentSuccess /></ProtectedRoute>} />
     </Routes>
   );
 }

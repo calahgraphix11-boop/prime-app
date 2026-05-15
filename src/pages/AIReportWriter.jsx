@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { Sparkles, Copy, Check, FileText, ChevronDown } from "lucide-react";
+import { Sparkles, Copy, Check, FileText, ChevronDown, Zap } from "lucide-react";
 import { rewriteReport, MODELS, DEFAULT_REPORT_MODEL } from "../lib/gemini";
 import { useApp } from "../context/AppContext";
+import UpgradeModal from "../components/UpgradeModal";
 
 const TONES = [
   { id: "formal", label: "Formal", desc: "Professional and structured" },
@@ -24,6 +25,7 @@ export default function AIReportWriter() {
   const [error, setError] = useState("");
   const [expandedId, setExpandedId] = useState(null);
   const [model, setModel] = useState(DEFAULT_REPORT_MODEL);
+  const [showUpgrade, setShowUpgrade] = useState(false);
 
   const handleRewrite = async () => {
     if (!content.trim() || rewriteRemaining <= 0) return;
@@ -50,6 +52,7 @@ export default function AIReportWriter() {
 
   return (
     <div className="space-y-5 pt-2">
+      {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} />}
       <div>
         <h1 className="text-2xl font-bold text-white">{t.aiReportWriter}</h1>
         <p className="text-sm text-white/50 mt-0.5">{t.reportSubtitle}</p>
@@ -119,6 +122,12 @@ export default function AIReportWriter() {
             <div className="mt-4 px-4 py-1.5 rounded-full text-xs font-semibold inline-block" style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171' }}>
               {trialExpired ? '7-day free trial ended' : `${5} / ${5} rewrites used today`}
             </div>
+            <button
+              onClick={() => setShowUpgrade(true)}
+              className="mt-4 w-full py-2.5 rounded-xl text-sm font-semibold btn-gold flex items-center justify-center gap-2"
+            >
+              <Zap size={15} /> Upgrade Plan
+            </button>
           </div>
         ) : (
           <button

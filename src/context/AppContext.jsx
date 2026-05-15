@@ -26,7 +26,7 @@ const DEFAULT_COURSES = [
 ];
 
 export function AppProvider({ children }) {
-  const { user, trialActive, trialExpired } = useAuth();
+  const { user, trialActive, trialExpired, planActive } = useAuth();
 
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem('prime_dark') === 'true');
   const [lang, setLang] = useState(() => localStorage.getItem('prime_lang') || 'en');
@@ -344,8 +344,8 @@ export function AppProvider({ children }) {
 
   const incrementChat = () => incrementUsage('chat_messages');
   const incrementRewrite = () => incrementUsage('report_rewrites');
-  const chatRemaining = trialActive ? 999 : Math.max(0, CHAT_LIMIT - dailyUsage.chat_messages);
-  const rewriteRemaining = trialActive ? 999 : Math.max(0, REPORT_LIMIT - dailyUsage.report_rewrites);
+  const chatRemaining = (trialActive || planActive) ? 999 : Math.max(0, CHAT_LIMIT - dailyUsage.chat_messages);
+  const rewriteRemaining = (trialActive || planActive) ? 999 : Math.max(0, REPORT_LIMIT - dailyUsage.report_rewrites);
 
   // ── Computed ──────────────────────────────────────────────
   const todayMinutes = sessions
