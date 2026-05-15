@@ -2,16 +2,19 @@ import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard, Clock, FileText, GraduationCap, MessageCircle,
-  Moon, Sun, Globe, LogOut, X, Settings, UserCircle, HelpCircle, Users, Trophy,
+  Moon, Sun, Globe, LogOut, X, Settings, UserCircle, HelpCircle, Users, Trophy, Crown,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import SupportModal from './SupportModal';
+import UpgradeModal from './UpgradeModal';
 
 export default function Sidebar({ open, onClose }) {
   const { darkMode, setDarkMode, toggleLang, t, activeSession, remaining, running } = useApp();
-  const { user, profile, signOut } = useAuth();
+  const { user, profile, signOut, userPlan, trialExpired } = useAuth();
   const [supportOpen, setSupportOpen] = useState(false);
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
+  const showUpgrade = userPlan === 'free' || trialExpired;
 
   const displayName = profile?.username || profile?.full_name || user?.email || '';
   const initials = (profile?.full_name || user?.email || '?').charAt(0).toUpperCase();
@@ -141,6 +144,15 @@ export default function Sidebar({ open, onClose }) {
             <Globe size={18} />
             {t.language}
           </button>
+          {showUpgrade && (
+            <button
+              onClick={() => { setUpgradeOpen(true); onClose(); }}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold btn-gold"
+            >
+              <Crown size={18} />
+              Upgrade to Pro
+            </button>
+          )}
           <button
             onClick={() => { setSupportOpen(true); onClose(); }}
             className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-white/65 hover:text-white hover:bg-white/10 transition-all"
@@ -161,6 +173,7 @@ export default function Sidebar({ open, onClose }) {
         </div>
       </aside>
       {supportOpen && <SupportModal onClose={() => setSupportOpen(false)} />}
+      {upgradeOpen && <UpgradeModal onClose={() => setUpgradeOpen(false)} />}
     </>
   );
 }
