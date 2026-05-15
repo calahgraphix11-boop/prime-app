@@ -37,10 +37,15 @@ export function AuthProvider({ children }) {
   };
 
   const signUp = async (email, password, fullName) => {
+    // IMPORTANT — Supabase dashboard: Authentication → Email Templates → "Confirm signup"
+    // must use {{ .Token }} (6-digit OTP) NOT {{ .ConfirmationURL }} (magic link).
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { full_name: fullName } },
+      options: {
+        emailRedirectTo: undefined,
+        data: { full_name: fullName, email_confirm: true },
+      },
     });
     return { error, needsEmailConfirmation: !error && !data.session };
   };

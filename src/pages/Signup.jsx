@@ -95,7 +95,8 @@ export default function Signup() {
                   <button
                     type="button"
                     onClick={() => setShowPassword((v) => !v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 z-10 text-white/50 hover:text-white/80 transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 z-10 transition-colors"
+                    style={{ color: '#004d2e' }}
                     tabIndex={-1}
                   >
                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
