@@ -1,20 +1,13 @@
-// SQL: ALTER TABLE daily_usage ADD COLUMN IF NOT EXISTS exam_prep_count INTEGER DEFAULT 0;
-
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Sparkles, ChevronRight, Trophy, RotateCcw, Target } from "lucide-react";
 import { kimiGenerate } from "../lib/kimi";
 import { useApp } from "../context/AppContext";
-import { useAuth } from "../context/AuthContext";
-import { supabase } from "../lib/supabase";
 
 const SYSTEM_PROMPT =
   "You are an exam preparation assistant. Return ONLY a valid JSON array with no markdown or backticks. Each object must have: question (string), options (array of exactly 4 strings labeled A. B. C. D.), correct (string matching one of the options exactly), explanation (string, one sentence max).";
 
-const SESSION_LIMIT = 3;
 const DIFFICULTIES = ["Easy", "Medium", "Hard"];
 const QUESTION_COUNTS = [5, 10, 15];
-
-const todayStr = () => new Date().toISOString().split("T")[0];
 
 function getBadge(pct) {
   if (pct >= 90) return { label: "Excellent", color: "#34d399", bg: "rgba(52,211,153,0.12)", border: "rgba(52,211,153,0.3)" };
@@ -24,7 +17,6 @@ function getBadge(pct) {
 
 export default function ExamPrep() {
   const { courses } = useApp();
-  const { user } = useAuth();
 
   const [phase, setPhase] = useState("setup");
   const [topic, setTopic] = useState("");
@@ -37,44 +29,13 @@ export default function ExamPrep() {
   const [answers, setAnswers] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [usageCount, setUsageCount] = useState(0);
-
-  useEffect(() => {
-    if (!user) return;
-    supabase
-      .from("daily_usage")
-      .select("exam_prep_count")
-      .eq("user_id", user.id)
-      .eq("date", todayStr())
-      .maybeSingle()
-      .then(({ data }) => setUsageCount(data?.exam_prep_count || 0));
-  }, [user]);
-
-  const remaining = Math.max(0, SESSION_LIMIT - usageCount);
-
-  const incrementUsage = async () => {
-    const newVal = usageCount + 1;
-    setUsageCount(newVal);
-    const { data: existing } = await supabase
-      .from("daily_usage")
-      .select("id")
-      .eq("user_id", user.id)
-      .eq("date", todayStr())
-      .maybeSingle();
-    if (existing) {
-      await supabase.from("daily_usage").update({ exam_prep_count: newVal }).eq("id", existing.id);
-    } else {
-      await supabase.from("daily_usage").insert({ user_id: user.id, date: todayStr(), exam_prep_count: 1 });
-    }
-  };
 
   const generate = async () => {
-    if (!topic.trim() || remaining <= 0) return;
+    if (!topic.trim()) return;
     setLoading(true);
     setError("");
     const subjectLabel = subject === "__custom__" ? customSubject : subject;
     try {
-      await incrementUsage();
       const raw = await kimiGenerate({
         systemPrompt: SYSTEM_PROMPT,
         userPrompt: `Topic: ${topic}\nSubject: ${subjectLabel || "General"}\nDifficulty: ${difficulty}\nQuestion count: ${questionCount}`,
@@ -200,30 +161,17 @@ export default function ExamPrep() {
             </div>
           </div>
 
-          {remaining === 0 ? (
-            <div className="rounded-2xl p-5 text-center" style={{ background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.25)" }}>
-              <h3 className="text-base font-bold text-white mb-1.5">Daily Limit Reached</h3>
-              <p className="text-sm text-white/50 mb-3">You've used all {SESSION_LIMIT} sessions for today. Come back tomorrow!</p>
-              <div className="px-4 py-1.5 rounded-full text-xs font-semibold inline-block" style={{ background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.3)", color: "#f87171" }}>
-                {SESSION_LIMIT} / {SESSION_LIMIT} sessions used today
-              </div>
-            </div>
-          ) : (
-            <button
-              onClick={generate}
-              disabled={!topic.trim() || loading}
-              className="w-full py-3 rounded-xl text-sm font-semibold btn-gold flex items-center justify-center gap-2 disabled:opacity-50"
-            >
-              {loading ? (
-                <><span className="w-4 h-4 border-2 border-gray-900/30 border-t-gray-900 rounded-full animate-spin inline-block" /> Generating…</>
-              ) : (
-                <><Sparkles size={16} /> Generate Questions</>
-              )}
-            </button>
-          )}
-          {remaining > 0 && (
-            <p className="text-xs text-white/30 text-center">{remaining} of {SESSION_LIMIT} sessions remaining today</p>
-          )}
+          <button
+            onClick={generate}
+            disabled={!topic.trim() || loading}
+            className="w-full py-3 rounded-xl text-sm font-semibold btn-gold flex items-center justify-center gap-2 disabled:opacity-50"
+          >
+            {loading ? (
+              <><span className="w-4 h-4 border-2 border-gray-900/30 border-t-gray-900 rounded-full animate-spin inline-block" /> Generating…</>
+            ) : (
+              <><Sparkles size={16} /> Generate Questions</>
+            )}
+          </button>
         </div>
 
         {error && <p className="text-sm px-1" style={{ color: "#f87171" }}>{error}</p>}

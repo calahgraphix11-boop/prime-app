@@ -1,21 +1,13 @@
-// SQL: ALTER TABLE daily_usage ADD COLUMN IF NOT EXISTS note_summaries INTEGER DEFAULT 0;
-
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Sparkles, List, BookOpen, HelpCircle } from "lucide-react";
 import { kimiGenerate } from "../lib/kimi";
 import { useApp } from "../context/AppContext";
-import { useAuth } from "../context/AuthContext";
-import { supabase } from "../lib/supabase";
 
 const SYSTEM_PROMPT =
   "You are an expert study assistant. When given lecture notes or study material, extract and return ONLY a valid JSON object with no markdown or backticks with three keys: keyPoints (array of strings), keyDefinitions (array of objects with term and definition), examQuestions (array of strings). Be concise and academically focused.";
 
-const LIMIT = 5;
-const todayStr = () => new Date().toISOString().split("T")[0];
-
 export default function NoteSummarizer() {
   const { courses } = useApp();
-  const { user } = useAuth();
 
   const [notes, setNotes] = useState("");
   const [subject, setSubject] = useState("");
@@ -23,45 +15,14 @@ export default function NoteSummarizer() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [result, setResult] = useState(null);
-  const [usageCount, setUsageCount] = useState(0);
-
-  useEffect(() => {
-    if (!user) return;
-    supabase
-      .from("daily_usage")
-      .select("note_summaries")
-      .eq("user_id", user.id)
-      .eq("date", todayStr())
-      .maybeSingle()
-      .then(({ data }) => setUsageCount(data?.note_summaries || 0));
-  }, [user]);
-
-  const remaining = Math.max(0, LIMIT - usageCount);
-
-  const incrementUsage = async () => {
-    const newVal = usageCount + 1;
-    setUsageCount(newVal);
-    const { data: existing } = await supabase
-      .from("daily_usage")
-      .select("id")
-      .eq("user_id", user.id)
-      .eq("date", todayStr())
-      .maybeSingle();
-    if (existing) {
-      await supabase.from("daily_usage").update({ note_summaries: newVal }).eq("id", existing.id);
-    } else {
-      await supabase.from("daily_usage").insert({ user_id: user.id, date: todayStr(), note_summaries: 1 });
-    }
-  };
 
   const handleSummarize = async () => {
-    if (!notes.trim() || remaining <= 0) return;
+    if (!notes.trim()) return;
     setLoading(true);
     setError("");
     setResult(null);
     const subjectLabel = subject === "__custom__" ? customSubject : subject;
     try {
-      await incrementUsage();
       const raw = await kimiGenerate({
         systemPrompt: SYSTEM_PROMPT,
         userPrompt: `Subject: ${subjectLabel || "General"}\n\nNotes:\n${notes}`,
@@ -118,33 +79,17 @@ export default function NoteSummarizer() {
           />
         </div>
 
-        {remaining === 0 ? (
-          <div className="rounded-2xl p-5 text-center" style={{ background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.25)" }}>
-            <div className="w-12 h-12 rounded-xl mx-auto mb-3 flex items-center justify-center" style={{ background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.25)" }}>
-              <Sparkles size={20} style={{ color: "#f87171" }} />
-            </div>
-            <h3 className="text-base font-bold text-white mb-1.5">Daily Limit Reached</h3>
-            <p className="text-sm text-white/50">You've used all {LIMIT} summarizations for today. Come back tomorrow!</p>
-            <div className="mt-3 px-4 py-1.5 rounded-full text-xs font-semibold inline-block" style={{ background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.3)", color: "#f87171" }}>
-              {LIMIT} / {LIMIT} used today
-            </div>
-          </div>
-        ) : (
-          <button
-            onClick={handleSummarize}
-            disabled={!notes.trim() || loading}
-            className="w-full py-3 rounded-xl text-sm font-semibold btn-gold flex items-center justify-center gap-2 disabled:opacity-50"
-          >
-            {loading ? (
-              <><span className="w-4 h-4 border-2 border-gray-900/30 border-t-gray-900 rounded-full animate-spin inline-block" /> Summarizing…</>
-            ) : (
-              <><Sparkles size={16} /> Summarize Notes</>
-            )}
-          </button>
-        )}
-        {remaining > 0 && (
-          <p className="text-xs text-white/30 text-center">{remaining} of {LIMIT} summarizations remaining today</p>
-        )}
+        <button
+          onClick={handleSummarize}
+          disabled={!notes.trim() || loading}
+          className="w-full py-3 rounded-xl text-sm font-semibold btn-gold flex items-center justify-center gap-2 disabled:opacity-50"
+        >
+          {loading ? (
+            <><span className="w-4 h-4 border-2 border-gray-900/30 border-t-gray-900 rounded-full animate-spin inline-block" /> Summarizing…</>
+          ) : (
+            <><Sparkles size={16} /> Summarize Notes</>
+          )}
+        </button>
       </div>
 
       {error && <p className="text-sm px-1" style={{ color: "#f87171" }}>{error}</p>}
