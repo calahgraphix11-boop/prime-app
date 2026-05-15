@@ -56,7 +56,8 @@ export default function ExamPrep() {
         userPrompt: `Topic: ${topic}\nSubject: ${subjectLabel || "General"}\nDifficulty: ${difficulty}\nQuestion count: ${questionCount}`,
         file: fileArg,
       });
-      const parsed = JSON.parse(raw);
+      const jsonStr = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+      const parsed = JSON.parse(jsonStr);
       setQuestions(parsed.slice(0, questionCount));
       setCurrentIndex(0);
       setAnswers({});

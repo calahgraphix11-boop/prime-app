@@ -46,7 +46,8 @@ export default function NoteSummarizer() {
         userPrompt: `Subject: ${subjectLabel || "General"}${instructions.trim() ? `\n\nInstructions: ${instructions}` : ''}`,
         file: fileArg,
       });
-      setResult(JSON.parse(raw));
+      const jsonStr = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+      setResult(JSON.parse(jsonStr));
     } catch {
       setError("Failed to summarize. Please try again.");
     } finally {
