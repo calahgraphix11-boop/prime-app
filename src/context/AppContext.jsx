@@ -8,6 +8,7 @@ const AppContext = createContext(null);
 
 export const CHAT_LIMIT = 10;
 export const REPORT_LIMIT = 5;
+export const NOTE_LIMIT = 5;
 
 const today = () => new Date().toISOString().split('T')[0];
 
@@ -37,7 +38,7 @@ export function AppProvider({ children }) {
   const [chatSessions, setChatSessions] = useState([]);
   const [courses, setCourses] = useState([]);
   const [weeklyGoalMinutes, setWeeklyGoalMinutesState] = useState(300);
-  const [dailyUsage, setDailyUsage] = useState({ chat_messages: 0, report_rewrites: 0 });
+  const [dailyUsage, setDailyUsage] = useState({ chat_messages: 0, report_rewrites: 0, note_summaries: 0 });
   const [dataLoading, setDataLoading] = useState(false);
 
   // ── Global timer state ────────────────────────────────────
@@ -57,7 +58,7 @@ export function AppProvider({ children }) {
       setChatSessions([]);
       setCourses([]);
       setWeeklyGoalMinutesState(300);
-      setDailyUsage({ chat_messages: 0, report_rewrites: 0 });
+      setDailyUsage({ chat_messages: 0, report_rewrites: 0, note_summaries: 0 });
       clearInterval(intervalRef.current);
       setActiveSession(null);
       setRunning(false);
@@ -80,7 +81,7 @@ export function AppProvider({ children }) {
       setReports(r || []);
       setChatSessions(c || []);
       setWeeklyGoalMinutesState(settings?.weekly_goal_minutes || 300);
-      setDailyUsage({ chat_messages: usage?.chat_messages || 0, report_rewrites: usage?.report_rewrites || 0 });
+      setDailyUsage({ chat_messages: usage?.chat_messages || 0, report_rewrites: usage?.report_rewrites || 0, note_summaries: usage?.note_summaries || 0 });
 
       const coursesArr = cData || [];
       if (coursesArr.length === 0) {
@@ -344,8 +345,10 @@ export function AppProvider({ children }) {
 
   const incrementChat = () => incrementUsage('chat_messages');
   const incrementRewrite = () => incrementUsage('report_rewrites');
+  const incrementSummary = () => incrementUsage('note_summaries');
   const chatRemaining = (trialActive || planActive) ? 999 : Math.max(0, CHAT_LIMIT - dailyUsage.chat_messages);
   const rewriteRemaining = (trialActive || planActive) ? 999 : Math.max(0, REPORT_LIMIT - dailyUsage.report_rewrites);
+  const summaryRemaining = (trialActive || planActive) ? 999 : Math.max(0, NOTE_LIMIT - dailyUsage.note_summaries);
 
   // ── Computed ──────────────────────────────────────────────
   const todayMinutes = sessions
@@ -416,7 +419,7 @@ export function AppProvider({ children }) {
       weeklyGoalMinutes, setWeeklyGoal,
       streak,
       dataLoading,
-      chatRemaining, rewriteRemaining, incrementChat, incrementRewrite,
+      chatRemaining, rewriteRemaining, summaryRemaining, incrementChat, incrementRewrite, incrementSummary,
       trialActive, trialExpired,
       todayMinutes, weekMinutes, monthMinutes,
       weeklyData,

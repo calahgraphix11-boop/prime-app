@@ -1,16 +1,17 @@
 import { useState, useRef } from "react";
-import { Sparkles, List, BookOpen, HelpCircle, Paperclip, X } from "lucide-react";
+import { Sparkles, List, BookOpen, HelpCircle, Paperclip, X, Zap } from "lucide-react";
 import { generateWithFile } from "../lib/gemini";
 import { useApp } from "../context/AppContext";
+import UpgradeModal from "../components/UpgradeModal";
 import { ACCEPTED_FILE_TYPES, MAX_FILE_SIZE, getMediaType, readFileAsBase64 } from "../lib/fileUtils";
 
 const SYSTEM_PROMPT =
-  "You are an expert study assistant. When given lecture notes or study material, extract and return ONLY a valid JSON object with no markdown or backticks with three keys: keyPoints (array of strings), keyDefinitions (array of objects with term and definition), examQuestions (array of strings). Be concise and academically focused.";
+  "You are an expert study assistant. The user may provide lecture notes as text or as an attached file, and may also provide optional instructions for what they want. If no instructions are given, return a full summary as a JSON object with: keyPoints (array of strings), keyDefinitions (array of objects with term and definition), examQuestions (array of strings). If the user gives specific instructions, follow them and return the result in the same JSON format. Return ONLY valid JSON with no markdown or backticks.";
 
 export default function NoteSummarizer() {
-  const { courses } = useApp();
+  const { courses, summaryRemaining, incrementSummary, trialExpired } = useApp();
 
-  const [notes, setNotes] = useState("");
+  const [instructions, setInstructions] = useState("");
   const [subject, setSubject] = useState("");
   const [customSubject, setCustomSubject] = useState("");
   const [loading, setLoading] = useState(false);
@@ -18,6 +19,7 @@ export default function NoteSummarizer() {
   const [result, setResult] = useState(null);
   const [attachedFile, setAttachedFile] = useState(null);
   const [fileError, setFileError] = useState("");
+  const [showUpgrade, setShowUpgrade] = useState(false);
   const fileInputRef = useRef(null);
 
   const handleFileChange = async (e) => {
@@ -31,7 +33,8 @@ export default function NoteSummarizer() {
   };
 
   const handleSummarize = async () => {
-    if (!notes.trim() && !attachedFile) return;
+    if ((!instructions.trim() && !attachedFile) || summaryRemaining <= 0) return;
+    incrementSummary();
     setLoading(true);
     setError("");
     setResult(null);
@@ -40,7 +43,7 @@ export default function NoteSummarizer() {
     try {
       const raw = await generateWithFile({
         systemPrompt: SYSTEM_PROMPT,
-        userPrompt: `Subject: ${subjectLabel || "General"}\n\nNotes:\n${notes}`,
+        userPrompt: `Subject: ${subjectLabel || "General"}${instructions.trim() ? `\n\nInstructions: ${instructions}` : ''}`,
         file: fileArg,
       });
       setResult(JSON.parse(raw));
@@ -53,6 +56,7 @@ export default function NoteSummarizer() {
 
   return (
     <div className="space-y-5 pt-2">
+      {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} />}
       <div>
         <h1 className="text-2xl font-bold text-white">Note Summarizer</h1>
         <p className="text-sm text-white/50 mt-0.5">Turn your lecture notes into study gold</p>
@@ -83,14 +87,14 @@ export default function NoteSummarizer() {
           )}
         </div>
 
-        {/* Notes textarea */}
+        {/* Instructions textarea */}
         <div>
-          <label className="text-sm font-medium text-white/75 block mb-1.5">Lecture Notes</label>
+          <label className="text-sm font-medium text-white/75 block mb-1.5">Instructions</label>
           <textarea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder="Paste your notes here…"
-            rows={8}
+            value={instructions}
+            onChange={(e) => setInstructions(e.target.value)}
+            placeholder="Optional — describe what you want (e.g. 'focus on key definitions', 'generate 10 exam questions', 'summarize chapter 3 only'). Leave blank to get a full summary."
+            rows={4}
             className="w-full px-3 py-2.5 rounded-xl glass-input text-sm resize-none"
           />
         </div>
@@ -121,17 +125,41 @@ export default function NoteSummarizer() {
           {fileError && <p className="text-xs mt-1" style={{ color: '#f87171' }}>{fileError}</p>}
         </div>
 
-        <button
-          onClick={handleSummarize}
-          disabled={(!notes.trim() && !attachedFile) || loading}
-          className="w-full py-3 rounded-xl text-sm font-semibold btn-gold flex items-center justify-center gap-2 disabled:opacity-50"
-        >
-          {loading ? (
-            <><span className="w-4 h-4 border-2 border-gray-900/30 border-t-gray-900 rounded-full animate-spin inline-block" /> Summarizing…</>
-          ) : (
-            <><Sparkles size={16} /> Summarize Notes</>
-          )}
-        </button>
+        {summaryRemaining === 0 ? (
+          <div className="rounded-2xl p-6 text-center" style={{ background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.25)' }}>
+            <div className="w-12 h-12 rounded-xl mx-auto mb-3 flex items-center justify-center" style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.25)' }}>
+              <Sparkles size={20} style={{ color: '#f87171' }} />
+            </div>
+            <h3 className="text-base font-bold text-white mb-1.5">{trialExpired ? 'Free Trial Ended' : 'Daily Limit Reached'}</h3>
+            <p className="text-sm text-white/50 leading-relaxed">{trialExpired ? 'Your 7-day free trial has ended — upgrade to Pro or Basic to keep summarizing notes.' : "You've used all 5 summaries for today — upgrade for unlimited access."}</p>
+            <div className="mt-4 px-4 py-1.5 rounded-full text-xs font-semibold inline-block" style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171' }}>
+              {trialExpired ? '7-day free trial ended' : '5 / 5 summaries used today'}
+            </div>
+            <button
+              onClick={() => setShowUpgrade(true)}
+              className="mt-4 w-full py-2.5 rounded-xl text-sm font-semibold btn-gold flex items-center justify-center gap-2"
+            >
+              <Zap size={15} /> Upgrade Plan
+            </button>
+          </div>
+        ) : (
+          <>
+            <button
+              onClick={handleSummarize}
+              disabled={(!instructions.trim() && !attachedFile) || loading}
+              className="w-full py-3 rounded-xl text-sm font-semibold btn-gold flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              {loading ? (
+                <><span className="w-4 h-4 border-2 border-gray-900/30 border-t-gray-900 rounded-full animate-spin inline-block" /> Summarizing…</>
+              ) : (
+                <><Sparkles size={16} /> Summarize Notes</>
+              )}
+            </button>
+            {summaryRemaining < 999 && (
+              <p className="text-xs text-center text-white/35">{summaryRemaining} of 5 summaries remaining today</p>
+            )}
+          </>
+        )}
       </div>
 
       {error && <p className="text-sm px-1" style={{ color: "#f87171" }}>{error}</p>}
