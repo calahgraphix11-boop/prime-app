@@ -91,7 +91,7 @@ export default function VerifyEmail() {
             <div className="text-4xl mb-3">✉️</div>
             <h2 className="text-lg font-semibold text-white mb-1">Check your email</h2>
             <p className="text-sm text-white/50 leading-relaxed">
-              We sent a 6-digit code to{" "}
+              We sent a verification code to{" "}
               <span className="text-white/80 font-medium">{email}</span>
             </p>
           </div>
@@ -102,7 +102,7 @@ export default function VerifyEmail() {
               <input
                 type="text"
                 inputMode="numeric"
-                maxLength={6}
+                maxLength={8}
                 value={code}
                 onChange={(e) => {
                   setCode(e.target.value.replace(/\D/g, ""));
@@ -121,7 +121,7 @@ export default function VerifyEmail() {
             )}
             <button
               type="submit"
-              disabled={loading || code.length < 6}
+              disabled={loading || code.length < 1}
               className="w-full py-2.5 rounded-xl text-sm btn-gold disabled:opacity-50"
             >
               {loading ? "Verifying…" : "Verify"}
