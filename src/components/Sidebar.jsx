@@ -21,6 +21,7 @@ export default function Sidebar({ open, onClose }) {
     { to: '/sessions', icon: Clock, label: t.studySessions },
     { to: '/report', icon: FileText, label: t.aiReportWriter },
     { to: '/exam-prep', icon: GraduationCap, label: 'Exam Coach' },
+    { to: '/summarizer', icon: FileText, label: 'Note Summarizer' },
     { to: '/chat', icon: MessageCircle, label: t.aiChatbot },
     { to: '/friends', icon: Users, label: 'Friends' },
     { to: '/leaderboard', icon: Trophy, label: 'Leaderboard' },
