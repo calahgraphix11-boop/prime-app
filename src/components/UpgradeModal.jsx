@@ -3,7 +3,7 @@ import { X, Zap, Star, Check } from 'lucide-react';
 import { initiatePayment, PLANS } from '../lib/fapshi';
 import { useAuth } from '../context/AuthContext';
 
-export default function UpgradeModal({ onClose }) {
+export default function UpgradeModal({ onClose, defaultPlan }) {
   const { user } = useAuth();
   const [loading, setLoading] = useState(null); // 'basic' | 'pro' | null
   const [error, setError] = useState('');
@@ -58,7 +58,7 @@ export default function UpgradeModal({ onClose }) {
           {/* Basic */}
           <div
             className="rounded-2xl p-5 flex flex-col"
-            style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.14)' }}
+            style={{ background: 'rgba(255,255,255,0.07)', border: defaultPlan === 'basic' ? '2px solid #F5A800' : '1px solid rgba(255,255,255,0.14)' }}
           >
             <div className="flex items-center gap-2 mb-1">
               <Star size={15} style={{ color: '#F5A800' }} />
@@ -95,7 +95,7 @@ export default function UpgradeModal({ onClose }) {
           {/* Pro */}
           <div
             className="rounded-2xl p-5 flex flex-col relative overflow-hidden"
-            style={{ background: 'rgba(245,168,0,0.08)', border: '1px solid rgba(245,168,0,0.35)' }}
+            style={{ background: 'rgba(245,168,0,0.08)', border: defaultPlan === 'pro' ? '2px solid #F5A800' : '1px solid rgba(245,168,0,0.35)' }}
           >
             <div
               className="absolute top-3 right-3 px-2 py-0.5 rounded-full text-xs font-bold"

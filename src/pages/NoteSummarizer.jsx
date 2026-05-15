@@ -1,7 +1,8 @@
-import { useState } from "react";
-import { Sparkles, List, BookOpen, HelpCircle } from "lucide-react";
+import { useState, useRef } from "react";
+import { Sparkles, List, BookOpen, HelpCircle, Paperclip, X } from "lucide-react";
 import { kimiGenerate } from "../lib/kimi";
 import { useApp } from "../context/AppContext";
+import { ACCEPTED_FILE_TYPES, MAX_FILE_SIZE, getMediaType, readFileAsBase64 } from "../lib/fileUtils";
 
 const SYSTEM_PROMPT =
   "You are an expert study assistant. When given lecture notes or study material, extract and return ONLY a valid JSON object with no markdown or backticks with three keys: keyPoints (array of strings), keyDefinitions (array of objects with term and definition), examQuestions (array of strings). Be concise and academically focused.";
@@ -15,17 +16,32 @@ export default function NoteSummarizer() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [result, setResult] = useState(null);
+  const [attachedFile, setAttachedFile] = useState(null);
+  const [fileError, setFileError] = useState("");
+  const fileInputRef = useRef(null);
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    e.target.value = "";
+    if (!file) return;
+    if (file.size > MAX_FILE_SIZE) { setFileError("File exceeds 5 MB limit."); return; }
+    setFileError("");
+    const base64 = await readFileAsBase64(file);
+    setAttachedFile({ file, base64, mediaType: getMediaType(file.name) });
+  };
 
   const handleSummarize = async () => {
-    if (!notes.trim()) return;
+    if (!notes.trim() && !attachedFile) return;
     setLoading(true);
     setError("");
     setResult(null);
     const subjectLabel = subject === "__custom__" ? customSubject : subject;
+    const fileArg = attachedFile ? { base64: attachedFile.base64, mediaType: attachedFile.mediaType, filename: attachedFile.file.name } : undefined;
     try {
       const raw = await kimiGenerate({
         systemPrompt: SYSTEM_PROMPT,
         userPrompt: `Subject: ${subjectLabel || "General"}\n\nNotes:\n${notes}`,
+        file: fileArg,
       });
       setResult(JSON.parse(raw));
     } catch {
@@ -79,9 +95,35 @@ export default function NoteSummarizer() {
           />
         </div>
 
+        {/* File attachment */}
+        <div>
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-sm font-medium text-white/75">Attach a file</span>
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-colors"
+              style={{ background: 'rgba(0,77,46,0.3)', border: '1px solid rgba(0,77,46,0.5)', color: '#34d399' }}
+            >
+              <Paperclip size={12} /> Choose file
+            </button>
+            <input ref={fileInputRef} type="file" accept={ACCEPTED_FILE_TYPES} onChange={handleFileChange} className="hidden" />
+          </div>
+          {attachedFile ? (
+            <div className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs" style={{ background: 'rgba(245,168,0,0.08)', border: '1px solid rgba(245,168,0,0.25)' }}>
+              <Paperclip size={12} style={{ color: '#F5A800', flexShrink: 0 }} />
+              <span className="text-white/70 truncate flex-1">{attachedFile.file.name}</span>
+              <button onClick={() => setAttachedFile(null)} className="flex-shrink-0 text-white/35 hover:text-white/70 transition-colors"><X size={12} /></button>
+            </div>
+          ) : (
+            <p className="text-xs text-white/30">PDF, image, or text file — used alongside or instead of typed notes</p>
+          )}
+          {fileError && <p className="text-xs mt-1" style={{ color: '#f87171' }}>{fileError}</p>}
+        </div>
+
         <button
           onClick={handleSummarize}
-          disabled={!notes.trim() || loading}
+          disabled={(!notes.trim() && !attachedFile) || loading}
           className="w-full py-3 rounded-xl text-sm font-semibold btn-gold flex items-center justify-center gap-2 disabled:opacity-50"
         >
           {loading ? (

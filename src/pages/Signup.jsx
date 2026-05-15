@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useApp } from "../context/AppContext";
@@ -8,13 +8,16 @@ export default function Signup() {
   const { t } = useApp();
   const { signUp, signInWithGoogle } = useAuth();
   const [googleLoading, setGoogleLoading] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const plan = new URLSearchParams(location.search).get("plan");
 
   const handleGoogle = async () => {
+    if (plan) sessionStorage.setItem("pendingUpgradePlan", plan);
     setGoogleLoading(true);
     const { error: err } = await signInWithGoogle();
     if (err) { setError(err.message || "Google sign-in failed"); setGoogleLoading(false); }
   };
-  const navigate = useNavigate();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -42,7 +45,7 @@ export default function Signup() {
     } else if (needsEmailConfirmation) {
       navigate("/verify-email", { state: { email, firstName: fullName.trim().split(" ")[0] } });
     } else {
-      navigate("/");
+      navigate(plan ? `/upgrade?plan=${plan}` : "/");
     }
   };
 

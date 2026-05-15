@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useApp } from "../context/AppContext";
@@ -8,13 +8,16 @@ export default function Login() {
   const { t } = useApp();
   const { signIn, signInWithGoogle } = useAuth();
   const [googleLoading, setGoogleLoading] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const plan = new URLSearchParams(location.search).get("plan");
 
   const handleGoogle = async () => {
+    if (plan) sessionStorage.setItem("pendingUpgradePlan", plan);
     setGoogleLoading(true);
     const { error: err } = await signInWithGoogle();
     if (err) { setError(err.message || "Google sign-in failed"); setGoogleLoading(false); }
   };
-  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -30,7 +33,7 @@ export default function Login() {
     if (err) {
       setError(err.message || "Invalid credentials");
     } else {
-      navigate("/");
+      navigate(plan ? `/upgrade?plan=${plan}` : "/");
     }
   };
 

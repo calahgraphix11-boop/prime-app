@@ -1,5 +1,5 @@
-import { Component } from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { Component, useEffect } from "react";
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { AppProvider } from "./context/AppContext";
 import Layout from "./components/Layout";
@@ -18,6 +18,7 @@ import VerifyEmail from "./pages/VerifyEmail";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import NoteSummarizer from "./pages/NoteSummarizer";
 import ExamPrep from "./pages/ExamPrep";
+import Upgrade from "./pages/Upgrade";
 
 class ErrorBoundary extends Component {
   state = { error: null };
@@ -51,6 +52,18 @@ function ProtectedRoute({ children }) {
 
 function AppRoutes() {
   const { user } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user) {
+      const pendingPlan = sessionStorage.getItem("pendingUpgradePlan");
+      if (pendingPlan) {
+        sessionStorage.removeItem("pendingUpgradePlan");
+        navigate(`/upgrade?plan=${pendingPlan}`, { replace: true });
+      }
+    }
+  }, [user]);
+
   return (
     <Routes>
 <Route path="/login" element={user ? <Navigate to="/" replace /> : <Login />} />
@@ -68,6 +81,7 @@ function AppRoutes() {
       <Route path="/summarizer" element={<ProtectedRoute><Layout><NoteSummarizer /></Layout></ProtectedRoute>} />
       <Route path="/exam-prep" element={<ProtectedRoute><Layout><ExamPrep /></Layout></ProtectedRoute>} />
       <Route path="/payment-success" element={<ProtectedRoute><PaymentSuccess /></ProtectedRoute>} />
+      <Route path="/upgrade" element={<ProtectedRoute><Upgrade /></ProtectedRoute>} />
     </Routes>
   );
 }

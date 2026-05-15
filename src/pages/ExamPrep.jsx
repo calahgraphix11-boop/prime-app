@@ -1,7 +1,8 @@
-import { useState } from "react";
-import { Sparkles, ChevronRight, Trophy, RotateCcw, Target } from "lucide-react";
+import { useState, useRef } from "react";
+import { Sparkles, ChevronRight, Trophy, RotateCcw, Target, Paperclip, X } from "lucide-react";
 import { kimiGenerate } from "../lib/kimi";
 import { useApp } from "../context/AppContext";
+import { ACCEPTED_FILE_TYPES, MAX_FILE_SIZE, getMediaType, readFileAsBase64 } from "../lib/fileUtils";
 
 const SYSTEM_PROMPT =
   "You are an exam preparation assistant. Return ONLY a valid JSON array with no markdown or backticks. Each object must have: question (string), options (array of exactly 4 strings labeled A. B. C. D.), correct (string matching one of the options exactly), explanation (string, one sentence max).";
@@ -29,16 +30,31 @@ export default function ExamPrep() {
   const [answers, setAnswers] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [attachedFile, setAttachedFile] = useState(null);
+  const [fileError, setFileError] = useState("");
+  const fileInputRef = useRef(null);
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    e.target.value = "";
+    if (!file) return;
+    if (file.size > MAX_FILE_SIZE) { setFileError("File exceeds 5 MB limit."); return; }
+    setFileError("");
+    const base64 = await readFileAsBase64(file);
+    setAttachedFile({ file, base64, mediaType: getMediaType(file.name) });
+  };
 
   const generate = async () => {
     if (!topic.trim()) return;
     setLoading(true);
     setError("");
     const subjectLabel = subject === "__custom__" ? customSubject : subject;
+    const fileArg = attachedFile ? { base64: attachedFile.base64, mediaType: attachedFile.mediaType, filename: attachedFile.file.name } : undefined;
     try {
       const raw = await kimiGenerate({
         systemPrompt: SYSTEM_PROMPT,
         userPrompt: `Topic: ${topic}\nSubject: ${subjectLabel || "General"}\nDifficulty: ${difficulty}\nQuestion count: ${questionCount}`,
+        file: fileArg,
       });
       const parsed = JSON.parse(raw);
       setQuestions(parsed.slice(0, questionCount));
@@ -106,6 +122,32 @@ export default function ExamPrep() {
               placeholder="e.g. Photosynthesis, World War II, Calculus…"
               className="w-full px-3 py-2.5 rounded-xl glass-input text-sm"
             />
+          </div>
+
+          {/* File attachment */}
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-sm font-medium text-white/75">Reference Material</label>
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-colors"
+                style={{ background: 'rgba(0,77,46,0.3)', border: '1px solid rgba(0,77,46,0.5)', color: '#34d399' }}
+              >
+                <Paperclip size={12} /> Attach file
+              </button>
+              <input ref={fileInputRef} type="file" accept={ACCEPTED_FILE_TYPES} onChange={handleFileChange} className="hidden" />
+            </div>
+            {attachedFile ? (
+              <div className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs" style={{ background: 'rgba(245,168,0,0.08)', border: '1px solid rgba(245,168,0,0.25)' }}>
+                <Paperclip size={12} style={{ color: '#F5A800', flexShrink: 0 }} />
+                <span className="text-white/70 truncate flex-1">{attachedFile.file.name}</span>
+                <button onClick={() => setAttachedFile(null)} className="flex-shrink-0 text-white/35 hover:text-white/70 transition-colors"><X size={12} /></button>
+              </div>
+            ) : (
+              <p className="text-xs text-white/30">Optional — attach notes or a document to generate topic-specific questions</p>
+            )}
+            {fileError && <p className="text-xs mt-1" style={{ color: '#f87171' }}>{fileError}</p>}
           </div>
 
           <div>

@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Plus, MessageCircle, Mic, MicOff, PanelLeft, Zap } from "lucide-react";
+import { Send, Plus, MessageCircle, Mic, MicOff, PanelLeft, Zap, Paperclip, X } from "lucide-react";
 import { chatWithAssistant, MODELS, DEFAULT_MODEL } from "../lib/gemini";
 import { useApp } from "../context/AppContext";
 import { useAuth } from "../context/AuthContext";
 import UpgradeModal from "../components/UpgradeModal";
+import { ACCEPTED_FILE_TYPES, MAX_FILE_SIZE, getMediaType, readFileAsBase64 } from "../lib/fileUtils";
 
 export default function AIChatbot() {
   const { t, chatSessions, createChatSession, updateChatSession, dataLoading, chatRemaining, incrementChat, trialExpired } = useApp();
@@ -15,7 +16,20 @@ export default function AIChatbot() {
   const [showSidebar, setShowSidebar] = useState(false);
   const [showUpgrade, setShowUpgrade] = useState(false);
   const [model, setModel] = useState(DEFAULT_MODEL);
+  const [attachedFile, setAttachedFile] = useState(null);
+  const [fileError, setFileError] = useState("");
+  const fileInputRef = useRef(null);
   const bottomRef = useRef(null);
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    e.target.value = "";
+    if (!file) return;
+    if (file.size > MAX_FILE_SIZE) { setFileError("File exceeds 5 MB limit."); return; }
+    setFileError("");
+    const base64 = await readFileAsBase64(file);
+    setAttachedFile({ file, base64, mediaType: getMediaType(file.name) });
+  };
 
   useEffect(() => {
     if (chatSessions.length > 0 && activeChatId === null) {
@@ -37,9 +51,13 @@ export default function AIChatbot() {
 
   const send = async (text) => {
     const msg = text || input.trim();
-    if (!msg) return;
+    const fileToSend = attachedFile;
+    if (!msg && !fileToSend) return;
     if (chatRemaining <= 0) return;
+
     setInput("");
+    setAttachedFile(null);
+    setFileError("");
     incrementChat();
 
     let currentChatId = activeChatId;
@@ -53,13 +71,24 @@ export default function AIChatbot() {
       setActiveChatId(chat.id);
     }
 
-    const newMessages = [...currentMessages, { role: "user", content: msg }];
+    // Stored content: plain text for history (file data is not persisted)
+    const storedContent = msg || `📎 ${fileToSend.file.name}`;
+    const newMessages = [...currentMessages, { role: "user", content: storedContent }];
     const label = newMessages[0]?.content.slice(0, 28) || "New Chat";
     await updateChatSession(currentChatId, newMessages, label);
     setLoading(true);
 
+    // API messages: history (text) + current message (with file block if present)
+    const apiMessages = [
+      ...currentMessages,
+      { role: "user", content: msg || "" },
+    ];
+    const fileArg = fileToSend
+      ? { base64: fileToSend.base64, mediaType: fileToSend.mediaType, filename: fileToSend.file.name }
+      : null;
+
     try {
-      const reply = await chatWithAssistant(newMessages, model, username);
+      const reply = await chatWithAssistant(apiMessages, model, username, fileArg);
       await updateChatSession(
         currentChatId,
         [...newMessages, { role: "assistant", content: reply }],
@@ -239,7 +268,27 @@ export default function AIChatbot() {
             </div>
 
             <div className="px-4 py-3 flex-shrink-0" style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+              {/* File chip */}
+              {attachedFile && (
+                <div className="flex items-center gap-2 mb-2 px-3 py-1.5 rounded-xl text-xs w-fit" style={{ background: 'rgba(245,168,0,0.08)', border: '1px solid rgba(245,168,0,0.25)' }}>
+                  <Paperclip size={11} style={{ color: '#F5A800', flexShrink: 0 }} />
+                  <span className="text-white/70 truncate max-w-[220px]">{attachedFile.file.name}</span>
+                  <button onClick={() => setAttachedFile(null)} className="flex-shrink-0 text-white/35 hover:text-white/70 transition-colors"><X size={11} /></button>
+                </div>
+              )}
+              {fileError && <p className="text-xs mb-1.5 px-1" style={{ color: '#f87171' }}>{fileError}</p>}
+
               <div className="flex items-end gap-2 rounded-2xl px-4 py-3" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="p-1.5 rounded-lg transition-colors flex-shrink-0"
+                  style={{ color: attachedFile ? '#F5A800' : 'rgba(255,255,255,0.35)' }}
+                  title="Attach file"
+                >
+                  <Paperclip size={18} />
+                </button>
+                <input ref={fileInputRef} type="file" accept={ACCEPTED_FILE_TYPES} onChange={handleFileChange} className="hidden" />
                 <textarea
                   rows={1}
                   value={input}
@@ -254,7 +303,7 @@ export default function AIChatbot() {
                 </button>
                 <button
                   onClick={() => send()}
-                  disabled={!input.trim() || loading}
+                  disabled={(!input.trim() && !attachedFile) || loading}
                   className="p-1.5 rounded-lg transition-colors disabled:opacity-30"
                   style={{ color: '#F5A800' }}
                 >

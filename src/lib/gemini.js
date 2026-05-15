@@ -63,7 +63,21 @@ export async function supportChat(messages) {
   );
 }
 
-export async function chatWithAssistant(messages, model = DEFAULT_MODEL, username) {
+function buildAnthropicFileBlock(file) {
+  const { base64, mediaType } = file;
+  if (mediaType.startsWith('image/')) {
+    return { type: 'image', source: { type: 'base64', media_type: mediaType, data: base64 } };
+  }
+  if (mediaType === 'application/pdf') {
+    return { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: base64 } };
+  }
+  if (mediaType === 'text/plain') {
+    return { type: 'document', source: { type: 'text', data: atob(base64) } };
+  }
+  return null; // DOCX and other types unsupported inline
+}
+
+export async function chatWithAssistant(messages, model = DEFAULT_MODEL, username, fileAttachment) {
   const greeting = username ? `If this is the first message in the conversation, open with "Hey ${username}!" then go straight into your answer.` : '';
   const system = [
     'You are StudyPal, a study assistant.',
@@ -73,10 +87,20 @@ export async function chatWithAssistant(messages, model = DEFAULT_MODEL, usernam
     'Keep replies to 2-4 sentences unless a detailed explanation is genuinely needed.',
   ].filter(Boolean).join(' ');
 
-  return callAnthropic(
-    messages.map((m) => ({ role: m.role === 'user' ? 'user' : 'assistant', content: m.content })),
-    model,
-    system,
-    1024
-  );
+  const apiMessages = messages.map((m, idx) => {
+    const role = m.role === 'user' ? 'user' : 'assistant';
+    const isLast = idx === messages.length - 1;
+
+    if (isLast && role === 'user' && fileAttachment) {
+      const content = [];
+      if (m.content) content.push({ type: 'text', text: m.content });
+      const fileBlock = buildAnthropicFileBlock(fileAttachment);
+      if (fileBlock) content.push(fileBlock);
+      return { role, content: content.length > 0 ? content : m.content };
+    }
+
+    return { role, content: m.content };
+  });
+
+  return callAnthropic(apiMessages, model, system, 1024);
 }
