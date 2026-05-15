@@ -29,11 +29,15 @@ export default function Signup() {
     e.preventDefault();
     if (!agreedToTerms) { setTermsError(true); return; }
     setError("");
-    setInfo("");
     setLoading(true);
     const { error: err, needsEmailConfirmation } = await signUp(email, password, fullName);
     setLoading(false);
     if (err) {
+      const alreadyExists = /already registered|user already exists/i.test(err.message);
+      if (alreadyExists) {
+        navigate("/verify-email", { state: { email, firstName: fullName.trim().split(" ")[0] } });
+        return;
+      }
       setError(err.message || "Signup failed");
     } else if (needsEmailConfirmation) {
       navigate("/verify-email", { state: { email, firstName: fullName.trim().split(" ")[0] } });
@@ -91,7 +95,7 @@ export default function Signup() {
                   <button
                     type="button"
                     onClick={() => setShowPassword((v) => !v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-white/35 hover:text-white/70 transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 z-10 text-white/50 hover:text-white/80 transition-colors"
                     tabIndex={-1}
                   >
                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
