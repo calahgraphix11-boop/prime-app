@@ -5,7 +5,7 @@ import { useApp } from "../context/AppContext";
 import { useAuth } from "../context/AuthContext";
 
 export default function AIChatbot() {
-  const { t, chatSessions, createChatSession, updateChatSession, dataLoading, chatRemaining, incrementChat } = useApp();
+  const { t, chatSessions, createChatSession, updateChatSession, dataLoading, chatRemaining, incrementChat, trialExpired } = useApp();
   const { profile } = useAuth();
   const username = profile?.username || profile?.full_name || null;
   const [activeChatId, setActiveChatId] = useState(null);
@@ -175,10 +175,10 @@ export default function AIChatbot() {
               <div className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center" style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.25)' }}>
                 <MessageCircle size={24} style={{ color: '#f87171' }} />
               </div>
-              <h2 className="text-lg font-bold text-white mb-2">Daily Limit Reached</h2>
-              <p className="text-sm text-white/50 leading-relaxed">You've reached your daily limit — upgrade to Pro for more.</p>
+              <h2 className="text-lg font-bold text-white mb-2">{trialExpired ? 'Free Trial Ended' : 'Daily Limit Reached'}</h2>
+              <p className="text-sm text-white/50 leading-relaxed">{trialExpired ? 'Your 7-day free trial has ended — upgrade to Pro or Basic to keep studying.' : "You've reached your daily limit — upgrade to Pro for more."}</p>
               <div className="mt-5 px-4 py-2 rounded-full text-xs font-semibold inline-block" style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171' }}>
-                {10} / {10} messages used today
+                {trialExpired ? '7-day free trial ended' : `${10} / ${10} messages used today`}
               </div>
             </div>
           </div>

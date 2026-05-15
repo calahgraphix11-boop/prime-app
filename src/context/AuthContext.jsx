@@ -82,8 +82,13 @@ export function AuthProvider({ children }) {
     return { error, url: avatarUrl };
   };
 
+  const trialStartDate = profile?.trial_start_date ? new Date(profile.trial_start_date) : null;
+  const daysSinceTrial = trialStartDate ? (Date.now() - trialStartDate.getTime()) / 86400000 : null;
+  const trialActive = daysSinceTrial !== null && daysSinceTrial <= 7;
+  const trialExpired = daysSinceTrial !== null && daysSinceTrial > 7;
+
   return (
-    <AuthContext.Provider value={{ user, loading, profile, signIn, signUp, signInWithGoogle, signOut, updateProfile, uploadAvatar }}>
+    <AuthContext.Provider value={{ user, loading, profile, signIn, signUp, signInWithGoogle, signOut, updateProfile, uploadAvatar, trialActive, trialExpired }}>
       {children}
     </AuthContext.Provider>
   );

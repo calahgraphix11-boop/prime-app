@@ -9,7 +9,7 @@ export default function ChatBubble() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const { t, chatRemaining, incrementChat } = useApp();
+  const { t, chatRemaining, incrementChat, trialExpired } = useApp();
   const { profile } = useAuth();
   const username = profile?.username || profile?.full_name || null;
   const bottomRef = useRef(null);
@@ -132,7 +132,7 @@ export default function ChatBubble() {
 
           <div className="px-3 py-3 flex-shrink-0" style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}>
             {chatRemaining === 0 ? (
-              <p className="text-xs text-center py-1" style={{ color: '#f87171' }}>Daily limit reached</p>
+              <p className="text-xs text-center py-1" style={{ color: '#f87171' }}>{trialExpired ? 'Free trial ended — upgrade to continue' : 'Daily limit reached'}</p>
             ) : (
               <div
                 className="flex items-end gap-2 rounded-xl px-3 py-2"

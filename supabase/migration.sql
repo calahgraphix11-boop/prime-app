@@ -83,3 +83,27 @@ drop policy if exists "avatars_read_public" on storage.objects;
 create policy "avatars_read_public"
   on storage.objects for select
   using (bucket_id = 'avatars');
+
+-- ── 7-day free trial migration (run in Supabase SQL Editor) ──────────────────
+--
+-- Step 1: Add trial_start_date column to profiles
+-- alter table public.profiles
+--   add column if not exists trial_start_date timestamptz;
+--
+-- Step 2: Back-fill existing users (gives them a fresh 7-day trial window)
+-- update public.profiles
+--   set trial_start_date = now()
+--   where trial_start_date is null;
+--
+-- Step 3: Update the handle_new_user trigger so new sign-ups start their
+--         trial automatically at the moment of registration.
+-- create or replace function public.handle_new_user()
+-- returns trigger as $$
+-- begin
+--   insert into public.profiles (id, full_name, trial_start_date)
+--   values (new.id, new.raw_user_meta_data->>'full_name', now())
+--   on conflict (id) do nothing;
+--   return new;
+-- end;
+-- $$ language plpgsql security definer;
+-- ─────────────────────────────────────────────────────────────────────────────

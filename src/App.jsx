@@ -14,6 +14,7 @@ import Leaderboard from "./pages/Leaderboard";
 import PublicProfile from "./pages/PublicProfile";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import VerifyEmail from "./pages/VerifyEmail";
 
 class ErrorBoundary extends Component {
   state = { error: null };
@@ -51,6 +52,7 @@ function AppRoutes() {
     <Routes>
 <Route path="/login" element={user ? <Navigate to="/" replace /> : <Login />} />
       <Route path="/signup" element={user ? <Navigate to="/" replace /> : <Signup />} />
+      <Route path="/verify-email" element={user ? <Navigate to="/" replace /> : <VerifyEmail />} />
       <Route path="/" element={<ProtectedRoute><Layout><Dashboard /></Layout></ProtectedRoute>} />
       <Route path="/sessions" element={<ProtectedRoute><Layout><StudySessions /></Layout></ProtectedRoute>} />
       <Route path="/report" element={<ProtectedRoute><Layout><AIReportWriter /></Layout></ProtectedRoute>} />
