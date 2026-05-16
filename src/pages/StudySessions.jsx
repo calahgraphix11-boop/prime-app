@@ -4,6 +4,7 @@ import { useApp } from "../context/AppContext";
 import { useAuth } from "../context/AuthContext";
 import { generateContent, DEFAULT_MODEL } from "../lib/gemini";
 import SessionChatPanel from "../components/SessionChatPanel";
+import { supabase } from "../lib/supabase";
 
 function formatDate(iso) {
   const d = new Date(iso);
@@ -45,6 +46,95 @@ function CircularTimer({ totalSeconds, remaining, running, phase }) {
   );
 }
 
+function SessionHistoryModal({ session, onClose }) {
+  const [messages, setMessages] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!session?.session_key) {
+      setMessages([]);
+      setLoading(false);
+      return;
+    }
+    supabase
+      .from('study_session_chats')
+      .select('messages')
+      .eq('session_key', session.session_key)
+      .maybeSingle()
+      .then(({ data }) => {
+        setMessages(data?.messages || []);
+        setLoading(false);
+      });
+  }, [session?.session_key]);
+
+  return (
+    <div
+      className="fixed inset-0 z-[80] flex items-center justify-center p-4"
+      style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(6px)' }}
+      onClick={onClose}
+    >
+      <div
+        className="relative w-full max-w-lg rounded-2xl flex flex-col"
+        style={{
+          maxHeight: '80vh',
+          background: 'rgba(0,22,10,0.97)',
+          border: '1px solid rgba(245,168,0,0.25)',
+          boxShadow: '0 24px 60px rgba(0,0,0,0.6)',
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div
+          className="flex items-start justify-between px-5 py-4 flex-shrink-0"
+          style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}
+        >
+          <div>
+            <div className="text-base font-semibold text-white leading-tight">{session.title}</div>
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1">
+              <span className="text-xs text-white/40">{session.subject}</span>
+              <span className="flex items-center gap-1 text-xs text-white/40"><Clock size={10} /> {session.duration} min</span>
+              <span className="text-xs text-white/30">{formatDate(session.date)}</span>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="ml-3 flex-shrink-0 p-1.5 rounded-lg text-white/40 hover:text-white hover:bg-white/10 transition-colors"
+          >
+            <X size={15} />
+          </button>
+        </div>
+
+        {/* Chat history */}
+        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3">
+          <div className="text-xs font-semibold text-white/35 uppercase tracking-wider mb-3">Chat History</div>
+          {loading ? (
+            <p className="text-sm text-white/40 text-center py-6">Loading…</p>
+          ) : !messages || messages.length === 0 ? (
+            <p className="text-sm text-white/40 text-center py-6">No chat history for this session.</p>
+          ) : (
+            messages.map((msg, i) => (
+              <div
+                key={i}
+                className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+              >
+                <div
+                  className="max-w-[80%] px-3.5 py-2.5 rounded-2xl text-sm leading-relaxed"
+                  style={msg.role === 'user'
+                    ? { background: '#F5A800', color: '#1a0c00' }
+                    : { background: 'rgba(0,77,46,0.5)', color: 'rgba(255,255,255,0.85)', border: '1px solid rgba(0,77,46,0.8)' }
+                  }
+                >
+                  {msg.content || msg.text || ''}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 const DURATIONS = [15, 25, 45, 60];
 
 export default function StudySessions() {
@@ -62,6 +152,7 @@ export default function StudySessions() {
   const [pomodoroEnabled, setPomodoroEnabled] = useState(false);
 
   const [chatOpen, setChatOpen] = useState(false);
+  const [selectedSession, setSelectedSession] = useState(null);
   const [motivation, setMotivation] = useState("");
   const [motivationVisible, setMotivationVisible] = useState(false);
   const motivationTimerRef = useRef(null);
@@ -274,7 +365,11 @@ export default function StudySessions() {
             <p className="text-sm text-white/35 text-center py-8">No sessions yet</p>
           ) : (
             sessions.map((s) => (
-              <div key={s.id} className="flex items-start gap-3 p-4 rounded-2xl glass">
+              <div
+                key={s.id}
+                className="flex items-start gap-3 p-4 rounded-2xl glass cursor-pointer hover:bg-white/5 transition-colors"
+                onClick={() => setSelectedSession(s)}
+              >
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5" style={{ background: 'rgba(167,139,250,0.2)' }}>
                   <BookOpen size={16} style={{ color: '#a78bfa' }} />
                 </div>
@@ -294,7 +389,7 @@ export default function StudySessions() {
                     {t.completed}
                   </span>
                   <button
-                    onClick={() => deleteSession(s.id)}
+                    onClick={(e) => { e.stopPropagation(); deleteSession(s.id); }}
                     className="p-1.5 rounded-lg transition-colors hover:bg-white/10"
                   >
                     <Trash2 size={14} className="text-white/30" />
@@ -337,6 +432,11 @@ export default function StudySessions() {
           ? <X size={18} style={{ color: '#F5A800' }} />
           : <MessageCircle size={18} style={{ color: '#1a0c00' }} />}
       </button>}
+
+      {/* Session history modal */}
+      {selectedSession && (
+        <SessionHistoryModal session={selectedSession} onClose={() => setSelectedSession(null)} />
+      )}
 
       {/* StudyPal slide-in panel */}
       {chatOpen && (

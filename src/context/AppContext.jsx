@@ -17,6 +17,8 @@ export const FILE_UPLOAD_LIMIT_BASIC = 5;
  * SQL — run once in Supabase SQL Editor:
  * ALTER TABLE daily_usage ADD COLUMN IF NOT EXISTS exam_prep_count integer DEFAULT 0;
  * ALTER TABLE daily_usage ADD COLUMN IF NOT EXISTS file_uploads integer DEFAULT 0;
+ * ALTER TABLE study_sessions ADD COLUMN IF NOT EXISTS session_key text;
+ * ALTER TABLE study_sessions_log ADD COLUMN IF NOT EXISTS session_key text;
  *
  * create table if not exists study_session_chats (
  *   id uuid primary key default gen_random_uuid(),
@@ -150,6 +152,7 @@ export function AppProvider({ children }) {
         course: activeSession.course,
         duration: activeSession.duration,
         pomodoroEnabled: false,
+        session_key: activeSession.session_key,
         startTime: sessionStartTimeRef.current,
         endTime: new Date().toISOString(),
       });
@@ -163,7 +166,7 @@ export function AppProvider({ children }) {
     sessionKeyRef.current = crypto.randomUUID();
     sessionChatIdRef.current = null;
     setSessionMessages([]);
-    setActiveSession(sessionData);
+    setActiveSession({ ...sessionData, session_key: sessionKeyRef.current });
     setRemaining((sessionData.pomodoroEnabled ? 25 : sessionData.duration) * 60);
     setRunning(true);
     setPomodoroPhase("study");
@@ -192,7 +195,7 @@ export function AppProvider({ children }) {
     if (pomodoroPhase === "study") {
       totalMinutes += Math.floor((25 * 60 - remaining) / 60);
     }
-    const snap = { title: activeSession.title, course: activeSession.course };
+    const snap = { title: activeSession.title, course: activeSession.course, session_key: activeSession.session_key };
     setActiveSession(null);
     setPomodoroPhase("study");
     setPomodoroRounds(0);
@@ -222,6 +225,7 @@ export function AppProvider({ children }) {
         date: new Date().toISOString(),
         status: session.status || 'completed',
         notes: session.notes || null,
+        session_key: session.session_key || null,
       })
       .select()
       .single();
@@ -243,6 +247,7 @@ export function AppProvider({ children }) {
       end_time: session.endTime,
       duration_minutes: session.duration,
       pomodoro_enabled: session.pomodoroEnabled || false,
+      session_key: session.session_key || null,
     });
   };
 
