@@ -176,7 +176,7 @@ export default function StudySessions() {
     const name = profile?.full_name || profile?.username || "you";
     const sessionTitle = title.trim();
     generateContent(
-      `Generate a short, funny but locked-in motivational message for ${name} who is about to study ${sessionTitle}. Keep it under 2 sentences. Be creative and different every time. No hashtags, no emojis.`,
+      `Generate a short, funny but locked-in motivational message for ${name} who is about to study ${sessionTitle}. Maximum 2 lines. Be creative and different every time. No hashtags, no emojis.`,
       DEFAULT_MODEL
     ).then((msg) => {
       setMotivation(msg);
@@ -331,29 +331,64 @@ export default function StudySessions() {
             phase={pomodoroPhase}
           />
 
-          <div className="flex gap-3">
-            <button
-              onClick={() => running ? pauseTimer() : resumeTimer()}
-              className="flex-1 py-2.5 rounded-xl text-sm font-semibold btn-gold"
-            >
-              {running ? t.pause : t.resume}
-            </button>
-            {activeSession.pomodoroEnabled ? (
+          {activeSession.pomodoroEnabled ? (
+            /* Pomodoro: Pause/Resume + End Session — unchanged */
+            <div className="flex gap-3">
+              <button
+                onClick={() => running ? pauseTimer() : resumeTimer()}
+                className="flex-1 py-2.5 rounded-xl text-sm font-semibold btn-gold"
+              >
+                {running ? t.pause : t.resume}
+              </button>
               <button
                 onClick={endTimerSession}
                 className="flex-1 py-2.5 rounded-xl text-sm font-medium btn-ghost"
               >
                 {t.endSession}
               </button>
-            ) : (
-              <button
-                onClick={cancelTimer}
-                className="flex-1 py-2.5 rounded-xl text-sm font-medium btn-ghost"
-              >
-                {t.cancelSession}
-              </button>
-            )}
-          </div>
+            </div>
+          ) : (
+            <>
+              {/* Desktop: Pause/Resume + Cancel (unchanged) */}
+              <div className="hidden sm:flex gap-3">
+                <button
+                  onClick={() => running ? pauseTimer() : resumeTimer()}
+                  className="flex-1 py-2.5 rounded-xl text-sm font-semibold btn-gold"
+                >
+                  {running ? t.pause : t.resume}
+                </button>
+                <button
+                  onClick={cancelTimer}
+                  className="flex-1 py-2.5 rounded-xl text-sm font-medium btn-ghost"
+                >
+                  {t.cancelSession}
+                </button>
+              </div>
+              {/* Mobile: Pause/Resume + End Session on top, Cancel below */}
+              <div className="flex flex-col gap-2 sm:hidden">
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => running ? pauseTimer() : resumeTimer()}
+                    className="flex-1 py-2.5 rounded-xl text-sm font-semibold btn-gold"
+                  >
+                    {running ? t.pause : t.resume}
+                  </button>
+                  <button
+                    onClick={endTimerSession}
+                    className="flex-1 py-2.5 rounded-xl text-sm font-semibold btn-gold"
+                  >
+                    {t.endSession}
+                  </button>
+                </div>
+                <button
+                  onClick={cancelTimer}
+                  className="w-full py-2 rounded-xl text-xs font-medium btn-ghost"
+                >
+                  {t.cancelSession}
+                </button>
+              </div>
+            </>
+          )}
         </div>
       )}
 
@@ -404,16 +439,16 @@ export default function StudySessions() {
       {/* Motivational toast */}
       {motivation && (
         <div
-          className="fixed top-4 left-1/2 z-50 max-w-sm w-full px-4"
+          className="fixed top-3 left-1/2 z-50 max-w-xs w-full px-3"
           style={{ transform: 'translateX(-50%)', transition: 'opacity 500ms ease', opacity: motivationVisible ? 1 : 0 }}
         >
           <div
-            className="flex items-start gap-3 px-4 py-3 rounded-2xl"
+            className="flex items-start gap-2 px-3 py-2 rounded-xl"
             style={{ background: 'rgba(0,18,8,0.92)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid rgba(245,168,0,0.35)', boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}
           >
-            <p className="flex-1 text-sm text-white/90 leading-snug">{motivation}</p>
-            <button onClick={dismissMotivation} className="flex-shrink-0 text-white/35 hover:text-white/70 transition-colors mt-0.5">
-              <X size={14} />
+            <p className="flex-1 text-xs text-white/90 leading-snug">{motivation}</p>
+            <button onClick={dismissMotivation} className="flex-shrink-0 text-white/35 hover:text-white/70 transition-colors">
+              <X size={12} />
             </button>
           </div>
         </div>
