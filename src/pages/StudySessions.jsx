@@ -1,8 +1,6 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Plus, Trash2, BookOpen, Clock, ChevronDown, Timer, Coffee, MessageCircle, X } from "lucide-react";
 import { useApp } from "../context/AppContext";
-import { useAuth } from "../context/AuthContext";
-import { generateContent, DEFAULT_MODEL } from "../lib/gemini";
 import SessionChatPanel from "../components/SessionChatPanel";
 import { supabase } from "../lib/supabase";
 
@@ -143,8 +141,6 @@ export default function StudySessions() {
     activeSession, remaining, running, pomodoroPhase, pomodoroRounds,
     startTimerSession, pauseTimer, resumeTimer, cancelTimer, endTimerSession,
   } = useApp();
-  const { profile } = useAuth();
-
   const [showForm, setShowForm] = useState(false);
   const [title, setTitle] = useState("");
   const [course, setCourse] = useState("");
@@ -153,40 +149,16 @@ export default function StudySessions() {
 
   const [chatOpen, setChatOpen] = useState(false);
   const [selectedSession, setSelectedSession] = useState(null);
-  const [motivation, setMotivation] = useState("");
-  const [motivationVisible, setMotivationVisible] = useState(false);
-  const motivationTimerRef = useRef(null);
 
   useEffect(() => {
     if (!activeSession) setChatOpen(false);
   }, [activeSession]);
-
-  const dismissMotivation = () => {
-    clearTimeout(motivationTimerRef.current);
-    setMotivationVisible(false);
-    setTimeout(() => setMotivation(""), 500);
-  };
 
   const startSession = () => {
     if (!title.trim()) return;
     const selectedCourse = course || courses[0]?.name || "General";
     startTimerSession({ title: title.trim(), course: selectedCourse, duration: pomodoroEnabled ? 25 : duration, pomodoroEnabled });
     setShowForm(false);
-
-    const name = profile?.full_name || profile?.username || "you";
-    const sessionTitle = title.trim();
-    generateContent(
-      `Generate a short, funny but locked-in motivational message for ${name} who is about to study ${sessionTitle}. Maximum 2 lines. Be creative and different every time. No hashtags, no emojis.`,
-      DEFAULT_MODEL
-    ).then((msg) => {
-      setMotivation(msg);
-      setMotivationVisible(true);
-      motivationTimerRef.current = setTimeout(() => {
-        setMotivationVisible(false);
-        setTimeout(() => setMotivation(""), 500);
-      }, 6000);
-    }).catch(() => {});
-
     setTitle("");
   };
 
@@ -349,7 +321,6 @@ export default function StudySessions() {
             </div>
           ) : (
             <>
-              {/* Desktop: Pause/Resume + Cancel (unchanged) */}
               <div className="hidden sm:flex gap-3">
                 <button
                   onClick={() => running ? pauseTimer() : resumeTimer()}
@@ -364,22 +335,19 @@ export default function StudySessions() {
                   {t.cancelSession}
                 </button>
               </div>
-              {/* Mobile: Pause/Resume + End Session on top, Cancel below */}
               <div className="flex flex-col gap-2 sm:hidden">
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => running ? pauseTimer() : resumeTimer()}
-                    className="flex-1 py-2.5 rounded-xl text-sm font-semibold btn-gold"
-                  >
-                    {running ? t.pause : t.resume}
-                  </button>
-                  <button
-                    onClick={endTimerSession}
-                    className="flex-1 py-2.5 rounded-xl text-sm font-semibold btn-gold"
-                  >
-                    {t.endSession}
-                  </button>
-                </div>
+                <button
+                  onClick={() => running ? pauseTimer() : resumeTimer()}
+                  className="w-full py-2.5 rounded-xl text-sm font-semibold btn-gold"
+                >
+                  {running ? t.pause : t.resume}
+                </button>
+                <button
+                  onClick={endTimerSession}
+                  className="w-full py-2.5 rounded-xl text-sm font-semibold btn-gold"
+                >
+                  {t.endSession}
+                </button>
                 <button
                   onClick={cancelTimer}
                   className="w-full py-2 rounded-xl text-xs font-medium btn-ghost"
@@ -435,24 +403,6 @@ export default function StudySessions() {
           )}
         </div>
       </div>
-
-      {/* Motivational toast */}
-      {motivation && (
-        <div
-          className="fixed top-3 left-1/2 z-50 max-w-xs w-full px-3"
-          style={{ transform: 'translateX(-50%)', transition: 'opacity 500ms ease', opacity: motivationVisible ? 1 : 0 }}
-        >
-          <div
-            className="flex items-start gap-2 px-3 py-2 rounded-xl"
-            style={{ background: 'rgba(0,18,8,0.92)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid rgba(245,168,0,0.35)', boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}
-          >
-            <p className="flex-1 text-xs text-white/90 leading-snug">{motivation}</p>
-            <button onClick={dismissMotivation} className="flex-shrink-0 text-white/35 hover:text-white/70 transition-colors">
-              <X size={12} />
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* StudyPal FAB — only visible during an active session, above ChatBubble (z-50) */}
       {activeSession && <button
