@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Plus, Trash2, BookOpen, Clock, ChevronDown, Timer, Coffee, MessageCircle, X } from "lucide-react";
 import { useApp } from "../context/AppContext";
-import SessionChatPanel from "../components/SessionChatPanel";
+import StudyPalPanel from "../components/StudyPalPanel";
 import { supabase } from "../lib/supabase";
 
 function formatDate(iso) {
@@ -432,7 +432,7 @@ export default function StudySessions() {
       {/* StudyPal slide-in panel */}
       {chatOpen && (
         <div
-          className="fixed top-0 right-0 bottom-0 z-[70] flex flex-col"
+          className="fixed top-0 right-0 bottom-0 z-[70]"
           style={{
             width: 'min(420px, 100vw)',
             background: 'rgba(0, 18, 8, 0.97)',
@@ -440,26 +440,11 @@ export default function StudySessions() {
             WebkitBackdropFilter: 'blur(30px)',
             borderLeft: '1px solid rgba(255,255,255,0.08)',
             overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
           }}
         >
-          <div
-            className="flex items-center justify-between px-4 py-3 flex-shrink-0"
-            style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}
-          >
-            <div className="flex items-center gap-2">
-              <MessageCircle size={15} style={{ color: '#F5A800' }} />
-              <span className="text-sm font-semibold text-white">StudyPal</span>
-            </div>
-            <button
-              onClick={() => setChatOpen(false)}
-              className="p-1.5 rounded-lg text-white/40 hover:text-white hover:bg-white/10 transition-colors"
-            >
-              <X size={15} />
-            </button>
-          </div>
-          <div className="flex-1 overflow-hidden">
-            <SessionChatPanel />
-          </div>
+          <StudyPalPanel onClose={() => setChatOpen(false)} />
         </div>
       )}
     </div>
