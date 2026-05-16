@@ -166,6 +166,13 @@ body {
   animation: lp-glow-pulse 2.8s ease-in-out infinite;
 }
 
+/* Nav links — hidden on mobile, visible on ≥640px */
+@media (min-width: 640px) {
+  .lp-nav-link {
+    display: inline-flex !important;
+  }
+}
+
 /* Feature cards — 3D tilt resets smoothly */
 .lp-feature-card {
   will-change: transform;
