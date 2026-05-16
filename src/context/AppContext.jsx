@@ -19,6 +19,7 @@ export const FILE_UPLOAD_LIMIT_BASIC = 5;
  * ALTER TABLE daily_usage ADD COLUMN IF NOT EXISTS file_uploads integer DEFAULT 0;
  * ALTER TABLE study_sessions ADD COLUMN IF NOT EXISTS session_key text;
  * ALTER TABLE study_sessions_log ADD COLUMN IF NOT EXISTS session_key text;
+ * ALTER TABLE leaderboard_scores ADD COLUMN IF NOT EXISTS feature_uses integer DEFAULT 0;
  *
  * create table if not exists study_session_chats (
  *   id uuid primary key default gen_random_uuid(),
@@ -373,6 +374,31 @@ export function AppProvider({ children }) {
   };
 
   // ── Daily usage ───────────────────────────────────────────
+  const incrementLeaderboardFeatureUse = async () => {
+    if (!user) return;
+    const weekStart = getWeekStart();
+    const { data: existing } = await supabase
+      .from('leaderboard_scores')
+      .select('id, feature_uses')
+      .eq('user_id', user.id)
+      .eq('week_start', weekStart)
+      .maybeSingle();
+    if (existing) {
+      await supabase.from('leaderboard_scores')
+        .update({ feature_uses: (existing.feature_uses || 0) + 1, updated_at: new Date().toISOString() })
+        .eq('id', existing.id);
+    } else {
+      await supabase.from('leaderboard_scores').insert({
+        user_id: user.id,
+        week_start: weekStart,
+        study_minutes: 0,
+        sessions_completed: 0,
+        streak,
+        feature_uses: 1,
+      });
+    }
+  };
+
   const incrementUsage = async (field) => {
     const newVal = (dailyUsage[field] || 0) + 1;
     setDailyUsage((prev) => ({ ...prev, [field]: newVal }));
@@ -387,6 +413,7 @@ export function AppProvider({ children }) {
     } else {
       await supabase.from('daily_usage').insert({ user_id: user.id, date: today(), [field]: 1 });
     }
+    incrementLeaderboardFeatureUse();
   };
 
   const incrementChat = () => incrementUsage('chat_messages');

@@ -22,11 +22,12 @@ const fmtTime = (minutes) => {
   return `${h}h ${m}m`;
 };
 
-// Composite score: rewards study time, session count, and streak consistency
+// Composite score: study time + sessions + streak + feature usage
 const calcScore = (entry) =>
   (entry.study_minutes || 0) * 2 +
   (entry.sessions_completed || 0) * 15 +
-  (entry.streak || 0) * 25;
+  (entry.streak || 0) * 25 +
+  (entry.feature_uses || 0) * 8;
 
 const fmtScore = (n) => n.toLocaleString();
 
@@ -108,6 +109,8 @@ function TopCard({ entry, rank, isMe }) {
           <span className="text-xs text-white/40">{fmtTime(entry.study_minutes)}</span>
           <span className="text-xs text-white/30">·</span>
           <span className="text-xs text-white/40">{entry.sessions_completed || 0} sessions</span>
+          <span className="text-xs text-white/30">·</span>
+          <span className="text-xs text-white/40">{entry.feature_uses || 0} uses</span>
           <Flame size={11} style={{ color: '#fb923c' }} />
           <span className="text-xs text-white/45">{entry.streak || 0}</span>
         </div>
@@ -159,6 +162,8 @@ function LeaderboardRow({ entry, rank, isMe }) {
           <span className="text-xs text-white/35">{fmtTime(entry.study_minutes)}</span>
           <span className="text-xs text-white/20">·</span>
           <span className="text-xs text-white/35">{entry.sessions_completed || 0}s</span>
+          <span className="text-xs text-white/20">·</span>
+          <span className="text-xs text-white/35">{entry.feature_uses || 0}u</span>
           <Flame size={10} style={{ color: '#fb923c' }} />
           <span className="text-xs" style={{ color: 'rgba(255,255,255,0.32)' }}>{entry.streak || 0}</span>
         </div>
@@ -187,7 +192,7 @@ export default function Leaderboard() {
         .select('id, username, full_name, avatar_url, is_active, active_status_visible'),
       supabase
         .from('leaderboard_scores')
-        .select('user_id, study_minutes, sessions_completed, streak')
+        .select('user_id, study_minutes, sessions_completed, streak, feature_uses')
         .eq('week_start', weekStart),
       supabase
         .from('friendships')
@@ -211,6 +216,7 @@ export default function Leaderboard() {
         ...p,
         study_minutes: s?.study_minutes || 0,
         sessions_completed: s?.sessions_completed || 0,
+        feature_uses: s?.feature_uses || 0,
         streak: p.id === user.id ? streak : (s?.streak || 0),
       };
     });
