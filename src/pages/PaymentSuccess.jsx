@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { CheckCircle, XCircle, Loader } from 'lucide-react';
 import { checkPaymentStatus } from '../lib/fapshi';
 import { useAuth } from '../context/AuthContext';
+import { supabase } from '../lib/supabase';
 
 export default function PaymentSuccess() {
   const { updateProfile } = useAuth();
@@ -31,6 +32,20 @@ export default function PaymentSuccess() {
           const expiry = new Date();
           expiry.setDate(expiry.getDate() + 30);
           await updateProfile({ plan, plan_expiry: expiry.toISOString() });
+          const couponCode = params.get('coupon');
+          if (couponCode) {
+            const { data: couponRow } = await supabase
+              .from('coupons')
+              .select('id, times_used')
+              .eq('code', couponCode)
+              .maybeSingle();
+            if (couponRow) {
+              await supabase
+                .from('coupons')
+                .update({ times_used: couponRow.times_used + 1 })
+                .eq('id', couponRow.id);
+            }
+          }
           setStatus('success');
         } else if (data.status === 'PENDING') {
           setStatus('pending');

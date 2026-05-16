@@ -3,6 +3,21 @@
  *
  * ALTER TABLE profiles ADD COLUMN IF NOT EXISTS plan text DEFAULT 'free';
  * ALTER TABLE profiles ADD COLUMN IF NOT EXISTS plan_expiry timestamptz;
+ *
+ * create table if not exists coupons (
+ *   id uuid default gen_random_uuid() primary key,
+ *   code text unique not null,
+ *   discount_percent int not null,
+ *   max_uses int default 1,
+ *   times_used int default 0,
+ *   expires_at timestamp with time zone,
+ *   is_active boolean default true
+ * );
+ * alter table coupons enable row level security;
+ * create policy "Authenticated users can read active coupons" on coupons
+ *   for select to authenticated using (is_active = true);
+ * create policy "Authenticated users can increment times_used" on coupons
+ *   for update to authenticated using (true) with check (true);
  */
 
 const API_USER = import.meta.env.VITE_FAPSHI_API_USER;
@@ -42,8 +57,9 @@ export const PLANS = {
   },
 };
 
-export async function initiatePayment({ amount, email, userId, plan }) {
+export async function initiatePayment({ amount, email, userId, plan, coupon }) {
   const externalId = `${userId}_${plan}_${Date.now()}`;
+  const redirectUrl = `https://primestudyapp.com/payment-success?plan=${plan}${coupon ? `&coupon=${encodeURIComponent(coupon)}` : ''}`;
   const res = await fetch(`${BASE}/initiate-pay`, {
     method: 'POST',
     headers: {
@@ -54,7 +70,7 @@ export async function initiatePayment({ amount, email, userId, plan }) {
     body: JSON.stringify({
       amount,
       email,
-      redirectUrl: `https://primestudyapp.com/payment-success?plan=${plan}`,
+      redirectUrl,
       userId,
       externalId,
     }),
