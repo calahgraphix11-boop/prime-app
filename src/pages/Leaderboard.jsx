@@ -22,6 +22,14 @@ const fmtTime = (minutes) => {
   return `${h}h ${m}m`;
 };
 
+// Composite score: rewards study time, session count, and streak consistency
+const calcScore = (entry) =>
+  (entry.study_minutes || 0) * 2 +
+  (entry.sessions_completed || 0) * 15 +
+  (entry.streak || 0) * 25;
+
+const fmtScore = (n) => n.toLocaleString();
+
 const RANK_META = {
   1: { border: '#F5A800', bg: 'rgba(245,168,0,0.09)', badgeBg: '#F5A800', badgeText: '#1a0c00' },
   2: { border: '#94a3b8', bg: 'rgba(148,163,184,0.06)', badgeBg: '#94a3b8', badgeText: '#0f172a' },
@@ -95,8 +103,11 @@ function TopCard({ entry, rank, isMe }) {
       </div>
 
       <div className="text-right flex-shrink-0">
-        <p className="text-sm font-bold" style={{ color: meta.border }}>{fmtTime(entry.study_minutes)}</p>
-        <div className="flex items-center gap-1 justify-end mt-0.5">
+        <p className="text-sm font-bold" style={{ color: meta.border }}>{fmtScore(calcScore(entry))} pts</p>
+        <div className="flex items-center gap-2 justify-end mt-0.5">
+          <span className="text-xs text-white/40">{fmtTime(entry.study_minutes)}</span>
+          <span className="text-xs text-white/30">·</span>
+          <span className="text-xs text-white/40">{entry.sessions_completed || 0} sessions</span>
           <Flame size={11} style={{ color: '#fb923c' }} />
           <span className="text-xs text-white/45">{entry.streak || 0}</span>
         </div>
@@ -143,8 +154,11 @@ function LeaderboardRow({ entry, rank, isMe }) {
       </div>
 
       <div className="text-right flex-shrink-0">
-        <p className="text-xs font-semibold text-white/80">{fmtTime(entry.study_minutes)}</p>
-        <div className="flex items-center gap-1 justify-end mt-0.5">
+        <p className="text-xs font-semibold text-white/80">{fmtScore(calcScore(entry))} pts</p>
+        <div className="flex items-center gap-1.5 justify-end mt-0.5">
+          <span className="text-xs text-white/35">{fmtTime(entry.study_minutes)}</span>
+          <span className="text-xs text-white/20">·</span>
+          <span className="text-xs text-white/35">{entry.sessions_completed || 0}s</span>
           <Flame size={10} style={{ color: '#fb923c' }} />
           <span className="text-xs" style={{ color: 'rgba(255,255,255,0.32)' }}>{entry.streak || 0}</span>
         </div>
@@ -201,7 +215,7 @@ export default function Leaderboard() {
       };
     });
 
-    merged.sort((a, b) => b.study_minutes - a.study_minutes);
+    merged.sort((a, b) => calcScore(b) - calcScore(a));
     setEntries(merged);
     setLoading(false);
   }, [user?.id, streak]);
@@ -219,7 +233,7 @@ export default function Leaderboard() {
     <div className="space-y-5 pt-2">
       <div>
         <h1 className="text-2xl font-bold text-white">The Grind Board</h1>
-        <p className="text-sm text-white/50 mt-0.5">Who's putting in the most hours this week?</p>
+        <p className="text-sm text-white/50 mt-0.5">Ranked by study time, sessions completed, and streak</p>
       </div>
 
       {/* Tab toggle */}
