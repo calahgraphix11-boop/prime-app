@@ -35,7 +35,7 @@ export default function UpgradeModal({ onClose, defaultPlan }) {
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
       style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
     >
-      <div className="glass-elevated rounded-3xl w-full max-w-xl p-6 relative">
+      <div className="glass-elevated rounded-3xl w-full max-w-xl p-6 relative overflow-y-auto max-h-[90vh] mt-8">
         <button
           onClick={onClose}
           className="absolute top-4 right-4 p-2 rounded-xl text-white/50 hover:text-white hover:bg-white/10 transition-colors"
