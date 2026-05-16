@@ -101,7 +101,7 @@ function Hero({ navigate }) {
     <section style={{
       minHeight: "100vh", display: "flex", alignItems: "center",
       padding: "100px 2rem 60px", maxWidth: 1100, margin: "0 auto",
-      gap: "3rem"
+      gap: "3rem", background: "red"
     }}>
       <div style={{ flex: 1 }}>
         <div style={{
