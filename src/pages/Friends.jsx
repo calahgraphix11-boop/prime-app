@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Search, Users, Clock } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
+import { useApp } from '../context/AppContext';
 
 function UserRow({ profile, action }) {
   const navigate = useNavigate();
@@ -48,6 +49,7 @@ function UserRow({ profile, action }) {
 
 export default function Friends() {
   const { user, profile: currentProfile } = useAuth();
+  const { addLeaderboardPoints } = useApp();
 
   const [tab, setTab] = useState('friends');
   const [query, setQuery] = useState('');
@@ -151,6 +153,7 @@ export default function Friends() {
     if (!error) {
       setRequests((prev) => prev.filter((r) => r.rowId !== rowId));
       setFriends((prev) => [...prev, { rowId, profile: requesterProfile }]);
+      addLeaderboardPoints(5);
       const accepterName = currentProfile?.username || currentProfile?.full_name || 'Someone';
       await supabase.from('notifications').insert({
         user_id: requesterProfile.id,

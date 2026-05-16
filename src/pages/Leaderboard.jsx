@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Trophy, Flame, Users, Globe } from 'lucide-react';
+import { Trophy, Flame, Users, Globe, Zap } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useApp } from '../context/AppContext';
@@ -22,12 +22,9 @@ const fmtTime = (minutes) => {
   return `${h}h ${m}m`;
 };
 
-// Composite score: study time + sessions + streak + feature usage
-const calcScore = (entry) =>
-  (entry.study_minutes || 0) * 2 +
-  (entry.sessions_completed || 0) * 15 +
-  (entry.streak || 0) * 25 +
-  (entry.feature_uses || 0) * 8;
+// activity_score stored in DB accumulates: minutes×1 + sessions×10 + AI features + friends×5
+// streak×20 is added dynamically since streak updates live
+const calcScore = (entry) => (entry.activity_score || 0) + (entry.streak || 0) * 20;
 
 const fmtScore = (n) => n.toLocaleString();
 
@@ -104,15 +101,17 @@ function TopCard({ entry, rank, isMe }) {
       </div>
 
       <div className="text-right flex-shrink-0">
-        <p className="text-sm font-bold" style={{ color: meta.border }}>{fmtScore(calcScore(entry))} pts</p>
-        <div className="flex items-center gap-2 justify-end mt-0.5">
-          <span className="text-xs text-white/40">{fmtTime(entry.study_minutes)}</span>
-          <span className="text-xs text-white/30">·</span>
-          <span className="text-xs text-white/40">{entry.sessions_completed || 0} sessions</span>
-          <span className="text-xs text-white/30">·</span>
-          <span className="text-xs text-white/40">{entry.feature_uses || 0} uses</span>
+        <div className="flex items-center gap-1 justify-end">
+          <Zap size={12} style={{ color: meta.border }} />
+          <p className="text-sm font-bold" style={{ color: meta.border }}>{fmtScore(calcScore(entry))}</p>
+        </div>
+        <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.28)' }}>Activity Score</p>
+        <div className="flex items-center gap-1.5 justify-end mt-1">
+          <span className="text-xs text-white/35">{fmtTime(entry.study_minutes)}</span>
+          <span className="text-xs text-white/20">·</span>
+          <span className="text-xs text-white/35">{entry.sessions_completed || 0} sessions</span>
           <Flame size={11} style={{ color: '#fb923c' }} />
-          <span className="text-xs text-white/45">{entry.streak || 0}</span>
+          <span className="text-xs text-white/40">{entry.streak || 0}</span>
         </div>
       </div>
     </div>
@@ -157,15 +156,16 @@ function LeaderboardRow({ entry, rank, isMe }) {
       </div>
 
       <div className="text-right flex-shrink-0">
-        <p className="text-xs font-semibold text-white/80">{fmtScore(calcScore(entry))} pts</p>
-        <div className="flex items-center gap-1.5 justify-end mt-0.5">
-          <span className="text-xs text-white/35">{fmtTime(entry.study_minutes)}</span>
+        <div className="flex items-center gap-1 justify-end">
+          <Zap size={11} style={{ color: '#F5A800' }} />
+          <p className="text-xs font-semibold text-white/85">{fmtScore(calcScore(entry))}</p>
+        </div>
+        <div className="flex items-center gap-1 justify-end mt-0.5">
+          <span className="text-xs text-white/30">{fmtTime(entry.study_minutes)}</span>
           <span className="text-xs text-white/20">·</span>
-          <span className="text-xs text-white/35">{entry.sessions_completed || 0}s</span>
-          <span className="text-xs text-white/20">·</span>
-          <span className="text-xs text-white/35">{entry.feature_uses || 0}u</span>
+          <span className="text-xs text-white/30">{entry.sessions_completed || 0}s</span>
           <Flame size={10} style={{ color: '#fb923c' }} />
-          <span className="text-xs" style={{ color: 'rgba(255,255,255,0.32)' }}>{entry.streak || 0}</span>
+          <span className="text-xs" style={{ color: 'rgba(255,255,255,0.30)' }}>{entry.streak || 0}</span>
         </div>
       </div>
     </div>
@@ -192,7 +192,7 @@ export default function Leaderboard() {
         .select('id, username, full_name, avatar_url, is_active, active_status_visible'),
       supabase
         .from('leaderboard_scores')
-        .select('user_id, study_minutes, sessions_completed, streak, feature_uses')
+        .select('user_id, study_minutes, sessions_completed, streak, activity_score')
         .eq('week_start', weekStart),
       supabase
         .from('friendships')
@@ -216,7 +216,7 @@ export default function Leaderboard() {
         ...p,
         study_minutes: s?.study_minutes || 0,
         sessions_completed: s?.sessions_completed || 0,
-        feature_uses: s?.feature_uses || 0,
+        activity_score: s?.activity_score || 0,
         streak: p.id === user.id ? streak : (s?.streak || 0),
       };
     });
@@ -239,7 +239,7 @@ export default function Leaderboard() {
     <div className="space-y-5 pt-2">
       <div>
         <h1 className="text-2xl font-bold text-white">The Grind Board</h1>
-        <p className="text-sm text-white/50 mt-0.5">Ranked by study time, sessions completed, and streak</p>
+        <p className="text-sm text-white/50 mt-0.5">Ranked by activity score — study, AI features, sessions &amp; streak</p>
       </div>
 
       {/* Tab toggle */}
