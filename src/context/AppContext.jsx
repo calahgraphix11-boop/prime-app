@@ -30,10 +30,6 @@ const getWeekStart = () => {
   return monday.toISOString().split('T')[0];
 };
 
-const DEFAULT_COURSES = [
-  'Mathematics', 'French', 'Biology', 'Physics',
-  'History', 'Chemistry', 'English', 'Computer Science',
-];
 
 export function AppProvider({ children }) {
   const { user, trialActive, trialExpired, planActive, userPlan } = useAuth();
@@ -92,16 +88,7 @@ export function AppProvider({ children }) {
       setWeeklyGoalMinutesState(settings?.weekly_goal_minutes || 300);
       setDailyUsage({ chat_messages: usage?.chat_messages || 0, report_rewrites: usage?.report_rewrites || 0, note_summaries: usage?.note_summaries || 0, exam_prep_count: usage?.exam_prep_count || 0, file_uploads: usage?.file_uploads || 0 });
 
-      const coursesArr = cData || [];
-      if (coursesArr.length === 0) {
-        supabase
-          .from('courses')
-          .insert(DEFAULT_COURSES.map((name) => ({ user_id: user.id, name })))
-          .select()
-          .then(({ data: seeded }) => { if (seeded) setCourses(seeded); });
-      } else {
-        setCourses(coursesArr);
-      }
+      setCourses(cData || []);
     }).finally(() => setDataLoading(false));
   }, [user?.id]);
 

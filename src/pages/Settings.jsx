@@ -100,7 +100,7 @@ export default function Settings() {
           <input
             value={newCourseName}
             onChange={(e) => setNewCourseName(e.target.value)}
-            placeholder="Add a new course..."
+            placeholder="e.g. Object Oriented Programming"
             onKeyDown={(e) => e.key === 'Enter' && handleAddCourse()}
             className="flex-1 px-3 py-2.5 rounded-xl glass-input text-sm"
           />
