@@ -1,566 +1,372 @@
-import { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
-import {
-  MessageCircle, Timer, FileText, BookOpen,
-  Zap, Trophy, ChevronRight, Check,
-} from 'lucide-react';
+import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-const H = { fontFamily: "'Syne', sans-serif" };
-const B = { fontFamily: "'DM Sans', sans-serif" };
+const GOLD = "#F5A623";
+const DARK_BG = "#0a1f0a";
+const CARD_BG = "#112211";
+const CARD_BORDER = "#1e3a1e";
 
-// ── useInView ─────────────────────────────────────────────────
-
-function useInView(threshold = 0.1) {
+function useInView(threshold = 0.15) {
   const ref = useRef(null);
-  const [inView, setInView] = useState(false);
+  const [visible, setVisible] = useState(false);
   useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
     const obs = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) { setInView(true); obs.unobserve(el); } },
+      ([e]) => { if (e.isIntersecting) setVisible(true); },
       { threshold }
     );
-    obs.observe(el);
+    if (ref.current) obs.observe(ref.current);
     return () => obs.disconnect();
-  }, [threshold]);
-  return [ref, inView];
+  }, []);
+  return [ref, visible];
 }
 
-// ── HeroMockup ────────────────────────────────────────────────
-
-function HeroMockup() {
+function Navbar({ navigate }) {
   return (
-    <div className="lp-float" style={{ position: 'relative', width: 300, flexShrink: 0 }}>
-      {/* ambient glow */}
+    <nav style={{
+      position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
+      display: "flex", alignItems: "center", justifyContent: "space-between",
+      padding: "0 2rem", height: "64px",
+      background: "rgba(10,31,10,0.85)", backdropFilter: "blur(12px)",
+      borderBottom: "1px solid #1a2e1a",
+      animation: "navSlide 0.5s cubic-bezier(.4,0,.2,1) both"
+    }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+        <div style={{
+          width: 34, height: 34, borderRadius: 8,
+          background: GOLD, display: "flex", alignItems: "center", justifyContent: "center",
+          fontWeight: 700, fontSize: 16, color: "#000"
+        }}>P</div>
+        <span style={{ fontFamily: "Syne, sans-serif", fontWeight: 700, fontSize: 18, color: "#fff" }}>Prime</span>
+      </div>
+      <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
+        <button onClick={() => navigate("/login")} style={{
+          background: "none", border: "1px solid #2a4a2a", color: "#ccc",
+          padding: "8px 20px", borderRadius: 8, cursor: "pointer", fontSize: 14,
+          fontFamily: "DM Sans, sans-serif"
+        }}>Sign In</button>
+        <button onClick={() => navigate("/login")} style={{
+          background: GOLD, border: "none", color: "#000",
+          padding: "8px 20px", borderRadius: 8, cursor: "pointer", fontSize: 14,
+          fontWeight: 600, fontFamily: "DM Sans, sans-serif"
+        }}>Get Started</button>
+      </div>
+    </nav>
+  );
+}
+
+function MockupCard() {
+  return (
+    <div style={{
+      background: CARD_BG, border: `1px solid ${CARD_BORDER}`,
+      borderRadius: 16, padding: "1.25rem", width: "100%", maxWidth: 340,
+      animation: "float 4s ease-in-out infinite",
+      boxShadow: "0 8px 40px rgba(0,0,0,0.5)"
+    }}>
+      <div style={{ display: "flex", gap: 6, marginBottom: 12 }}>
+        {["#ff5f57","#febc2e","#28c840"].map(c => (
+          <div key={c} style={{ width: 10, height: 10, borderRadius: "50%", background: c }} />
+        ))}
+      </div>
+      <div style={{ textAlign: "center", marginBottom: 16 }}>
+        <div style={{ fontFamily: "Syne, sans-serif", fontSize: 36, fontWeight: 700, color: "#fff", letterSpacing: 2 }}>24:37</div>
+        <div style={{ fontSize: 11, color: "#6b9b6b", textTransform: "uppercase", letterSpacing: 2, marginTop: 2 }}>Studying</div>
+        <div style={{ fontSize: 13, color: "#aaa", marginTop: 4 }}>Calculus Review</div>
+      </div>
+      <button style={{
+        width: "100%", background: GOLD, border: "none", color: "#000",
+        padding: "8px", borderRadius: 8, fontSize: 13, fontWeight: 600,
+        cursor: "pointer", marginBottom: 12, fontFamily: "DM Sans, sans-serif"
+      }}>Explain L'Hôpital's rule simply</button>
       <div style={{
-        position: 'absolute', inset: -48,
-        background: 'radial-gradient(ellipse at 50% 52%, rgba(245,168,0,0.13) 0%, transparent 64%)',
-        pointerEvents: 'none',
-      }} />
-      <div style={{
-        background: 'rgba(0,12,6,0.92)',
-        backdropFilter: 'blur(32px)',
-        WebkitBackdropFilter: 'blur(32px)',
-        border: '1px solid rgba(245,168,0,0.16)',
-        borderRadius: 24,
-        padding: '20px 18px',
-        boxShadow: '0 36px 80px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.04)',
+        background: "#0d1a0d", borderRadius: 8, padding: "10px 12px",
+        fontSize: 12, color: "#bbb", lineHeight: 1.5, marginBottom: 12
       }}>
-        {/* window dots */}
-        <div style={{ display: 'flex', gap: 5, marginBottom: 16 }}>
-          {['#ff5f57', '#febc2e', '#28c840'].map(c => (
-            <div key={c} style={{ width: 8, height: 8, borderRadius: '50%', background: c, opacity: 0.6 }} />
-          ))}
-        </div>
-
-        {/* timer block */}
-        <div style={{
-          background: 'rgba(245,168,0,0.07)',
-          border: '1px solid rgba(245,168,0,0.14)',
-          borderRadius: 14, padding: '14px 16px',
-          textAlign: 'center', marginBottom: 14,
-        }}>
-          <div style={{ fontFamily: 'monospace', fontSize: 34, fontWeight: 700, color: '#fff', letterSpacing: 3, lineHeight: 1 }}>
-            24:37
-          </div>
-          <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.32)', marginTop: 4, letterSpacing: '1.5px', ...B }}>STUDYING</div>
-          <div style={{ marginTop: 10 }}>
-            <span style={{
-              display: 'inline-block',
-              background: 'rgba(245,168,0,0.15)', border: '1px solid rgba(245,168,0,0.3)',
-              borderRadius: 999, padding: '3px 12px',
-              fontSize: 11, color: '#F5A800', fontWeight: 600, ...B,
-            }}>Calculus Review</span>
-          </div>
-        </div>
-
-        {/* chat bubble */}
-        <div style={{ marginBottom: 12 }}>
-          <div style={{
-            alignSelf: 'flex-end',
-            background: '#F5A800', color: '#111',
-            borderRadius: '12px 12px 3px 12px',
-            padding: '7px 12px',
-            fontSize: 11, fontWeight: 500, lineHeight: 1.45, ...B,
-            marginBottom: 7,
-          }}>
-            Explain L'Hôpital's rule simply
-          </div>
-          <div style={{
-            background: 'rgba(255,255,255,0.06)',
-            border: '1px solid rgba(255,255,255,0.08)',
-            color: 'rgba(255,255,255,0.75)',
-            borderRadius: '12px 12px 12px 3px',
-            padding: '7px 12px',
-            fontSize: 11, lineHeight: 1.5, ...B,
-          }}>
-            When you get 0/0 or ∞/∞, differentiate top and bottom separately…
-          </div>
-        </div>
-
-        {/* status badge */}
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: 6,
-          background: 'rgba(52,211,153,0.08)', border: '1px solid rgba(52,211,153,0.16)',
-          borderRadius: 8, padding: '5px 10px',
-        }}>
-          <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#34d399' }} />
-          <span style={{ fontSize: 10, color: '#34d399', fontWeight: 600, ...B }}>StudyPal active</span>
-        </div>
+        When you get 0/0 or ∞/∞, differentiate the top and bottom separately — then re-evaluate.
+      </div>
+      <div style={{
+        display: "inline-flex", alignItems: "center", gap: 6,
+        background: "#0d2a0d", borderRadius: 20, padding: "4px 12px",
+        fontSize: 11, color: "#4caf50"
+      }}>
+        <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#4caf50" }} />
+        StudyPal active
       </div>
     </div>
   );
 }
 
-// ── Feature cards ─────────────────────────────────────────────
+function Hero({ navigate }) {
+  const words = ["Study", "Smarter.", "Compete", "Harder.", "Graduate", "Stronger."];
+  return (
+    <section style={{
+      minHeight: "100vh", display: "flex", alignItems: "center",
+      padding: "100px 2rem 60px", maxWidth: 1100, margin: "0 auto",
+      gap: "3rem"
+    }}>
+      <div style={{ flex: 1 }}>
+        <div style={{
+          display: "inline-flex", alignItems: "center", gap: 8,
+          background: "#1a2e1a", border: "1px solid #2a4a2a",
+          borderRadius: 20, padding: "6px 14px", marginBottom: "1.5rem",
+          animation: "fadeUp 0.6s ease both"
+        }}>
+          <div style={{ width: 6, height: 6, borderRadius: "50%", background: GOLD }} />
+          <span style={{ fontSize: 12, color: "#aaa", fontFamily: "DM Sans, sans-serif" }}>AI-powered study companion</span>
+        </div>
+
+        <h1 style={{
+          fontFamily: "Syne, sans-serif", fontWeight: 800,
+          fontSize: "clamp(2rem, 4vw, 3.2rem)", lineHeight: 1.15,
+          color: "#fff", margin: "0 0 1.25rem"
+        }}>
+          {words.map((w, i) => (
+            <span key={i} style={{
+              display: "inline-block", marginRight: "0.25em",
+              animation: `wordReveal 0.5s ease both`,
+              animationDelay: `${0.1 + i * 0.1}s`,
+              color: w.includes(".") && i % 2 !== 0 ? GOLD : "#fff"
+            }}>{w}</span>
+          ))}
+        </h1>
+
+        <p style={{
+          fontFamily: "DM Sans, sans-serif", fontSize: 16, color: "#8a9e8a",
+          lineHeight: 1.7, maxWidth: 460, marginBottom: "2rem",
+          animation: "fadeUp 0.6s ease 0.7s both"
+        }}>
+          Prime gives university students in Cameroon AI-powered tools to study, track progress, and stay motivated — all in one place.
+        </p>
+
+        <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", marginBottom: "1.5rem", animation: "fadeUp 0.6s ease 0.85s both" }}>
+          <button onClick={() => navigate("/login")} style={{
+            background: GOLD, border: "none", color: "#000",
+            padding: "12px 28px", borderRadius: 10, fontSize: 15,
+            fontWeight: 700, cursor: "pointer", fontFamily: "DM Sans, sans-serif",
+            display: "flex", alignItems: "center", gap: 8, position: "relative", overflow: "hidden"
+          }}>
+            Start for free <span>→</span>
+            <span style={{
+              position: "absolute", inset: 0,
+              background: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%)",
+              animation: "shimmer 2.5s infinite", backgroundSize: "200% 100%"
+            }} />
+          </button>
+          <button onClick={() => navigate("#pricing")} style={{
+            background: "none", border: "1px solid #2a4a2a", color: "#ccc",
+            padding: "12px 28px", borderRadius: 10, fontSize: 15,
+            cursor: "pointer", fontFamily: "DM Sans, sans-serif"
+          }}>See pricing</button>
+        </div>
+
+        <div style={{ display: "flex", alignItems: "center", gap: 10, animation: "fadeUp 0.6s ease 1s both" }}>
+          <div style={{ display: "flex" }}>
+            {["#e91e63","#9c27b0","#2196f3","#4caf50"].map((c, i) => (
+              <div key={i} style={{
+                width: 28, height: 28, borderRadius: "50%", background: c,
+                border: "2px solid " + DARK_BG, marginLeft: i > 0 ? -8 : 0
+              }} />
+            ))}
+          </div>
+          <span style={{ fontSize: 13, color: "#6b9b6b", fontFamily: "DM Sans, sans-serif" }}>
+            Trusted by <strong style={{ color: "#aaa" }}>students</strong> across Cameroon
+          </span>
+        </div>
+      </div>
+
+      <div style={{ flex: "0 0 auto", display: "flex", justifyContent: "center", animation: "fadeUp 0.6s ease 0.4s both" }}>
+        <MockupCard />
+      </div>
+    </section>
+  );
+}
 
 const FEATURES = [
-  {
-    icon: MessageCircle, color: '#F5A800',
-    bg: 'rgba(245,168,0,0.08)', border: 'rgba(245,168,0,0.15)',
-    title: 'AI Study Chat',
-    desc: 'Ask anything mid-session and get instant contextual explanations — without leaving your timer.',
-  },
-  {
-    icon: Timer, color: '#34d399',
-    bg: 'rgba(52,211,153,0.08)', border: 'rgba(52,211,153,0.13)',
-    title: 'Focus Timer',
-    desc: 'Pomodoro and free-form sessions with circular progress. Every minute tracked toward your weekly goal.',
-  },
-  {
-    icon: FileText, color: '#a78bfa',
-    bg: 'rgba(167,139,250,0.08)', border: 'rgba(167,139,250,0.13)',
-    title: 'Report Writer',
-    desc: 'Turn rough drafts into polished academic reports in any tone, in seconds.',
-  },
-  {
-    icon: BookOpen, color: '#60a5fa',
-    bg: 'rgba(96,165,250,0.08)', border: 'rgba(96,165,250,0.13)',
-    title: 'Note Summarizer',
-    desc: 'Paste lecture notes and get a crisp summary with key points extracted automatically.',
-  },
-  {
-    icon: Zap, color: '#f472b6',
-    bg: 'rgba(244,114,182,0.08)', border: 'rgba(244,114,182,0.13)',
-    title: 'Exam Coach',
-    desc: 'Upload your material and receive targeted practice questions and exam strategies.',
-  },
-  {
-    icon: Trophy, color: '#fbbf24',
-    bg: 'rgba(251,191,36,0.08)', border: 'rgba(251,191,36,0.13)',
-    title: 'Leaderboard',
-    desc: 'Compete with friends on weekly study minutes and climb the rankings.',
-  },
+  { icon: "💬", title: "AI Study Chat", desc: "Ask anything mid-session. Get instant, contextual explanations powered by AI — without leaving your timer." },
+  { icon: "⏱", title: "Focus Timer", desc: "Pomodoro and free-form sessions with circular progress. Every minute tracked toward your weekly goal." },
+  { icon: "✍️", title: "Report Writer", desc: "Rewrite and polish academic writing in any tone — formal, casual, or technical — in one click." },
+  { icon: "📝", title: "Note Summarizer", desc: "Paste lecture notes or readings and get a crisp summary with key points extracted automatically." },
+  { icon: "🎯", title: "Exam Coach", desc: "Upload study material and receive practice questions, flashcards, and targeted exam strategies." },
+  { icon: "🏆", title: "Leaderboard", desc: "Compete with friends on weekly study minutes. Track your streak and climb the rankings." },
 ];
 
-// ── Pricing data ──────────────────────────────────────────────
+function Features() {
+  const [ref, visible] = useInView();
+  return (
+    <section id="features" ref={ref} style={{ padding: "80px 2rem", maxWidth: 1100, margin: "0 auto" }}>
+      <div style={{ textAlign: "center", marginBottom: "3rem" }}>
+        <div style={{ fontSize: 11, color: GOLD, letterSpacing: 3, textTransform: "uppercase", fontFamily: "DM Sans, sans-serif", marginBottom: 12 }}>
+          EVERYTHING IN ONE PLACE
+        </div>
+        <h2 style={{ fontFamily: "Syne, sans-serif", fontSize: "clamp(1.5rem, 3vw, 2.2rem)", fontWeight: 700, color: "#fff", margin: 0 }}>
+          Built for how students actually study
+        </h2>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "1rem" }}>
+        {FEATURES.map((f, i) => (
+          <div key={i} style={{
+            background: CARD_BG, border: `1px solid ${CARD_BORDER}`,
+            borderRadius: 14, padding: "1.25rem",
+            opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(24px)",
+            transition: `opacity 0.5s ease ${i * 0.07}s, transform 0.5s ease ${i * 0.07}s`
+          }}>
+            <div style={{ fontSize: 22, marginBottom: 10 }}>{f.icon}</div>
+            <div style={{ fontFamily: "Syne, sans-serif", fontWeight: 600, fontSize: 15, color: "#fff", marginBottom: 6 }}>{f.title}</div>
+            <div style={{ fontFamily: "DM Sans, sans-serif", fontSize: 13, color: "#6b9b6b", lineHeight: 1.6 }}>{f.desc}</div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
 
-const BASIC_FEATS = [
-  'Unlimited AI chat sessions',
-  'Focus timer + Pomodoro mode',
-  'AI report rewriter (20/day)',
-  'Leaderboard access',
+function Pricing({ navigate }) {
+  const [ref, visible] = useInView();
+  const plans = [
+    {
+      name: "Basic", price: "2,500", currency: "FCFA/mo", popular: false,
+      features: ["Unlimited AI chat sessions", "Focus timer + Pomodoro mode", "AI report rewriter (20/day)", "Leaderboard access"],
+      cta: "Get Basic"
+    },
+    {
+      name: "Pro", price: "5,000", currency: "FCFA/mo", popular: true,
+      features: ["Everything in Basic", "Unlimited report rewrites", "Note Summarizer + Exam Coach", "Unlimited file uploads", "Priority support"],
+      cta: "Get Pro"
+    }
+  ];
+  return (
+    <section id="pricing" ref={ref} style={{ padding: "80px 2rem", maxWidth: 1100, margin: "0 auto" }}>
+      <div style={{ textAlign: "center", marginBottom: "3rem" }}>
+        <div style={{ fontSize: 11, color: GOLD, letterSpacing: 3, textTransform: "uppercase", fontFamily: "DM Sans, sans-serif", marginBottom: 12 }}>
+          SIMPLE PRICING
+        </div>
+        <h2 style={{ fontFamily: "Syne, sans-serif", fontSize: "clamp(1.5rem, 3vw, 2.2rem)", fontWeight: 700, color: "#fff", margin: 0 }}>
+          Affordable for every student
+        </h2>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "1.25rem", maxWidth: 700, margin: "0 auto" }}>
+        {plans.map((p, i) => (
+          <div key={i} style={{
+            background: CARD_BG,
+            border: p.popular ? `2px solid ${GOLD}` : `1px solid ${CARD_BORDER}`,
+            borderRadius: 16, padding: "1.75rem", position: "relative",
+            opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(24px)",
+            transition: `opacity 0.5s ease ${i * 0.15}s, transform 0.5s ease ${i * 0.15}s`,
+            animation: p.popular && visible ? "glowPulse 2.5s ease-in-out infinite" : "none"
+          }}>
+            {p.popular && (
+              <div style={{
+                position: "absolute", top: -12, right: 16,
+                background: GOLD, color: "#000", fontSize: 11, fontWeight: 700,
+                padding: "3px 12px", borderRadius: 20, fontFamily: "DM Sans, sans-serif"
+              }}>POPULAR</div>
+            )}
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+              <span style={{ fontSize: 16 }}>{p.popular ? "⚡" : "⭐"}</span>
+              <span style={{ fontFamily: "Syne, sans-serif", fontWeight: 600, fontSize: 16, color: "#fff" }}>{p.name}</span>
+            </div>
+            <div style={{ marginBottom: "1.25rem" }}>
+              <span style={{ fontFamily: "Syne, sans-serif", fontSize: 36, fontWeight: 800, color: "#fff" }}>{p.price}</span>
+              <span style={{ fontSize: 13, color: "#6b9b6b", marginLeft: 4, fontFamily: "DM Sans, sans-serif" }}>{p.currency}</span>
+            </div>
+            <ul style={{ listStyle: "none", padding: 0, margin: "0 0 1.5rem", display: "flex", flexDirection: "column", gap: 8 }}>
+              {p.features.map((f, j) => (
+                <li key={j} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "#aaa", fontFamily: "DM Sans, sans-serif" }}>
+                  <span style={{ color: GOLD, fontSize: 12 }}>✓</span> {f}
+                </li>
+              ))}
+            </ul>
+            <button onClick={() => navigate("/login")} style={{
+              width: "100%", background: p.popular ? GOLD : "#1a2e1a",
+              border: p.popular ? "none" : `1px solid ${CARD_BORDER}`,
+              color: p.popular ? "#000" : "#ccc",
+              padding: "12px", borderRadius: 10, fontSize: 14, fontWeight: 600,
+              cursor: "pointer", fontFamily: "DM Sans, sans-serif"
+            }}>{p.cta}</button>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+const FAQS = [
+  { q: "How is Prime different from just using ChatGPT?", a: "Prime is built specifically for students — it combines AI chat with a Pomodoro timer, progress analytics, streak tracking, and a dedicated report writer. It's a complete study system, not just a chatbot." },
+  { q: "What subjects does Prime support?", a: "All of them. Maths, Sciences, History, Literature, Languages, Economics, Computer Science — if you can study it, Prime can help." },
+  { q: "Is my data private and secure?", a: "Yes. Your conversations and study data are encrypted and never sold to third parties." },
+  { q: "Can I cancel my subscription anytime?", a: "Completely. No lock-in, no cancellation fees. Cancel from settings and you keep access until the end of your billing period." },
+  { q: "Does Prime work on mobile?", a: "Yes — Prime is fully responsive on desktop, tablet, and mobile. A native app is on the roadmap." },
 ];
-const PRO_FEATS = [
-  'Everything in Basic',
-  'Unlimited report rewrites',
-  'Note Summarizer + Exam Coach',
-  'Unlimited file uploads',
-  'Priority support',
-];
 
-// ── Headline words ────────────────────────────────────────────
-
-const WORDS = ['Study', 'Smarter.', 'Compete', 'Harder.', 'Graduate', 'Stronger.'];
-
-// ── LandingPage ───────────────────────────────────────────────
+function FAQ() {
+  const [open, setOpen] = useState(null);
+  const [ref, visible] = useInView();
+  return (
+    <section id="faq" ref={ref} style={{ padding: "80px 2rem", maxWidth: 700, margin: "0 auto" }}>
+      <h2 style={{ fontFamily: "Syne, sans-serif", fontSize: "clamp(1.5rem, 3vw, 2rem)", fontWeight: 700, color: "#fff", textAlign: "center", marginBottom: "2.5rem" }}>
+        Common questions
+      </h2>
+      <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+        {FAQS.map((f, i) => (
+          <div key={i} onClick={() => setOpen(open === i ? null : i)} style={{
+            background: CARD_BG, border: `1px solid ${CARD_BORDER}`,
+            borderRadius: 12, padding: "1rem 1.25rem", cursor: "pointer",
+            opacity: visible ? 1 : 0, transition: `opacity 0.4s ease ${i * 0.06}s`
+          }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span style={{ fontFamily: "DM Sans, sans-serif", fontSize: 14, color: "#fff", fontWeight: 500 }}>{f.q}</span>
+              <span style={{ color: GOLD, fontSize: 18, transform: open === i ? "rotate(180deg)" : "rotate(0)", transition: "transform 0.2s" }}>▼</span>
+            </div>
+            {open === i && (
+              <p style={{ fontFamily: "DM Sans, sans-serif", fontSize: 13, color: "#6b9b6b", marginTop: 10, marginBottom: 0, lineHeight: 1.6 }}>{f.a}</p>
+            )}
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
 
 export default function LandingPage() {
-  const parallaxRef = useRef(null);
-  const [navReady, setNavReady] = useState(false);
-  const [featRef,  featInView]  = useInView(0.07);
-  const [priceRef, priceInView] = useInView(0.07);
-
-  useEffect(() => {
-    const id = setTimeout(() => setNavReady(true), 55);
-    return () => clearTimeout(id);
-  }, []);
-
-  useEffect(() => {
-    const onScroll = () => {
-      if (parallaxRef.current)
-        parallaxRef.current.style.transform = `translateY(${window.scrollY * 0.28}px)`;
-    };
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
+  const navigate = useNavigate();
 
   return (
-    <div style={{ background: '#001a10', minHeight: '100vh', overflowX: 'hidden', color: '#fff', ...B }}>
+    <div style={{ background: DARK_BG, minHeight: "100vh", color: "#fff" }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap');
+        @keyframes navSlide { from { transform: translateY(-100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes wordReveal { from { opacity: 0; transform: translateY(12px) blur(4px); } to { opacity: 1; transform: translateY(0) blur(0); } }
+        @keyframes float { 0%,100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-10px) rotate(0.5deg); } }
+        @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+        @keyframes glowPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(245,166,35,0.2); } 50% { box-shadow: 0 0 24px 4px rgba(245,166,35,0.25); } }
+        @media (max-width: 700px) {
+          section > div:first-child { flex-direction: column !important; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          *, *::before, *::after { animation: none !important; transition: none !important; }
+        }
+      `}</style>
 
-      {/* ── Navbar ─────────────────────────────────────────── */}
-      <nav style={{
-        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
-        height: 60, padding: '0 28px',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        background: navReady ? 'rgba(0,16,8,0.76)' : 'transparent',
-        backdropFilter: navReady ? 'blur(22px)' : 'none',
-        WebkitBackdropFilter: navReady ? 'blur(22px)' : 'none',
-        borderBottom: navReady ? '1px solid rgba(255,255,255,0.06)' : '1px solid transparent',
-        transform: navReady ? 'translateY(0)' : 'translateY(-100%)',
-        transition: 'transform 0.52s cubic-bezier(0.22,1,0.36,1), background 0.4s, border-color 0.4s',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <img src="/logo.png" alt="calah.ai" style={{ width: 30, height: 30, borderRadius: 8, objectFit: 'contain' }} />
-          <span style={{ fontWeight: 800, fontSize: 15, letterSpacing: '-0.3px', ...H }}>calah.ai</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Link to="/login" style={{
-            padding: '6px 14px', borderRadius: 8, fontSize: 13, fontWeight: 500,
-            color: 'rgba(255,255,255,0.58)', textDecoration: 'none', transition: 'color 0.18s',
-          }}
-            onMouseEnter={e => { e.currentTarget.style.color = '#fff'; }}
-            onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.58)'; }}
-          >Sign In</Link>
-          <Link to="/signup" className="lp-cta-shimmer" style={{
-            padding: '7px 18px', borderRadius: 999, fontSize: 13, fontWeight: 700,
-            background: '#F5A800', color: '#1a0c00', textDecoration: 'none',
-            transition: 'opacity 0.15s', ...H,
-          }}
-            onMouseEnter={e => { e.currentTarget.style.opacity = '0.85'; }}
-            onMouseLeave={e => { e.currentTarget.style.opacity = '1'; }}
-          >Get Started</Link>
-        </div>
-      </nav>
+      <Navbar navigate={navigate} />
+      <Hero navigate={navigate} />
+      <Features />
+      <Pricing navigate={navigate} />
+      <FAQ />
 
-      {/* ── Hero ───────────────────────────────────────────── */}
-      <section style={{
-        position: 'relative', overflow: 'hidden',
-        minHeight: '100vh', display: 'flex', alignItems: 'center', paddingTop: 60,
-      }}>
-        {/* parallax bg */}
-        <div ref={parallaxRef} style={{
-          position: 'absolute', inset: '-12% -5%',
-          background: 'radial-gradient(ellipse 80% 55% at 55% 40%, rgba(0,72,44,0.58) 0%, rgba(0,32,20,0.24) 55%, transparent 100%)',
-          pointerEvents: 'none',
-        }} />
-        {/* subtle grid */}
-        <div style={{
-          position: 'absolute', inset: 0, opacity: 0.03, pointerEvents: 'none',
-          backgroundImage:
-            'linear-gradient(rgba(255,255,255,1) 1px, transparent 1px),' +
-            'linear-gradient(90deg, rgba(255,255,255,1) 1px, transparent 1px)',
-          backgroundSize: '60px 60px',
-        }} />
-
-        <div style={{
-          maxWidth: 1080, margin: '0 auto', width: '100%',
-          padding: '100px 32px 112px',
-          display: 'flex', alignItems: 'center',
-          gap: 72, flexWrap: 'wrap', justifyContent: 'space-between',
-        }}>
-
-          {/* ── Left: text ── */}
-          <div style={{ flex: '1 1 400px', maxWidth: 520 }}>
-            {/* Badge */}
-            <div style={{
-              display: 'inline-flex', alignItems: 'center', gap: 8,
-              background: 'rgba(245,168,0,0.09)', border: '1px solid rgba(245,168,0,0.22)',
-              borderRadius: 999, padding: '5px 14px', marginBottom: 30,
-              opacity: 0, animation: 'lp-fade-up 0.5s ease 0.08s forwards',
-            }}>
-              <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#F5A800' }} />
-              <span style={{ fontSize: 11, fontWeight: 600, color: '#F5A800', letterSpacing: '0.3px', ...B }}>
-                AI-powered study companion
-              </span>
-            </div>
-
-            {/* Headline — word by word */}
-            <h1 style={{
-              fontSize: 'clamp(36px, 5.5vw, 60px)',
-              fontWeight: 800, lineHeight: 1.08,
-              letterSpacing: '-2px', margin: '0 0 22px', ...H,
-            }}>
-              {WORDS.map((word, i) => (
-                <span key={i} style={{
-                  display: 'inline-block', marginRight: '0.22em',
-                  color: word === 'Stronger.' ? '#F5A800' : '#fff',
-                  opacity: 0,
-                  animation: `lp-word-reveal 0.55s cubic-bezier(0.22,1,0.36,1) ${0.26 + i * 0.11}s forwards`,
-                }}>
-                  {word}
-                </span>
-              ))}
-            </h1>
-
-            {/* Subtext */}
-            <p style={{
-              fontSize: 16, color: 'rgba(255,255,255,0.46)', lineHeight: 1.75,
-              maxWidth: 440, margin: '0 0 34px',
-              opacity: 0, animation: 'lp-fade-up 0.52s ease 0.98s forwards',
-            }}>
-              Calah gives university students in Cameroon AI-powered tools to study, track progress, and stay motivated — all in one place.
-            </p>
-
-            {/* CTAs */}
-            <div style={{
-              display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center',
-              opacity: 0, animation: 'lp-fade-up 0.5s ease 1.1s forwards',
-            }}>
-              <Link to="/signup" className="lp-cta-shimmer" style={{
-                display: 'inline-flex', alignItems: 'center', gap: 7,
-                padding: '12px 26px', borderRadius: 11,
-                background: '#F5A800', color: '#1a0c00',
-                fontWeight: 700, fontSize: 14, textDecoration: 'none', ...H,
-              }}>
-                Start for free <ChevronRight size={15} />
-              </Link>
-              <a href="#pricing" style={{
-                display: 'inline-flex', alignItems: 'center',
-                padding: '12px 22px', borderRadius: 11,
-                background: 'rgba(255,255,255,0.06)',
-                border: '1px solid rgba(255,255,255,0.12)',
-                color: 'rgba(255,255,255,0.68)', fontWeight: 500, fontSize: 14,
-                textDecoration: 'none', transition: 'background 0.18s',
-              }}
-                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; }}
-              >
-                See pricing
-              </a>
-            </div>
-
-            {/* Avatar row */}
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: 11, marginTop: 32,
-              opacity: 0, animation: 'lp-fade-up 0.5s ease 1.22s forwards',
-            }}>
-              <div style={{ display: 'flex' }}>
-                {[['#2d6a4f','A'],['#40916c','K'],['#52b788','M'],['#74c69d','S']].map(([bg, letter], i) => (
-                  <div key={letter} style={{
-                    width: 28, height: 28, borderRadius: '50%',
-                    background: bg, border: '2px solid #001a10',
-                    marginLeft: i > 0 ? -8 : 0,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 10, fontWeight: 800, color: 'rgba(255,255,255,0.65)',
-                  }}>
-                    {letter}
-                  </div>
-                ))}
-              </div>
-              <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.32)', ...B }}>
-                Trusted by&nbsp;
-                <strong style={{ color: 'rgba(255,255,255,0.55)', fontWeight: 600 }}>students</strong>
-                &nbsp;across Cameroon
-              </span>
-            </div>
-          </div>
-
-          {/* ── Right: mockup ── */}
-          <div style={{
-            flex: '0 0 auto',
-            opacity: 0, animation: 'lp-fade-up 0.6s ease 0.55s forwards',
-          }}>
-            <HeroMockup />
-          </div>
-        </div>
-      </section>
-
-      {/* ── Features ───────────────────────────────────────── */}
-      <section style={{ padding: '96px 32px 80px' }}>
-        <div style={{ maxWidth: 1080, margin: '0 auto' }}>
-          {/* Centered header */}
-          <div ref={featRef} style={{ textAlign: 'center', marginBottom: 52 }}>
-            <p style={{
-              fontSize: 10, fontWeight: 700, letterSpacing: '2.8px',
-              color: '#F5A800', textTransform: 'uppercase', margin: '0 0 14px', ...B,
-              opacity: featInView ? 1 : 0,
-              transform: featInView ? 'none' : 'translateY(14px)',
-              transition: 'opacity 0.48s ease, transform 0.48s ease',
-            }}>
-              Everything in one place
-            </p>
-            <h2 style={{
-              fontSize: 'clamp(24px, 3.6vw, 40px)', fontWeight: 800,
-              letterSpacing: '-0.9px', margin: 0, ...H,
-              opacity: featInView ? 1 : 0,
-              transform: featInView ? 'none' : 'translateY(14px)',
-              transition: 'opacity 0.48s ease 0.08s, transform 0.48s ease 0.08s',
-            }}>
-              Built for how students actually study
-            </h2>
-          </div>
-
-          {/* 3×2 grid */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-            gap: 12,
-          }}>
-            {FEATURES.map((f, i) => {
-              const Icon = f.icon;
-              return (
-                <div key={f.title} style={{
-                  background: 'rgba(255,255,255,0.03)',
-                  border: `1px solid ${f.border}`,
-                  borderRadius: 18, padding: '24px 20px',
-                  opacity: featInView ? 1 : 0,
-                  transform: featInView ? 'translateY(0)' : 'translateY(24px)',
-                  transition: `opacity 0.48s ease ${0.1 + i * 0.06}s, transform 0.48s ease ${0.1 + i * 0.06}s`,
-                }}>
-                  <div style={{
-                    width: 42, height: 42, borderRadius: 11,
-                    background: f.bg, border: `1px solid ${f.border}`,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    marginBottom: 16,
-                  }}>
-                    <Icon size={18} style={{ color: f.color }} />
-                  </div>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: '#fff', marginBottom: 7, ...H }}>
-                    {f.title}
-                  </div>
-                  <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.42)', lineHeight: 1.68, ...B }}>
-                    {f.desc}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Pricing ────────────────────────────────────────── */}
-      <section id="pricing" style={{ padding: '80px 32px 104px' }}>
-        <div style={{ maxWidth: 780, margin: '0 auto' }}>
-          {/* Centered header */}
-          <div ref={priceRef} style={{ textAlign: 'center', marginBottom: 48 }}>
-            <p style={{
-              fontSize: 10, fontWeight: 700, letterSpacing: '2.8px',
-              color: '#F5A800', textTransform: 'uppercase', margin: '0 0 14px', ...B,
-              opacity: priceInView ? 1 : 0,
-              transform: priceInView ? 'none' : 'translateY(14px)',
-              transition: 'opacity 0.48s ease, transform 0.48s ease',
-            }}>
-              Simple pricing
-            </p>
-            <h2 style={{
-              fontSize: 'clamp(24px, 3.6vw, 40px)', fontWeight: 800,
-              letterSpacing: '-0.9px', margin: 0, ...H,
-              opacity: priceInView ? 1 : 0,
-              transform: priceInView ? 'none' : 'translateY(14px)',
-              transition: 'opacity 0.48s ease 0.08s, transform 0.48s ease 0.08s',
-            }}>
-              Affordable for every student
-            </h2>
-          </div>
-
-          {/* 2 cards */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 18 }}>
-
-            {/* Basic */}
-            <div style={{
-              background: 'rgba(255,255,255,0.03)',
-              border: '1px solid rgba(255,255,255,0.09)',
-              borderRadius: 22, padding: '30px 28px',
-              opacity: priceInView ? 1 : 0,
-              transform: priceInView ? 'translateY(0)' : 'translateY(32px)',
-              transition: 'opacity 0.5s ease 0.16s, transform 0.5s ease 0.16s',
-            }}>
-              <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 12, ...H }}>Basic</div>
-              <div style={{ marginBottom: 24 }}>
-                <span style={{ fontSize: 38, fontWeight: 800, ...H }}>2,500</span>
-                <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.34)', marginLeft: 5, ...B }}>FCFA/mo</span>
-              </div>
-              <ul style={{ listStyle: 'none', margin: '0 0 26px', padding: 0, display: 'flex', flexDirection: 'column', gap: 9 }}>
-                {BASIC_FEATS.map(f => (
-                  <li key={f} style={{ display: 'flex', alignItems: 'flex-start', gap: 9, fontSize: 13, color: 'rgba(255,255,255,0.55)', ...B }}>
-                    <Check size={12} style={{ color: '#34d399', flexShrink: 0, marginTop: 2 }} />{f}
-                  </li>
-                ))}
-              </ul>
-              <Link to="/signup" style={{
-                display: 'block', textAlign: 'center',
-                padding: '11px 0', borderRadius: 11, fontSize: 13, fontWeight: 700,
-                background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)',
-                color: 'rgba(255,255,255,0.7)', textDecoration: 'none', transition: 'background 0.18s',
-                ...H,
-              }}
-                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.12)'; }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.07)'; }}
-              >
-                Get Basic
-              </Link>
-            </div>
-
-            {/* Pro */}
-            <div className="lp-pro-glow" style={{
-              background: 'rgba(245,168,0,0.05)',
-              borderRadius: 22, padding: '30px 28px',
-              position: 'relative', overflow: 'hidden',
-              opacity: priceInView ? 1 : 0,
-              transform: priceInView ? 'translateY(0)' : 'translateY(32px)',
-              transition: 'opacity 0.5s ease 0.28s, transform 0.5s ease 0.28s',
-            }}>
-              <div style={{
-                position: 'absolute', top: 16, right: 16,
-                background: '#F5A800', color: '#1a0c00',
-                fontSize: 9, fontWeight: 800, letterSpacing: '0.7px',
-                padding: '3px 9px', borderRadius: 999, ...B,
-              }}>POPULAR</div>
-
-              <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 12, ...H }}>Pro</div>
-              <div style={{ marginBottom: 24 }}>
-                <span style={{ fontSize: 38, fontWeight: 800, ...H }}>5,000</span>
-                <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.34)', marginLeft: 5, ...B }}>FCFA/mo</span>
-              </div>
-              <ul style={{ listStyle: 'none', margin: '0 0 26px', padding: 0, display: 'flex', flexDirection: 'column', gap: 9 }}>
-                {PRO_FEATS.map(f => (
-                  <li key={f} style={{ display: 'flex', alignItems: 'flex-start', gap: 9, fontSize: 13, color: 'rgba(255,255,255,0.72)', ...B }}>
-                    <Check size={12} style={{ color: '#F5A800', flexShrink: 0, marginTop: 2 }} />{f}
-                  </li>
-                ))}
-              </ul>
-              <Link to="/signup" style={{
-                display: 'block', textAlign: 'center',
-                padding: '11px 0', borderRadius: 11, fontSize: 13, fontWeight: 700,
-                background: '#F5A800', color: '#1a0c00', textDecoration: 'none',
-                transition: 'opacity 0.15s', ...H,
-              }}
-                onMouseEnter={e => { e.currentTarget.style.opacity = '0.85'; }}
-                onMouseLeave={e => { e.currentTarget.style.opacity = '1'; }}
-              >
-                Get Pro
-              </Link>
-            </div>
-
-          </div>
-        </div>
-      </section>
-
-      {/* ── Footer ─────────────────────────────────────────── */}
       <footer style={{
-        borderTop: '1px solid rgba(255,255,255,0.06)',
-        padding: '22px 32px',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        flexWrap: 'wrap', gap: 10,
-        maxWidth: 1080, margin: '0 auto',
+        borderTop: `1px solid ${CARD_BORDER}`, padding: "1.5rem 2rem",
+        display: "flex", justifyContent: "space-between", alignItems: "center",
+        maxWidth: 1100, margin: "0 auto", flexWrap: "wrap", gap: "1rem"
       }}>
-        <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.25)', margin: 0, ...B }}>
-          calah.ai · © 2025 calah.ai. Study smart.
-        </p>
-        <div style={{ display: 'flex', gap: 18 }}>
-          {['Privacy', 'Terms'].map(l => (
-            <a key={l} href="#" style={{
-              fontSize: 12, color: 'rgba(255,255,255,0.25)',
-              textDecoration: 'none', transition: 'color 0.18s', ...B,
-            }}
-              onMouseEnter={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.5)'; }}
-              onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.25)'; }}
-            >{l}</a>
+        <span style={{ fontFamily: "DM Sans, sans-serif", fontSize: 13, color: "#4a6b4a" }}>
+          © 2025 Prime. Study smart.
+        </span>
+        <div style={{ display: "flex", gap: "1.5rem" }}>
+          {["Privacy", "Terms"].map(l => (
+            <a key={l} href="#" style={{ fontSize: 13, color: "#4a6b4a", textDecoration: "none", fontFamily: "DM Sans, sans-serif" }}>{l}</a>
           ))}
         </div>
       </footer>
-
     </div>
   );
 }
