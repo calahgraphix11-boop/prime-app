@@ -9,7 +9,8 @@ const SYSTEM_PROMPT =
   "You are an expert study assistant. The user may provide lecture notes as text or as an attached file, and may also provide optional instructions for what they want. If no instructions are given, return a full summary as a JSON object with: keyPoints (array of strings), keyDefinitions (array of objects with term and definition), examQuestions (array of strings). If the user gives specific instructions, follow them and return the result in the same JSON format. Return ONLY valid JSON with no markdown or backticks.";
 
 export default function NoteSummarizer() {
-  const { courses, summaryRemaining, incrementSummary, trialExpired } = useApp();
+  const { courses, summaryRemaining, incrementSummary, trialExpired, fileUploadsRemaining, incrementFileUpload, trialActive, planActive } = useApp();
+  const canUploadFiles = trialActive || planActive;
 
   const [instructions, setInstructions] = useState("");
   const [subject, setSubject] = useState("");
@@ -35,6 +36,7 @@ export default function NoteSummarizer() {
   const handleSummarize = async () => {
     if ((!instructions.trim() && !attachedFile) || summaryRemaining <= 0) return;
     incrementSummary();
+    if (attachedFile && canUploadFiles && fileUploadsRemaining > 0) incrementFileUpload();
     setLoading(true);
     setError("");
     setResult(null);
@@ -104,17 +106,23 @@ export default function NoteSummarizer() {
         <div>
           <div className="flex items-center justify-between mb-1.5">
             <span className="text-sm font-medium text-white/75">Attach a file</span>
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-colors"
-              style={{ background: 'rgba(0,77,46,0.3)', border: '1px solid rgba(0,77,46,0.5)', color: '#34d399' }}
-            >
-              <Paperclip size={12} /> Choose file
-            </button>
+            {canUploadFiles && fileUploadsRemaining > 0 && (
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-colors"
+                style={{ background: 'rgba(0,77,46,0.3)', border: '1px solid rgba(0,77,46,0.5)', color: '#34d399' }}
+              >
+                <Paperclip size={12} /> Choose file
+              </button>
+            )}
             <input ref={fileInputRef} type="file" accept={ACCEPTED_FILE_TYPES} onChange={handleFileChange} className="hidden" />
           </div>
-          {attachedFile ? (
+          {!canUploadFiles ? (
+            <p className="text-xs text-white/40">Upgrade to access file uploads</p>
+          ) : fileUploadsRemaining === 0 ? (
+            <p className="text-xs text-white/40">Daily file upload limit reached</p>
+          ) : attachedFile ? (
             <div className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs" style={{ background: 'rgba(245,168,0,0.08)', border: '1px solid rgba(245,168,0,0.25)' }}>
               <Paperclip size={12} style={{ color: '#F5A800', flexShrink: 0 }} />
               <span className="text-white/70 truncate flex-1">{attachedFile.file.name}</span>

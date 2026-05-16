@@ -9,6 +9,15 @@ const AppContext = createContext(null);
 export const CHAT_LIMIT = 10;
 export const REPORT_LIMIT = 5;
 export const NOTE_LIMIT = 5;
+export const EXAM_LIMIT = 5;
+export const FILE_UPLOAD_LIMIT_TRIAL = 2;
+export const FILE_UPLOAD_LIMIT_BASIC = 5;
+
+/*
+ * SQL — run once in Supabase SQL Editor:
+ * ALTER TABLE daily_usage ADD COLUMN IF NOT EXISTS exam_prep_count integer DEFAULT 0;
+ * ALTER TABLE daily_usage ADD COLUMN IF NOT EXISTS file_uploads integer DEFAULT 0;
+ */
 
 const today = () => new Date().toISOString().split('T')[0];
 
@@ -27,7 +36,7 @@ const DEFAULT_COURSES = [
 ];
 
 export function AppProvider({ children }) {
-  const { user, trialActive, trialExpired, planActive } = useAuth();
+  const { user, trialActive, trialExpired, planActive, userPlan } = useAuth();
 
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem('prime_dark') === 'true');
   const [lang, setLang] = useState(() => localStorage.getItem('prime_lang') || 'en');
@@ -38,7 +47,7 @@ export function AppProvider({ children }) {
   const [chatSessions, setChatSessions] = useState([]);
   const [courses, setCourses] = useState([]);
   const [weeklyGoalMinutes, setWeeklyGoalMinutesState] = useState(300);
-  const [dailyUsage, setDailyUsage] = useState({ chat_messages: 0, report_rewrites: 0, note_summaries: 0 });
+  const [dailyUsage, setDailyUsage] = useState({ chat_messages: 0, report_rewrites: 0, note_summaries: 0, exam_prep_count: 0, file_uploads: 0 });
   const [dataLoading, setDataLoading] = useState(false);
 
   // ── Global timer state ────────────────────────────────────
@@ -58,7 +67,7 @@ export function AppProvider({ children }) {
       setChatSessions([]);
       setCourses([]);
       setWeeklyGoalMinutesState(300);
-      setDailyUsage({ chat_messages: 0, report_rewrites: 0, note_summaries: 0 });
+      setDailyUsage({ chat_messages: 0, report_rewrites: 0, note_summaries: 0, exam_prep_count: 0, file_uploads: 0 });
       clearInterval(intervalRef.current);
       setActiveSession(null);
       setRunning(false);
@@ -81,7 +90,7 @@ export function AppProvider({ children }) {
       setReports(r || []);
       setChatSessions(c || []);
       setWeeklyGoalMinutesState(settings?.weekly_goal_minutes || 300);
-      setDailyUsage({ chat_messages: usage?.chat_messages || 0, report_rewrites: usage?.report_rewrites || 0, note_summaries: usage?.note_summaries || 0 });
+      setDailyUsage({ chat_messages: usage?.chat_messages || 0, report_rewrites: usage?.report_rewrites || 0, note_summaries: usage?.note_summaries || 0, exam_prep_count: usage?.exam_prep_count || 0, file_uploads: usage?.file_uploads || 0 });
 
       const coursesArr = cData || [];
       if (coursesArr.length === 0) {
@@ -346,9 +355,17 @@ export function AppProvider({ children }) {
   const incrementChat = () => incrementUsage('chat_messages');
   const incrementRewrite = () => incrementUsage('report_rewrites');
   const incrementSummary = () => incrementUsage('note_summaries');
+  const incrementExam = () => incrementUsage('exam_prep_count');
+  const incrementFileUpload = () => incrementUsage('file_uploads');
   const chatRemaining = (trialActive || planActive) ? 999 : Math.max(0, CHAT_LIMIT - dailyUsage.chat_messages);
   const rewriteRemaining = (trialActive || planActive) ? 999 : Math.max(0, REPORT_LIMIT - dailyUsage.report_rewrites);
   const summaryRemaining = (trialActive || planActive) ? 999 : Math.max(0, NOTE_LIMIT - dailyUsage.note_summaries);
+  const examRemaining = (trialActive || planActive) ? 999 : Math.max(0, EXAM_LIMIT - dailyUsage.exam_prep_count);
+  const fileUploadsRemaining = planActive
+    ? (userPlan === 'pro' ? 999 : Math.max(0, FILE_UPLOAD_LIMIT_BASIC - dailyUsage.file_uploads))
+    : trialActive
+    ? Math.max(0, FILE_UPLOAD_LIMIT_TRIAL - dailyUsage.file_uploads)
+    : 0;
 
   // ── Computed ──────────────────────────────────────────────
   const todayMinutes = sessions
@@ -419,8 +436,9 @@ export function AppProvider({ children }) {
       weeklyGoalMinutes, setWeeklyGoal,
       streak,
       dataLoading,
-      chatRemaining, rewriteRemaining, summaryRemaining, incrementChat, incrementRewrite, incrementSummary,
-      trialActive, trialExpired,
+      chatRemaining, rewriteRemaining, summaryRemaining, examRemaining, incrementChat, incrementRewrite, incrementSummary, incrementExam,
+      fileUploadsRemaining, incrementFileUpload,
+      trialActive, trialExpired, planActive, userPlan,
       todayMinutes, weekMinutes, monthMinutes,
       weeklyData,
       activeSession, remaining, running, pomodoroPhase, pomodoroRounds,

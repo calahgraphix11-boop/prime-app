@@ -7,8 +7,9 @@ import UpgradeModal from "../components/UpgradeModal";
 import { ACCEPTED_FILE_TYPES, MAX_FILE_SIZE, getMediaType, readFileAsBase64 } from "../lib/fileUtils";
 
 export default function AIChatbot() {
-  const { t, chatSessions, createChatSession, updateChatSession, dataLoading, chatRemaining, incrementChat, trialExpired } = useApp();
+  const { t, chatSessions, createChatSession, updateChatSession, dataLoading, chatRemaining, incrementChat, trialExpired, fileUploadsRemaining, incrementFileUpload, trialActive, planActive } = useApp();
   const { profile } = useAuth();
+  const canUploadFiles = trialActive || planActive;
   const username = profile?.username || profile?.full_name || null;
   const [activeChatId, setActiveChatId] = useState(null);
   const [input, setInput] = useState("");
@@ -71,6 +72,7 @@ export default function AIChatbot() {
       setActiveChatId(chat.id);
     }
 
+    if (fileToSend && canUploadFiles && fileUploadsRemaining > 0) incrementFileUpload();
     // Stored content: plain text for history (file data is not persisted)
     const storedContent = msg || `📎 ${fileToSend.file.name}`;
     const newMessages = [...currentMessages, { role: "user", content: storedContent }];
@@ -278,16 +280,28 @@ export default function AIChatbot() {
               )}
               {fileError && <p className="text-xs mb-1.5 px-1" style={{ color: '#f87171' }}>{fileError}</p>}
 
+              {!canUploadFiles && (
+                <p className="text-xs mb-1.5 px-1 text-white/40">Upgrade to access file uploads</p>
+              )}
+              {canUploadFiles && fileUploadsRemaining === 0 && (
+                <p className="text-xs mb-1.5 px-1 text-white/40">Daily file upload limit reached</p>
+              )}
               <div className="flex items-end gap-2 rounded-2xl px-4 py-3" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}>
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="p-1.5 rounded-lg transition-colors flex-shrink-0"
-                  style={{ color: attachedFile ? '#F5A800' : 'rgba(255,255,255,0.35)' }}
-                  title="Attach file"
-                >
-                  <Paperclip size={18} />
-                </button>
+                {canUploadFiles && fileUploadsRemaining > 0 ? (
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="p-1.5 rounded-lg transition-colors flex-shrink-0"
+                    style={{ color: attachedFile ? '#F5A800' : 'rgba(255,255,255,0.35)' }}
+                    title="Attach file"
+                  >
+                    <Paperclip size={18} />
+                  </button>
+                ) : (
+                  <div className="p-1.5 flex-shrink-0" style={{ color: 'rgba(255,255,255,0.15)' }}>
+                    <Paperclip size={18} />
+                  </div>
+                )}
                 <input ref={fileInputRef} type="file" accept={ACCEPTED_FILE_TYPES} onChange={handleFileChange} className="hidden" />
                 <textarea
                   rows={1}

@@ -1,7 +1,8 @@
 import { useState, useRef } from "react";
-import { Sparkles, ChevronRight, Trophy, RotateCcw, Target, Paperclip, X } from "lucide-react";
+import { Sparkles, ChevronRight, Trophy, RotateCcw, Target, Paperclip, X, Zap } from "lucide-react";
 import { generateWithFile } from "../lib/gemini";
 import { useApp } from "../context/AppContext";
+import UpgradeModal from "../components/UpgradeModal";
 import { ACCEPTED_FILE_TYPES, MAX_FILE_SIZE, getMediaType, readFileAsBase64 } from "../lib/fileUtils";
 
 const SYSTEM_PROMPT =
@@ -17,7 +18,7 @@ function getBadge(pct) {
 }
 
 export default function ExamPrep() {
-  const { courses } = useApp();
+  const { courses, examRemaining, incrementExam, fileUploadsRemaining, incrementFileUpload, trialActive, trialExpired, planActive } = useApp();
 
   const [phase, setPhase] = useState("setup");
   const [topic, setTopic] = useState("");
@@ -32,7 +33,9 @@ export default function ExamPrep() {
   const [error, setError] = useState("");
   const [attachedFile, setAttachedFile] = useState(null);
   const [fileError, setFileError] = useState("");
+  const [showUpgrade, setShowUpgrade] = useState(false);
   const fileInputRef = useRef(null);
+  const canUploadFiles = trialActive || planActive;
 
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
@@ -45,7 +48,7 @@ export default function ExamPrep() {
   };
 
   const generate = async () => {
-    if (!topic.trim()) return;
+    if (!topic.trim() || examRemaining <= 0) return;
     setLoading(true);
     setError("");
     const subjectLabel = subject === "__custom__" ? customSubject : subject;
@@ -58,6 +61,8 @@ export default function ExamPrep() {
       });
       const jsonStr = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
       const parsed = JSON.parse(jsonStr);
+      incrementExam();
+      if (attachedFile && canUploadFiles && fileUploadsRemaining > 0) incrementFileUpload();
       setQuestions(parsed.slice(0, questionCount));
       setCurrentIndex(0);
       setAnswers({});
@@ -109,11 +114,27 @@ export default function ExamPrep() {
   if (phase === "setup") {
     return (
       <div className="space-y-5 pt-2">
+        {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} />}
         <div>
           <h1 className="text-2xl font-bold text-white">Exam Coach</h1>
           <p className="text-sm text-white/50 mt-0.5">Practice smarter, not harder</p>
         </div>
 
+        {examRemaining === 0 ? (
+          <div className="glass rounded-2xl p-6 text-center" style={{ border: '1px solid rgba(239,68,68,0.25)' }}>
+            <div className="w-12 h-12 rounded-xl mx-auto mb-3 flex items-center justify-center" style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.25)' }}>
+              <Sparkles size={20} style={{ color: '#f87171' }} />
+            </div>
+            <h3 className="text-base font-bold text-white mb-1.5">{trialExpired ? 'Free Trial Ended' : 'Daily Limit Reached'}</h3>
+            <p className="text-sm text-white/50 leading-relaxed">{trialExpired ? 'Your 7-day free trial has ended — upgrade to keep practicing.' : "You've used all 5 Exam Coach sessions for today — upgrade for unlimited access."}</p>
+            <div className="mt-4 px-4 py-1.5 rounded-full text-xs font-semibold inline-block" style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171' }}>
+              {trialExpired ? '7-day free trial ended' : '5 / 5 sessions used today'}
+            </div>
+            <button onClick={() => setShowUpgrade(true)} className="mt-4 w-full py-2.5 rounded-xl text-sm font-semibold btn-gold flex items-center justify-center gap-2">
+              <Zap size={15} /> Upgrade Plan
+            </button>
+          </div>
+        ) : (
         <div className="glass rounded-2xl p-5 space-y-4">
           <div>
             <label className="text-sm font-medium text-white/75 block mb-1.5">Topic</label>
@@ -129,17 +150,23 @@ export default function ExamPrep() {
           <div>
             <div className="flex items-center justify-between mb-1.5">
               <label className="text-sm font-medium text-white/75">Reference Material</label>
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-colors"
-                style={{ background: 'rgba(0,77,46,0.3)', border: '1px solid rgba(0,77,46,0.5)', color: '#34d399' }}
-              >
-                <Paperclip size={12} /> Attach file
-              </button>
+              {canUploadFiles && fileUploadsRemaining > 0 ? (
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-colors"
+                  style={{ background: 'rgba(0,77,46,0.3)', border: '1px solid rgba(0,77,46,0.5)', color: '#34d399' }}
+                >
+                  <Paperclip size={12} /> Attach file
+                </button>
+              ) : null}
               <input ref={fileInputRef} type="file" accept={ACCEPTED_FILE_TYPES} onChange={handleFileChange} className="hidden" />
             </div>
-            {attachedFile ? (
+            {!canUploadFiles ? (
+              <p className="text-xs text-white/40">Upgrade to access file uploads</p>
+            ) : fileUploadsRemaining === 0 ? (
+              <p className="text-xs text-white/40">Daily file upload limit reached</p>
+            ) : attachedFile ? (
               <div className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs" style={{ background: 'rgba(245,168,0,0.08)', border: '1px solid rgba(245,168,0,0.25)' }}>
                 <Paperclip size={12} style={{ color: '#F5A800', flexShrink: 0 }} />
                 <span className="text-white/70 truncate flex-1">{attachedFile.file.name}</span>
@@ -215,7 +242,11 @@ export default function ExamPrep() {
               <><Sparkles size={16} /> Generate Questions</>
             )}
           </button>
+          {examRemaining < 999 && (
+            <p className="text-xs text-center text-white/35">{examRemaining} of 5 sessions remaining today</p>
+          )}
         </div>
+        )}
 
         {error && <p className="text-sm px-1" style={{ color: "#f87171" }}>{error}</p>}
       </div>
