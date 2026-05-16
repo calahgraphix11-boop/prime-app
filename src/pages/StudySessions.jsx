@@ -329,6 +329,12 @@ export default function StudySessions() {
                   {running ? t.pause : t.resume}
                 </button>
                 <button
+                  onClick={endTimerSession}
+                  className="flex-1 py-2.5 rounded-xl text-sm font-semibold btn-gold"
+                >
+                  {t.endSession}
+                </button>
+                <button
                   onClick={cancelTimer}
                   className="flex-1 py-2.5 rounded-xl text-sm font-medium btn-ghost"
                 >

@@ -193,11 +193,21 @@ export function AppProvider({ children }) {
   const endTimerSession = () => {
     clearInterval(intervalRef.current);
     setRunning(false);
-    let totalMinutes = pomodoroRounds * 25;
-    if (pomodoroPhase === "study") {
-      totalMinutes += Math.floor((25 * 60 - remaining) / 60);
+    let totalMinutes;
+    if (activeSession.pomodoroEnabled) {
+      totalMinutes = pomodoroRounds * 25;
+      if (pomodoroPhase === "study") {
+        totalMinutes += Math.floor((25 * 60 - remaining) / 60);
+      }
+    } else {
+      totalMinutes = Math.floor((activeSession.duration * 60 - remaining) / 60);
     }
-    const snap = { title: activeSession.title, course: activeSession.course, session_key: activeSession.session_key };
+    const snap = {
+      title: activeSession.title,
+      course: activeSession.course,
+      session_key: activeSession.session_key,
+      pomodoroEnabled: activeSession.pomodoroEnabled || false,
+    };
     setActiveSession(null);
     setPomodoroPhase("study");
     setPomodoroRounds(0);
@@ -208,7 +218,6 @@ export function AppProvider({ children }) {
       setPendingCompletedSession({
         ...snap,
         duration: totalMinutes,
-        pomodoroEnabled: true,
         startTime: sessionStartTimeRef.current,
         endTime: new Date().toISOString(),
       });
