@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 import { AppProvider } from "./context/AppContext";
 import Layout from "./components/Layout";
 import Dashboard from "./pages/Dashboard";
+import LandingPage from "./pages/LandingPage";
 import StudySessions from "./pages/StudySessions";
 import AIReportWriter from "./pages/AIReportWriter";
 import AIChatbot from "./pages/AIChatbot";
@@ -41,13 +42,26 @@ function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950">
-        <div className="w-10 h-10 rounded-full border-4 border-gray-200 border-t-green-800 animate-spin" />
+      <div className="min-h-screen flex items-center justify-center" style={{ background: '#001a10' }}>
+        <div className="w-10 h-10 rounded-full border-4 border-green-900 border-t-yellow-500 animate-spin" />
       </div>
     );
   }
   if (!user) return <Navigate to="/login" replace />;
   return children;
+}
+
+function HomeRoute() {
+  const { user, loading } = useAuth();
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ background: '#001a10' }}>
+        <div className="w-10 h-10 rounded-full border-4 border-green-900 border-t-yellow-500 animate-spin" />
+      </div>
+    );
+  }
+  if (!user) return <LandingPage />;
+  return <Layout><Dashboard /></Layout>;
 }
 
 function AppRoutes() {
@@ -69,7 +83,7 @@ function AppRoutes() {
 <Route path="/login" element={user ? <Navigate to="/" replace /> : <Login />} />
       <Route path="/signup" element={user ? <Navigate to="/" replace /> : <Signup />} />
       <Route path="/verify-email" element={user ? <Navigate to="/" replace /> : <VerifyEmail />} />
-      <Route path="/" element={<ProtectedRoute><Layout><Dashboard /></Layout></ProtectedRoute>} />
+      <Route path="/" element={<HomeRoute />} />
       <Route path="/sessions" element={<ProtectedRoute><Layout><StudySessions /></Layout></ProtectedRoute>} />
       <Route path="/report" element={<ProtectedRoute><Layout><AIReportWriter /></Layout></ProtectedRoute>} />
       <Route path="/chat" element={<ProtectedRoute><Layout><AIChatbot /></Layout></ProtectedRoute>} />

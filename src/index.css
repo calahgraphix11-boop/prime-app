@@ -97,6 +97,116 @@ body {
   cursor: not-allowed;
 }
 
+/* ─── Landing page animations ───────────────────────────── */
+@keyframes lp-slide-down {
+  from { transform: translateY(-110%); }
+  to   { transform: translateY(0); }
+}
+
+@keyframes lp-fade-up {
+  from { opacity: 0; transform: translateY(22px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes lp-word-reveal {
+  from { opacity: 0; transform: translateY(14px); filter: blur(3px); }
+  to   { opacity: 1; transform: translateY(0);    filter: blur(0); }
+}
+
+@keyframes lp-float {
+  0%, 100% { transform: translateY(0px) rotate(-0.5deg); }
+  50%       { transform: translateY(-14px) rotate(0.5deg); }
+}
+
+@keyframes lp-shimmer {
+  0%   { background-position: -300% center; }
+  100% { background-position: 300% center; }
+}
+
+@keyframes lp-glow-pulse {
+  0%, 100% {
+    box-shadow:
+      0 0 0 1px rgba(245,168,0,0.35),
+      0 0 20px rgba(245,168,0,0.2),
+      0 0 50px rgba(245,168,0,0.08);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px rgba(245,168,0,0.65),
+      0 0 32px rgba(245,168,0,0.4),
+      0 0 70px rgba(245,168,0,0.18);
+  }
+}
+
+.lp-float {
+  animation: lp-float 4.5s ease-in-out infinite;
+}
+
+/* CTA shimmer — sweeping glint across the gold button */
+.lp-cta-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.lp-cta-shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 35%,
+    rgba(255,255,255,0.45) 50%,
+    transparent 65%
+  );
+  background-size: 300% 100%;
+  background-position: -300% center;
+  animation: lp-shimmer 3.2s ease-in-out 2s infinite;
+}
+
+.lp-pro-glow {
+  animation: lp-glow-pulse 2.8s ease-in-out infinite;
+}
+
+/* Feature cards — 3D tilt resets smoothly */
+.lp-feature-card {
+  will-change: transform;
+  transition: transform 0.4s ease-out, box-shadow 0.3s ease;
+}
+.lp-feature-card:hover {
+  box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+}
+
+/* Mobile: collapse 3D to simple fades, simplify float */
+@media (max-width: 639px) {
+  .lp-feature-card {
+    transform: none !important;
+    transition: none !important;
+  }
+  .lp-float {
+    animation-name: lp-float-mobile;
+  }
+  @keyframes lp-float-mobile {
+    0%, 100% { transform: translateY(0); }
+    50%       { transform: translateY(-8px); }
+  }
+}
+
+/* Honour reduced motion — kill all lp animations */
+@media (prefers-reduced-motion: reduce) {
+  .lp-float,
+  .lp-cta-shimmer::after,
+  .lp-pro-glow {
+    animation: none !important;
+  }
+  [style*="lp-word-reveal"],
+  [style*="lp-fade-up"],
+  [style*="lp-slide-down"] {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+  }
+}
+
 /* ─── Scrollbar ──────────────────────────────────────────── */
 ::-webkit-scrollbar {
   width: 5px;
