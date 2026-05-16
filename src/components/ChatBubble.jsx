@@ -68,7 +68,7 @@ export default function ChatBubble() {
   return (
     <div className="fixed bottom-6 right-6 z-50">
       {open && (
-        <div className="mb-4 w-80 h-[480px] glass-elevated rounded-2xl flex flex-col overflow-hidden shadow-2xl">
+        <div className="mb-4 w-80 h-[480px] rounded-2xl flex flex-col overflow-hidden shadow-2xl" style={{ background: '#001f14', border: '1px solid rgba(255,255,255,0.1)' }}>
           {/* Header */}
           <div
             className="flex items-center justify-between px-4 py-3 text-gray-900"

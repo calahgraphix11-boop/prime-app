@@ -205,7 +205,7 @@ export default function Layout({ children }) {
         </main>
       </div>
 
-      <ChatBubble />
+      {!activeSession && <ChatBubble />}
 
       {/* Global session-complete notes modal */}
       {pendingCompletedSession && (
