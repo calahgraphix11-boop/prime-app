@@ -3,7 +3,7 @@ import { Plus, Trash2, BookOpen, Clock, ChevronDown, Timer, Coffee, MessageCircl
 import { useApp } from "../context/AppContext";
 import { useAuth } from "../context/AuthContext";
 import { generateContent, DEFAULT_MODEL } from "../lib/gemini";
-import AIChatbot from "./AIChatbot";
+import SessionChatPanel from "../components/SessionChatPanel";
 
 function formatDate(iso) {
   const d = new Date(iso);
@@ -367,7 +367,7 @@ export default function StudySessions() {
             </button>
           </div>
           <div className="flex-1 overflow-hidden">
-            <AIChatbot />
+            <SessionChatPanel />
           </div>
         </div>
       )}

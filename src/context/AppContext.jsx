@@ -17,6 +17,19 @@ export const FILE_UPLOAD_LIMIT_BASIC = 5;
  * SQL — run once in Supabase SQL Editor:
  * ALTER TABLE daily_usage ADD COLUMN IF NOT EXISTS exam_prep_count integer DEFAULT 0;
  * ALTER TABLE daily_usage ADD COLUMN IF NOT EXISTS file_uploads integer DEFAULT 0;
+ *
+ * create table if not exists study_session_chats (
+ *   id uuid primary key default gen_random_uuid(),
+ *   session_key text not null,
+ *   user_id uuid references auth.users(id) on delete cascade not null,
+ *   messages jsonb not null default '[]',
+ *   created_at timestamptz default now() not null,
+ *   updated_at timestamptz default now() not null
+ * );
+ * alter table study_session_chats enable row level security;
+ * create policy "Users can manage own session chats" on study_session_chats
+ *   for all using (auth.uid() = user_id);
+ * create index on study_session_chats (user_id, session_key);
  */
 
 const today = () => new Date().toISOString().split('T')[0];
@@ -55,6 +68,9 @@ export function AppProvider({ children }) {
   const [pendingCompletedSession, setPendingCompletedSession] = useState(null);
   const intervalRef = useRef(null);
   const sessionStartTimeRef = useRef(null);
+  const sessionKeyRef = useRef(null);
+  const sessionChatIdRef = useRef(null);
+  const [sessionMessages, setSessionMessages] = useState([]);
 
   useEffect(() => {
     if (!user) {
@@ -71,6 +87,9 @@ export function AppProvider({ children }) {
       setPomodoroPhase("study");
       setPomodoroRounds(0);
       setPendingCompletedSession(null);
+      setSessionMessages([]);
+      sessionKeyRef.current = null;
+      sessionChatIdRef.current = null;
       return;
     }
     setDataLoading(true);
@@ -141,6 +160,9 @@ export function AppProvider({ children }) {
   // ── Timer controls ────────────────────────────────────────
   const startTimerSession = (sessionData) => {
     sessionStartTimeRef.current = new Date().toISOString();
+    sessionKeyRef.current = crypto.randomUUID();
+    sessionChatIdRef.current = null;
+    setSessionMessages([]);
     setActiveSession(sessionData);
     setRemaining((sessionData.pomodoroEnabled ? 25 : sessionData.duration) * 60);
     setRunning(true);
@@ -158,6 +180,9 @@ export function AppProvider({ children }) {
     setRemaining(0);
     setPomodoroPhase("study");
     setPomodoroRounds(0);
+    setSessionMessages([]);
+    sessionKeyRef.current = null;
+    sessionChatIdRef.current = null;
   };
 
   const endTimerSession = () => {
@@ -171,6 +196,9 @@ export function AppProvider({ children }) {
     setActiveSession(null);
     setPomodoroPhase("study");
     setPomodoroRounds(0);
+    setSessionMessages([]);
+    sessionKeyRef.current = null;
+    sessionChatIdRef.current = null;
     if (totalMinutes > 0) {
       setPendingCompletedSession({
         ...snap,
@@ -314,6 +342,23 @@ export function AppProvider({ children }) {
     if (!error) setCourses((prev) => prev.filter((c) => c.id !== id));
   };
 
+  // ── Session chat ──────────────────────────────────────────
+  const updateSessionMessages = async (messages) => {
+    if (!user || !sessionKeyRef.current) return;
+    setSessionMessages(messages);
+    if (sessionChatIdRef.current) {
+      await supabase.from('study_session_chats')
+        .update({ messages, updated_at: new Date().toISOString() })
+        .eq('id', sessionChatIdRef.current);
+    } else {
+      const { data } = await supabase.from('study_session_chats')
+        .insert({ user_id: user.id, session_key: sessionKeyRef.current, messages })
+        .select('id')
+        .single();
+      if (data) sessionChatIdRef.current = data.id;
+    }
+  };
+
   // ── Weekly goal ───────────────────────────────────────────
   const setWeeklyGoal = async (minutes) => {
     await supabase
@@ -430,6 +475,7 @@ export function AppProvider({ children }) {
       weeklyData,
       activeSession, remaining, running, pomodoroPhase, pomodoroRounds,
       startTimerSession, pauseTimer, resumeTimer, cancelTimer, endTimerSession,
+      sessionMessages, updateSessionMessages,
       pendingCompletedSession, saveCompletedSession, dismissCompletedSession,
     }}>
       {children}
