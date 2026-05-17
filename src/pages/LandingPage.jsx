@@ -100,11 +100,11 @@ function Hero({ navigate }) {
   const words = ["Study", "Smarter.", "Compete", "Harder.", "Graduate", "Stronger."];
   return (
     <section style={{
-      minHeight: "100vh", display: "flex", alignItems: "center",
+      minHeight: "100vh", display: "flex", alignItems: "flex-start",
       padding: "100px 2rem 60px", maxWidth: 1100, margin: "0 auto",
-      gap: "3rem"
+      gap: "3rem", flexWrap: "nowrap"
     }}>
-      <div style={{ flex: 1 }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{
           display: "inline-flex", alignItems: "center", gap: 8,
           background: "#1a2e1a", border: "1px solid #2a4a2a",
@@ -174,7 +174,7 @@ function Hero({ navigate }) {
         </div>
       </div>
 
-      <div style={{ flex: "0 0 auto", display: "flex", justifyContent: "center", animation: "fadeUp 0.6s ease 0.4s both" }}>
+      <div style={{ flex: "0 0 auto", flexShrink: 0, display: "flex", justifyContent: "center", animation: "fadeUp 0.6s ease 0.4s both" }}>
         <MockupCard />
       </div>
     </section>
