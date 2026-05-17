@@ -36,7 +36,7 @@ function Navbar({ navigate }) {
           width: 10, height: 10, borderRadius: "50%",
           background: "#4caf50", flexShrink: 0
         }} />
-        <span style={{ fontFamily: "Inter, sans-serif", fontWeight: 700, fontSize: 18, color: "#fff" }}>calah.ai</span>
+        <span style={{ fontFamily: "Inter, sans-serif", fontWeight: 700, fontSize: 18, color: "#fff" }}>Prime</span>
       </div>
       <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
         <button onClick={() => navigate("/login")} style={{
