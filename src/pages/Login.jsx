@@ -38,74 +38,144 @@ export default function Login() {
   };
 
   return (
-    <div className="app-bg min-h-screen w-full flex flex-col items-center justify-center px-4">
+    <div
+      className="min-h-screen w-full flex flex-col items-center justify-center px-4"
+      style={{ background: "#0a1a0e" }}
+    >
       <div className="w-full max-w-sm">
-        <div className="text-center mb-8">
+        {/* Logo */}
+        <div className="flex items-center justify-center mb-6">
           <div
-            className="mx-auto mb-2 flex items-center justify-center"
-            style={{ width: 200, height: 200, background: 'rgba(255,255,255,0.08)', borderRadius: 24, backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.15)' }}
+            className="flex items-center justify-center"
+            style={{
+              width: 72,
+              height: 72,
+              background: "rgba(255,255,255,0.08)",
+              borderRadius: 20,
+              backdropFilter: "blur(20px)",
+              WebkitBackdropFilter: "blur(20px)",
+              border: "1px solid rgba(255,255,255,0.12)",
+            }}
           >
-            <img src="/logo.png" alt="prime logo" style={{ width: 200, height: 200, objectFit: 'contain', borderRadius: 24 }} />
+            <img
+              src="/logo.png"
+              alt="Prime logo"
+              style={{ width: 56, height: 56, objectFit: "contain" }}
+            />
           </div>
         </div>
 
-        <div className="glass-elevated rounded-2xl p-6">
-          <h2 className="text-lg font-semibold text-white mb-5">{t.login}</h2>
+        {/* Glass card */}
+        <div
+          style={{
+            background:
+              "linear-gradient(135deg, rgba(255,255,255,0.08), rgba(10,26,14,0.8))",
+            backdropFilter: "blur(20px)",
+            WebkitBackdropFilter: "blur(20px)",
+            border: "1px solid rgba(255,255,255,0.08)",
+            borderRadius: 24,
+            padding: "1.75rem",
+          }}
+        >
+          <h2
+            className="text-2xl text-white mb-6"
+            style={{ fontFamily: "Inter, sans-serif", fontWeight: 600 }}
+          >
+            Welcome back
+          </h2>
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="text-sm font-medium text-white/75">{t.email}</label>
+              <label
+                className="text-sm font-medium"
+                style={{ color: "rgba(255,255,255,0.6)" }}
+              >
+                {t.email}
+              </label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="mt-1.5 w-full px-3 py-2.5 rounded-xl glass-input text-sm"
+                className="mt-1.5 w-full px-4 py-3 text-sm glass-input-login"
+                style={{ borderRadius: 12 }}
               />
             </div>
             <div>
-              <label className="text-sm font-medium text-white/75">{t.password}</label>
+              <label
+                className="text-sm font-medium"
+                style={{ color: "rgba(255,255,255,0.6)" }}
+              >
+                {t.password}
+              </label>
               <div className="relative mt-1.5">
                 <input
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="w-full pl-3 pr-10 py-2.5 rounded-xl glass-input text-sm"
+                  className="w-full pl-4 pr-10 py-3 text-sm glass-input-login"
+                  style={{ borderRadius: 12 }}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors"
-                  style={{ color: '#004d2e' }}
+                  style={{ color: "rgba(255,255,255,0.4)" }}
                   tabIndex={-1}
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
             </div>
+
             {error && (
-              <p className="text-sm text-red-300 px-3 py-2 rounded-lg" style={{ background: 'rgba(239,68,68,0.18)', border: '1px solid rgba(239,68,68,0.3)' }}>
+              <p
+                className="text-sm text-red-300 px-3 py-2 rounded-lg"
+                style={{
+                  background: "rgba(239,68,68,0.18)",
+                  border: "1px solid rgba(239,68,68,0.3)",
+                }}
+              >
                 {error}
               </p>
             )}
+
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-2.5 rounded-xl text-sm btn-gold mt-2"
+              className="w-full py-3 rounded-full text-sm font-semibold mt-2 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
+              style={{ background: "#D4900A", color: "#000" }}
             >
               {loading ? "..." : t.signIn}
             </button>
           </form>
+
           <div className="flex items-center gap-3 my-4">
-            <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.1)' }} />
-            <span className="text-xs text-white/30 font-medium">or</span>
-            <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.1)' }} />
+            <div
+              className="flex-1 h-px"
+              style={{ background: "rgba(255,255,255,0.08)" }}
+            />
+            <span
+              className="text-xs font-medium"
+              style={{ color: "rgba(255,255,255,0.25)" }}
+            >
+              or
+            </span>
+            <div
+              className="flex-1 h-px"
+              style={{ background: "rgba(255,255,255,0.08)" }}
+            />
           </div>
+
           <button
             onClick={handleGoogle}
             disabled={googleLoading}
-            className="w-full flex items-center justify-center gap-3 py-2.5 rounded-xl text-sm font-medium text-white transition-all hover:bg-white/10 disabled:opacity-50"
-            style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)' }}
+            className="w-full flex items-center justify-center gap-3 py-3 rounded-full text-sm font-medium text-white transition-all hover:bg-white/10 disabled:opacity-50"
+            style={{
+              background: "rgba(255,255,255,0.06)",
+              border: "1px solid rgba(255,255,255,0.10)",
+            }}
           >
             <svg viewBox="0 0 24 24" width="18" height="18" xmlns="http://www.w3.org/2000/svg">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -115,9 +185,14 @@ export default function Login() {
             </svg>
             {googleLoading ? "Redirecting…" : "Continue with Google"}
           </button>
-          <p className="text-center text-sm text-white/45 mt-4">
+
+          <p className="text-center text-sm mt-4" style={{ color: "#8ab08a" }}>
             {t.dontHaveAccount}{" "}
-            <Link to="/signup" className="font-medium text-yellow-400 hover:text-yellow-300 transition-colors">
+            <Link
+              to="/signup"
+              className="font-medium hover:opacity-80 transition-opacity"
+              style={{ color: "#D4900A" }}
+            >
               {t.signup}
             </Link>
           </p>

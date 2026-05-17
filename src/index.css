@@ -214,6 +214,24 @@ body {
   }
 }
 
+/* ─── Login page inputs (scoped, keeps .glass-input unchanged) ── */
+.glass-input-login {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: white;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.glass-input-login::placeholder {
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.glass-input-login:focus {
+  border-color: #D4900A;
+  box-shadow: 0 0 0 3px rgba(212, 144, 10, 0.18);
+}
+
 /* ─── Scrollbar ──────────────────────────────────────────── */
 ::-webkit-scrollbar {
   width: 5px;
