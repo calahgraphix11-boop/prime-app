@@ -60,7 +60,7 @@ export default function Login() {
             <img
               src="/logo.png"
               alt="Prime logo"
-              style={{ width: 56, height: 56, objectFit: "contain" }}
+              style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "inherit" }}
             />
           </div>
         </div>
@@ -121,7 +121,7 @@ export default function Login() {
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors"
-                  style={{ color: "rgba(255,255,255,0.4)" }}
+                  style={{ color: "#D4900A" }}
                   tabIndex={-1}
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
