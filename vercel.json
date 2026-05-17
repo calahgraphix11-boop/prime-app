@@ -2,7 +2,6 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "routes": [
-    { "src": "^/$", "dest": "/landing.html" },
     { "src": "^/privacy\\.html$", "dest": "/privacy.html" },
     { "src": "^/terms\\.html$", "dest": "/terms.html" },
     { "handle": "filesystem" },
