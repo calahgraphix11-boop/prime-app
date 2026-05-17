@@ -33,22 +33,21 @@ function Navbar({ navigate }) {
     }}>
       <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
         <div style={{
-          width: 34, height: 34, borderRadius: 8,
-          background: GOLD, display: "flex", alignItems: "center", justifyContent: "center",
-          fontWeight: 700, fontSize: 16, color: "#000"
-        }}>P</div>
-        <span style={{ fontFamily: "Syne, sans-serif", fontWeight: 700, fontSize: 18, color: "#fff" }}>Prime</span>
+          width: 10, height: 10, borderRadius: "50%",
+          background: "#4caf50", flexShrink: 0
+        }} />
+        <span style={{ fontFamily: "Inter, sans-serif", fontWeight: 700, fontSize: 18, color: "#fff" }}>calah.ai</span>
       </div>
       <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
         <button onClick={() => navigate("/login")} style={{
           background: "none", border: "1px solid #2a4a2a", color: "#ccc",
           padding: "8px 20px", borderRadius: 8, cursor: "pointer", fontSize: 14,
-          fontFamily: "DM Sans, sans-serif"
+          fontFamily: "Inter, sans-serif"
         }}>Sign In</button>
         <button onClick={() => navigate("/login")} style={{
           background: GOLD, border: "none", color: "#000",
           padding: "8px 20px", borderRadius: 8, cursor: "pointer", fontSize: 14,
-          fontWeight: 600, fontFamily: "DM Sans, sans-serif"
+          fontWeight: 600, fontFamily: "Inter, sans-serif"
         }}>Get Started</button>
       </div>
     </nav>
@@ -69,14 +68,14 @@ function MockupCard() {
         ))}
       </div>
       <div style={{ textAlign: "center", marginBottom: 16 }}>
-        <div style={{ fontFamily: "Syne, sans-serif", fontSize: 36, fontWeight: 700, color: "#fff", letterSpacing: 2 }}>24:37</div>
+        <div style={{ fontFamily: "Inter, sans-serif", fontSize: 36, fontWeight: 700, color: "#fff", letterSpacing: 2 }}>24:37</div>
         <div style={{ fontSize: 11, color: "#6b9b6b", textTransform: "uppercase", letterSpacing: 2, marginTop: 2 }}>Studying</div>
         <div style={{ fontSize: 13, color: "#aaa", marginTop: 4 }}>Calculus Review</div>
       </div>
       <button style={{
         width: "100%", background: GOLD, border: "none", color: "#000",
         padding: "8px", borderRadius: 8, fontSize: 13, fontWeight: 600,
-        cursor: "pointer", marginBottom: 12, fontFamily: "DM Sans, sans-serif"
+        cursor: "pointer", marginBottom: 12, fontFamily: "Inter, sans-serif"
       }}>Explain L'Hôpital's rule simply</button>
       <div style={{
         background: "#0d1a0d", borderRadius: 8, padding: "10px 12px",
@@ -97,11 +96,10 @@ function MockupCard() {
 }
 
 function Hero({ navigate }) {
-  const words = ["Study", "Smarter.", "Compete", "Harder.", "Graduate", "Stronger."];
   return (
     <section style={{
       minHeight: "100vh", display: "flex", alignItems: "flex-start",
-      padding: "100px 2rem 60px", maxWidth: 1100, margin: "0 auto",
+      padding: "100px 2rem 80px", maxWidth: 1100, margin: "0 auto",
       gap: "3rem", flexWrap: "nowrap"
     }}>
       <div style={{ flex: 1, minWidth: 0 }}>
@@ -112,37 +110,32 @@ function Hero({ navigate }) {
           animation: "fadeUp 0.6s ease both"
         }}>
           <div style={{ width: 6, height: 6, borderRadius: "50%", background: GOLD }} />
-          <span style={{ fontSize: 12, color: "#aaa", fontFamily: "DM Sans, sans-serif" }}>AI-powered study companion</span>
+          <span style={{ fontSize: 12, color: "#aaa", fontFamily: "Inter, sans-serif" }}>AI-powered study companion</span>
         </div>
 
         <h1 style={{
-          fontFamily: "Syne, sans-serif", fontWeight: 800,
-          fontSize: "clamp(2rem, 4vw, 3.2rem)", lineHeight: 1.15,
-          color: "#fff", margin: "0 0 1.25rem"
+          fontFamily: "Inter, sans-serif", fontWeight: 800,
+          fontSize: "clamp(2rem, 4vw, 3.5rem)", lineHeight: 1.1,
+          letterSpacing: "-0.02em",
+          color: "#fff", margin: "0 0 1.25rem",
+          animation: "fadeUp 0.6s ease 0.1s both"
         }}>
-          {words.map((w, i) => (
-            <span key={i} style={{
-              display: "inline-block", marginRight: "0.25em",
-              animation: `wordReveal 0.5s ease both`,
-              animationDelay: `${0.1 + i * 0.1}s`,
-              color: w.includes(".") && i % 2 !== 0 ? GOLD : "#fff"
-            }}>{w}</span>
-          ))}
+          Study Smarter.<br />Score <span style={{ color: GOLD }}>Higher.</span>
         </h1>
 
         <p style={{
-          fontFamily: "DM Sans, sans-serif", fontSize: 16, color: "#8a9e8a",
-          lineHeight: 1.7, maxWidth: 460, marginBottom: "2rem",
-          animation: "fadeUp 0.6s ease 0.7s both"
+          fontFamily: "Inter, sans-serif", fontSize: 16, color: "#8a9e8a",
+          lineHeight: 1.7, maxWidth: 460, marginBottom: "2.5rem",
+          animation: "fadeUp 0.6s ease 0.25s both"
         }}>
-          Prime gives university students in Cameroon AI-powered tools to study, track progress, and stay motivated — all in one place.
+          calah.ai gives university students AI-powered tools to study, track progress, and stay motivated — all in one place.
         </p>
 
-        <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", marginBottom: "1.5rem", animation: "fadeUp 0.6s ease 0.85s both" }}>
+        <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", marginBottom: "1.5rem", animation: "fadeUp 0.6s ease 0.4s both" }}>
           <button onClick={() => navigate("/login")} style={{
             background: GOLD, border: "none", color: "#000",
             padding: "12px 28px", borderRadius: 10, fontSize: 15,
-            fontWeight: 700, cursor: "pointer", fontFamily: "DM Sans, sans-serif",
+            fontWeight: 700, cursor: "pointer", fontFamily: "Inter, sans-serif",
             display: "flex", alignItems: "center", gap: 8, position: "relative", overflow: "hidden"
           }}>
             Start for free <span>→</span>
@@ -155,11 +148,11 @@ function Hero({ navigate }) {
           <button onClick={() => navigate("#pricing")} style={{
             background: "none", border: "1px solid #2a4a2a", color: "#ccc",
             padding: "12px 28px", borderRadius: 10, fontSize: 15,
-            cursor: "pointer", fontFamily: "DM Sans, sans-serif"
+            cursor: "pointer", fontFamily: "Inter, sans-serif"
           }}>See pricing</button>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 10, animation: "fadeUp 0.6s ease 1s both" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, animation: "fadeUp 0.6s ease 0.55s both" }}>
           <div style={{ display: "flex" }}>
             {["#e91e63","#9c27b0","#2196f3","#4caf50"].map((c, i) => (
               <div key={i} style={{
@@ -168,7 +161,7 @@ function Hero({ navigate }) {
               }} />
             ))}
           </div>
-          <span style={{ fontSize: 13, color: "#6b9b6b", fontFamily: "DM Sans, sans-serif" }}>
+          <span style={{ fontSize: 13, color: "#6b9b6b", fontFamily: "Inter, sans-serif" }}>
             Trusted by <strong style={{ color: "#aaa" }}>students</strong> across Cameroon
           </span>
         </div>
@@ -193,26 +186,26 @@ const FEATURES = [
 function Features() {
   const [ref, visible] = useInView();
   return (
-    <section id="features" ref={ref} style={{ padding: "80px 2rem", maxWidth: 1100, margin: "0 auto" }}>
-      <div style={{ textAlign: "center", marginBottom: "3rem" }}>
-        <div style={{ fontSize: 11, color: GOLD, letterSpacing: 3, textTransform: "uppercase", fontFamily: "DM Sans, sans-serif", marginBottom: 12 }}>
+    <section id="features" ref={ref} style={{ padding: "112px 2rem", maxWidth: 1100, margin: "0 auto" }}>
+      <div style={{ textAlign: "center", marginBottom: "4rem" }}>
+        <div style={{ fontSize: 11, color: GOLD, letterSpacing: 3, textTransform: "uppercase", fontFamily: "Inter, sans-serif", fontWeight: 700, marginBottom: 12 }}>
           EVERYTHING IN ONE PLACE
         </div>
-        <h2 style={{ fontFamily: "Syne, sans-serif", fontSize: "clamp(1.5rem, 3vw, 2.2rem)", fontWeight: 700, color: "#fff", margin: 0 }}>
+        <h2 style={{ fontFamily: "Inter, sans-serif", fontSize: "clamp(1.5rem, 3vw, 2.4rem)", fontWeight: 800, color: "#fff", margin: 0, letterSpacing: "-0.02em" }}>
           Built for how students actually study
         </h2>
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "1rem" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "1.25rem" }}>
         {FEATURES.map((f, i) => (
           <div key={i} style={{
             background: CARD_BG, border: `1px solid ${CARD_BORDER}`,
-            borderRadius: 14, padding: "1.25rem",
+            borderRadius: 20, padding: "2rem",
             opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(24px)",
             transition: `opacity 0.5s ease ${i * 0.07}s, transform 0.5s ease ${i * 0.07}s`
           }}>
-            <div style={{ marginBottom: 10 }}><f.Icon size={20} strokeWidth={1.5} style={{ color: GOLD }} /></div>
-            <div style={{ fontFamily: "Syne, sans-serif", fontWeight: 600, fontSize: 15, color: "#fff", marginBottom: 6 }}>{f.title}</div>
-            <div style={{ fontFamily: "DM Sans, sans-serif", fontSize: 13, color: "#6b9b6b", lineHeight: 1.6 }}>{f.desc}</div>
+            <div style={{ marginBottom: 14 }}><f.Icon size={22} strokeWidth={1.5} style={{ color: GOLD }} /></div>
+            <div style={{ fontFamily: "Inter, sans-serif", fontWeight: 700, fontSize: 15, color: "#fff", marginBottom: 8 }}>{f.title}</div>
+            <div style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: "#6b9b6b", lineHeight: 1.65 }}>{f.desc}</div>
           </div>
         ))}
       </div>
@@ -235,12 +228,12 @@ function Pricing({ navigate }) {
     }
   ];
   return (
-    <section id="pricing" ref={ref} style={{ padding: "80px 2rem", maxWidth: 1100, margin: "0 auto" }}>
-      <div style={{ textAlign: "center", marginBottom: "3rem" }}>
-        <div style={{ fontSize: 11, color: GOLD, letterSpacing: 3, textTransform: "uppercase", fontFamily: "DM Sans, sans-serif", marginBottom: 12 }}>
+    <section id="pricing" ref={ref} style={{ padding: "112px 2rem", maxWidth: 1100, margin: "0 auto" }}>
+      <div style={{ textAlign: "center", marginBottom: "4rem" }}>
+        <div style={{ fontSize: 11, color: GOLD, letterSpacing: 3, textTransform: "uppercase", fontFamily: "Inter, sans-serif", fontWeight: 700, marginBottom: 12 }}>
           SIMPLE PRICING
         </div>
-        <h2 style={{ fontFamily: "Syne, sans-serif", fontSize: "clamp(1.5rem, 3vw, 2.2rem)", fontWeight: 700, color: "#fff", margin: 0 }}>
+        <h2 style={{ fontFamily: "Inter, sans-serif", fontSize: "clamp(1.5rem, 3vw, 2.4rem)", fontWeight: 800, color: "#fff", margin: 0, letterSpacing: "-0.02em" }}>
           Affordable for every student
         </h2>
       </div>
@@ -258,22 +251,22 @@ function Pricing({ navigate }) {
               <div style={{
                 position: "absolute", top: -12, right: 16,
                 background: GOLD, color: "#000", fontSize: 11, fontWeight: 700,
-                padding: "3px 12px", borderRadius: 20, fontFamily: "DM Sans, sans-serif"
+                padding: "3px 12px", borderRadius: 20, fontFamily: "Inter, sans-serif"
               }}>POPULAR</div>
             )}
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
               {p.popular
                 ? <Zap size={16} strokeWidth={1.5} style={{ color: GOLD }} />
                 : <Star size={16} strokeWidth={1.5} style={{ color: "#6b9b6b" }} />}
-              <span style={{ fontFamily: "Syne, sans-serif", fontWeight: 600, fontSize: 16, color: "#fff" }}>{p.name}</span>
+              <span style={{ fontFamily: "Inter, sans-serif", fontWeight: 700, fontSize: 16, color: "#fff" }}>{p.name}</span>
             </div>
             <div style={{ marginBottom: "1.25rem" }}>
-              <span style={{ fontFamily: "Syne, sans-serif", fontSize: 36, fontWeight: 800, color: "#fff" }}>{p.price}</span>
-              <span style={{ fontSize: 13, color: "#6b9b6b", marginLeft: 4, fontFamily: "DM Sans, sans-serif" }}>{p.currency}</span>
+              <span style={{ fontFamily: "Inter, sans-serif", fontSize: 36, fontWeight: 800, color: "#fff" }}>{p.price}</span>
+              <span style={{ fontSize: 13, color: "#6b9b6b", marginLeft: 4, fontFamily: "Inter, sans-serif" }}>{p.currency}</span>
             </div>
             <ul style={{ listStyle: "none", padding: 0, margin: "0 0 1.5rem", display: "flex", flexDirection: "column", gap: 8 }}>
               {p.features.map((f, j) => (
-                <li key={j} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "#aaa", fontFamily: "DM Sans, sans-serif" }}>
+                <li key={j} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "#aaa", fontFamily: "Inter, sans-serif" }}>
                   <span style={{ color: GOLD, fontSize: 12 }}>✓</span> {f}
                 </li>
               ))}
@@ -283,7 +276,7 @@ function Pricing({ navigate }) {
               border: p.popular ? "none" : `1px solid ${CARD_BORDER}`,
               color: p.popular ? "#000" : "#ccc",
               padding: "12px", borderRadius: 10, fontSize: 14, fontWeight: 600,
-              cursor: "pointer", fontFamily: "DM Sans, sans-serif"
+              cursor: "pointer", fontFamily: "Inter, sans-serif"
             }}>{p.cta}</button>
           </div>
         ))}
@@ -304,8 +297,8 @@ function FAQ() {
   const [open, setOpen] = useState(null);
   const [ref, visible] = useInView();
   return (
-    <section id="faq" ref={ref} style={{ padding: "80px 2rem", maxWidth: 700, margin: "0 auto" }}>
-      <h2 style={{ fontFamily: "Syne, sans-serif", fontSize: "clamp(1.5rem, 3vw, 2rem)", fontWeight: 700, color: "#fff", textAlign: "center", marginBottom: "2.5rem" }}>
+    <section id="faq" ref={ref} style={{ padding: "112px 2rem", maxWidth: 700, margin: "0 auto" }}>
+      <h2 style={{ fontFamily: "Inter, sans-serif", fontSize: "clamp(1.5rem, 3vw, 2.2rem)", fontWeight: 800, color: "#fff", textAlign: "center", marginBottom: "3rem", letterSpacing: "-0.02em" }}>
         Common questions
       </h2>
       <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
@@ -316,11 +309,11 @@ function FAQ() {
             opacity: visible ? 1 : 0, transition: `opacity 0.4s ease ${i * 0.06}s`
           }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span style={{ fontFamily: "DM Sans, sans-serif", fontSize: 14, color: "#fff", fontWeight: 500 }}>{f.q}</span>
+              <span style={{ fontFamily: "Inter, sans-serif", fontSize: 14, color: "#fff", fontWeight: 600 }}>{f.q}</span>
               <span style={{ color: GOLD, fontSize: 18, transform: open === i ? "rotate(180deg)" : "rotate(0)", transition: "transform 0.2s" }}>▼</span>
             </div>
             {open === i && (
-              <p style={{ fontFamily: "DM Sans, sans-serif", fontSize: 13, color: "#6b9b6b", marginTop: 10, marginBottom: 0, lineHeight: 1.6 }}>{f.a}</p>
+              <p style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: "#6b9b6b", marginTop: 10, marginBottom: 0, lineHeight: 1.6 }}>{f.a}</p>
             )}
           </div>
         ))}
@@ -335,7 +328,7 @@ export default function LandingPage() {
   return (
     <div style={{ background: DARK_BG, minHeight: "100vh", color: "#fff" }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
         @keyframes navSlide { from { transform: translateY(-100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes wordReveal { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
@@ -361,12 +354,12 @@ export default function LandingPage() {
         display: "flex", justifyContent: "space-between", alignItems: "center",
         maxWidth: 1100, margin: "0 auto", flexWrap: "wrap", gap: "1rem"
       }}>
-        <span style={{ fontFamily: "DM Sans, sans-serif", fontSize: 13, color: "#4a6b4a" }}>
-          © 2025 Prime. Study smart.
+        <span style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: "#4a6b4a" }}>
+          © 2026 calah.ai. Study smart.
         </span>
         <div style={{ display: "flex", gap: "1.5rem" }}>
           {["Privacy", "Terms"].map(l => (
-            <a key={l} href="#" style={{ fontSize: 13, color: "#4a6b4a", textDecoration: "none", fontFamily: "DM Sans, sans-serif" }}>{l}</a>
+            <a key={l} href="#" style={{ fontSize: 13, color: "#4a6b4a", textDecoration: "none", fontFamily: "Inter, sans-serif" }}>{l}</a>
           ))}
         </div>
       </footer>
