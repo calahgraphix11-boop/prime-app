@@ -1,11 +1,14 @@
 import { useState } from "react";
 import { Plus, Pencil, Trash2, Check, X, BookOpen, Target, Eye } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useApp } from "../context/AppContext";
 import { useAuth } from "../context/AuthContext";
+import { supabase } from "../lib/supabase";
 
 export default function Settings() {
   const { courses, addCourse, renameCourse, deleteCourse, weeklyGoalMinutes, setWeeklyGoal, t } = useApp();
-  const { profile, updateProfile } = useAuth();
+  const { user, profile, updateProfile, signOut } = useAuth();
+  const navigate = useNavigate();
   const activeStatusVisible = profile?.active_status_visible ?? true;
 
   const [newCourseName, setNewCourseName] = useState("");
@@ -13,6 +16,9 @@ export default function Settings() {
   const [editingName, setEditingName] = useState("");
   const [goalHours, setGoalHours] = useState(() => (weeklyGoalMinutes / 60).toFixed(1));
   const [goalSaved, setGoalSaved] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
 
   const handleAddCourse = async () => {
     if (!newCourseName.trim()) return;
@@ -37,6 +43,28 @@ export default function Settings() {
       await setWeeklyGoal(mins);
       setGoalSaved(true);
       setTimeout(() => setGoalSaved(false), 2000);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!user) return;
+    setDeleteLoading(true);
+    setDeleteError("");
+    try {
+      const uid = user.id;
+      await supabase.from("study_session_chats").delete().eq("user_id", uid);
+      await supabase.from("study_sessions_log").delete().eq("user_id", uid);
+      await supabase.from("study_sessions").delete().eq("user_id", uid);
+      await supabase.from("daily_usage").delete().eq("user_id", uid);
+      await supabase.from("leaderboard_scores").delete().eq("user_id", uid);
+      await supabase.from("friendships").delete().or(`user_id.eq.${uid},friend_id.eq.${uid}`);
+      await supabase.from("notifications").delete().eq("user_id", uid);
+      await supabase.from("profiles").delete().eq("id", uid);
+      await signOut();
+      navigate("/");
+    } catch (err) {
+      setDeleteError(err.message || "Deletion failed. Please try again.");
+      setDeleteLoading(false);
     }
   };
 
@@ -168,6 +196,78 @@ export default function Settings() {
           </button>
         </div>
       </div>
+      {/* Divider */}
+      <div className="h-px" style={{ background: "rgba(255,255,255,0.07)" }} />
+
+      {/* Danger Zone */}
+      <div
+        className="rounded-xl p-4"
+        style={{
+          background: "rgba(220,38,38,0.05)",
+          border: "1px solid rgba(220,38,38,0.2)",
+        }}
+      >
+        <h2 className="text-base font-semibold mb-1" style={{ color: "#ef4444" }}>
+          Delete Account
+        </h2>
+        <p className="text-sm mb-4" style={{ color: "rgba(255,255,255,0.45)" }}>
+          Permanently delete your account and all your data. This cannot be undone.
+        </p>
+        <button
+          onClick={() => { setDeleteError(""); setShowDeleteModal(true); }}
+          className="px-4 py-2 rounded-xl text-sm font-semibold transition-all hover:bg-red-500 hover:text-white"
+          style={{ border: "1px solid #ef4444", color: "#ef4444", background: "transparent" }}
+        >
+          Delete My Account
+        </button>
+      </div>
+
+      {/* Confirmation Modal */}
+      {showDeleteModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center px-4"
+          style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)" }}
+        >
+          <div
+            className="w-full max-w-sm rounded-2xl p-6"
+            style={{
+              background: "linear-gradient(135deg, rgba(255,255,255,0.08), rgba(10,26,14,0.9))",
+              backdropFilter: "blur(20px)",
+              border: "1px solid rgba(255,255,255,0.1)",
+            }}
+          >
+            <h3 className="text-lg font-semibold text-white mb-3">Are you sure?</h3>
+            <p className="text-sm mb-5" style={{ color: "rgba(255,255,255,0.55)" }}>
+              This will permanently delete your account, all study sessions, chat history, and progress. This cannot be undone.
+            </p>
+            {deleteError && (
+              <p
+                className="text-sm text-red-300 px-3 py-2 rounded-lg mb-4"
+                style={{ background: "rgba(239,68,68,0.18)", border: "1px solid rgba(239,68,68,0.3)" }}
+              >
+                {deleteError}
+              </p>
+            )}
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                disabled={deleteLoading}
+                className="flex-1 py-2.5 rounded-xl text-sm font-medium btn-ghost disabled:opacity-40"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteAccount}
+                disabled={deleteLoading}
+                className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white transition-opacity disabled:opacity-60"
+                style={{ background: "#ef4444" }}
+              >
+                {deleteLoading ? "Deleting…" : "Yes, Delete My Account"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
