@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { MessageCircle, Timer, FileText, BookOpen, Target, BarChart2, Star, Zap } from "lucide-react";
 
-const GOLD = "#F5A623";
+const GOLD = "#C9943A";
 const DARK_BG = "#0a1f0a";
 const CARD_BG = "#112211";
 const CARD_BORDER = "#1e3a1e";
@@ -101,7 +102,7 @@ function Hero({ navigate }) {
     <section style={{
       minHeight: "100vh", display: "flex", alignItems: "center",
       padding: "100px 2rem 60px", maxWidth: 1100, margin: "0 auto",
-      gap: "3rem", background: "red"
+      gap: "3rem"
     }}>
       <div style={{ flex: 1 }}>
         <div style={{
@@ -148,7 +149,7 @@ function Hero({ navigate }) {
             <span style={{
               position: "absolute", inset: 0,
               background: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%)",
-              animation: "shimmer 2.5s infinite", backgroundSize: "200% 100%"
+              animation: "shimmer 4s ease-in-out 1.5s infinite", backgroundSize: "200% 100%"
             }} />
           </button>
           <button onClick={() => navigate("#pricing")} style={{
@@ -181,12 +182,12 @@ function Hero({ navigate }) {
 }
 
 const FEATURES = [
-  { icon: "💬", title: "AI Study Chat", desc: "Ask anything mid-session. Get instant, contextual explanations powered by AI — without leaving your timer." },
-  { icon: "⏱", title: "Focus Timer", desc: "Pomodoro and free-form sessions with circular progress. Every minute tracked toward your weekly goal." },
-  { icon: "✍️", title: "Report Writer", desc: "Rewrite and polish academic writing in any tone — formal, casual, or technical — in one click." },
-  { icon: "📝", title: "Note Summarizer", desc: "Paste lecture notes or readings and get a crisp summary with key points extracted automatically." },
-  { icon: "🎯", title: "Exam Coach", desc: "Upload study material and receive practice questions, flashcards, and targeted exam strategies." },
-  { icon: "🏆", title: "Leaderboard", desc: "Compete with friends on weekly study minutes. Track your streak and climb the rankings." },
+  { Icon: MessageCircle, title: "AI Study Chat",   desc: "Ask anything mid-session. Get instant, contextual explanations powered by AI — without leaving your timer." },
+  { Icon: Timer,         title: "Focus Timer",     desc: "Pomodoro and free-form sessions with circular progress. Every minute tracked toward your weekly goal." },
+  { Icon: FileText,      title: "Report Writer",   desc: "Rewrite and polish academic writing in any tone — formal, casual, or technical — in one click." },
+  { Icon: BookOpen,      title: "Note Summarizer", desc: "Paste lecture notes or readings and get a crisp summary with key points extracted automatically." },
+  { Icon: Target,        title: "Exam Coach",      desc: "Upload study material and receive practice questions, flashcards, and targeted exam strategies." },
+  { Icon: BarChart2,     title: "Leaderboard",     desc: "Compete with friends on weekly study minutes. Track your streak and climb the rankings." },
 ];
 
 function Features() {
@@ -209,7 +210,7 @@ function Features() {
             opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(24px)",
             transition: `opacity 0.5s ease ${i * 0.07}s, transform 0.5s ease ${i * 0.07}s`
           }}>
-            <div style={{ fontSize: 22, marginBottom: 10 }}>{f.icon}</div>
+            <div style={{ marginBottom: 10 }}><f.Icon size={20} strokeWidth={1.5} style={{ color: GOLD }} /></div>
             <div style={{ fontFamily: "Syne, sans-serif", fontWeight: 600, fontSize: 15, color: "#fff", marginBottom: 6 }}>{f.title}</div>
             <div style={{ fontFamily: "DM Sans, sans-serif", fontSize: 13, color: "#6b9b6b", lineHeight: 1.6 }}>{f.desc}</div>
           </div>
@@ -261,7 +262,9 @@ function Pricing({ navigate }) {
               }}>POPULAR</div>
             )}
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-              <span style={{ fontSize: 16 }}>{p.popular ? "⚡" : "⭐"}</span>
+              {p.popular
+                ? <Zap size={16} strokeWidth={1.5} style={{ color: GOLD }} />
+                : <Star size={16} strokeWidth={1.5} style={{ color: "#6b9b6b" }} />}
               <span style={{ fontFamily: "Syne, sans-serif", fontWeight: 600, fontSize: 16, color: "#fff" }}>{p.name}</span>
             </div>
             <div style={{ marginBottom: "1.25rem" }}>
@@ -335,10 +338,10 @@ export default function LandingPage() {
         @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap');
         @keyframes navSlide { from { transform: translateY(-100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes wordReveal { from { opacity: 0; transform: translateY(12px) blur(4px); } to { opacity: 1; transform: translateY(0) blur(0); } }
-        @keyframes float { 0%,100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-10px) rotate(0.5deg); } }
-        @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
-        @keyframes glowPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(245,166,35,0.2); } 50% { box-shadow: 0 0 24px 4px rgba(245,166,35,0.25); } }
+        @keyframes wordReveal { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes float { 0%,100% { transform: translateY(0px); } 50% { transform: translateY(-10px); } }
+        @keyframes shimmer { 0%,65%,100% { background-position: -200% 0; } 30% { background-position: 200% 0; } }
+        @keyframes glowPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(201,148,58,0.15); } 50% { box-shadow: 0 0 22px 4px rgba(201,148,58,0.28); } }
         @media (max-width: 700px) {
           section > div:first-child { flex-direction: column !important; }
         }
