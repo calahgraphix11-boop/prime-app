@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Users, Search, Plus, MessageCircle, Lock, Globe,
-  Send, ArrowLeft, X, Trophy, Crown, ShieldCheck, Link2,
+  Send, ArrowLeft, X, Trophy, Crown, ShieldCheck, Link2, Settings,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
