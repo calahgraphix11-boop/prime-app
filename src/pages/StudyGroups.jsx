@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Users, Search, Plus, MessageCircle, Lock, Globe,
-  Send, ArrowLeft, X, Trophy, Crown, ShieldCheck,
+  Send, ArrowLeft, X, Trophy, Crown, ShieldCheck, Link2,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
@@ -42,6 +42,12 @@ function iconFg(hex) {
   const b = parseInt(hex.slice(5, 7), 16);
   return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.45 ? '#111' : '#f0f0f0';
 }
+
+// ─── Invite code ─────────────────────────────────────────────────────────────
+// NOTE: Run this SQL in the Supabase SQL Editor before using invite links:
+// ALTER TABLE study_groups ADD COLUMN IF NOT EXISTS invite_code text UNIQUE;
+
+const generateInviteCode = () => Math.random().toString(36).substring(2, 10).toUpperCase();
 
 // ─── Icon color palette ───────────────────────────────────────────────────────
 
@@ -133,6 +139,7 @@ function CreateGroupModal({ onClose, onCreated, userId }) {
         creator_id: userId,
         created_by: userId,
         icon_url: iconColor,
+        invite_code: generateInviteCode(),
       })
       .select()
       .single();
@@ -255,6 +262,74 @@ function CreateGroupModal({ onClose, onCreated, userId }) {
         >
           {loading ? 'Creating…' : 'Create Group'}
         </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── Invite Modal ────────────────────────────────────────────────────────────
+
+function InviteModal({ group, inviteCode, onClose, onCodeChange }) {
+  const [copied, setCopied] = useState(false);
+  const [regenerating, setRegenerating] = useState(false);
+  const link = `https://primestudyapp.com/join/${inviteCode}`;
+
+  const copyLink = () => {
+    navigator.clipboard.writeText(link);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const regenerate = async () => {
+    setRegenerating(true);
+    const newCode = generateInviteCode();
+    const { error } = await supabase
+      .from('study_groups')
+      .update({ invite_code: newCode })
+      .eq('id', group.id);
+    if (!error) onCodeChange(newCode);
+    setRegenerating(false);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.72)' }}>
+      <div
+        className="w-full max-w-sm rounded-2xl p-6 space-y-4"
+        style={{ background: 'rgba(0,22,12,0.99)', border: '1px solid rgba(255,255,255,0.1)' }}
+      >
+        <div className="flex items-center justify-between">
+          <h2 className="text-base font-bold text-white">Invite to {group.name}</h2>
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-white/10 transition-colors">
+            <X size={18} className="text-white/60" />
+          </button>
+        </div>
+
+        <div>
+          <label className="block text-xs text-white/50 mb-2">Invite Link</label>
+          <div
+            className="px-3 py-2.5 rounded-xl text-xs break-all select-all"
+            style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.7)', border: '1px solid rgba(255,255,255,0.1)' }}
+          >
+            {link}
+          </div>
+        </div>
+
+        <div className="flex gap-2">
+          <button
+            onClick={copyLink}
+            className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all btn-gold"
+          >
+            {copied ? 'Copied!' : 'Copy Link'}
+          </button>
+          <button
+            onClick={regenerate}
+            disabled={regenerating}
+            className="flex-1 py-2.5 rounded-xl text-sm font-medium transition-all disabled:opacity-50"
+            style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.7)', border: '1px solid rgba(255,255,255,0.1)' }}
+          >
+            {regenerating ? 'Updating…' : 'Regenerate'}
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -727,10 +802,48 @@ function LeaderboardTab({ group }) {
 
 const TABS = ['chat', 'members', 'leaderboard'];
 
-function RightPanel({ group, userId, isMember, onLeft }) {
+function RightPanel({ group, userId, isMember, onLeft, onGroupUpdate }) {
   const [tab, setTab] = useState('chat');
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [inviteCode, setInviteCode] = useState(group?.invite_code || null);
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const inviteCodeRef = useRef(inviteCode);
+  inviteCodeRef.current = inviteCode;
 
-  useEffect(() => { setTab('chat'); }, [group?.id]);
+  useEffect(() => {
+    setTab('chat');
+    setIsAdmin(false);
+    setInviteOpen(false);
+    setInviteCode(group?.invite_code || null);
+  }, [group?.id]);
+
+  // Check if current user is admin for this group
+  useEffect(() => {
+    if (!group?.id || !userId || !isMember) return;
+    supabase
+      .from('group_members')
+      .select('role')
+      .eq('group_id', group.id)
+      .eq('user_id', userId)
+      .single()
+      .then(({ data }) => setIsAdmin(data?.role === 'admin'));
+  }, [group?.id, userId, isMember]);
+
+  // Auto-generate invite code for groups that don't have one yet
+  useEffect(() => {
+    if (!isAdmin || !group?.id || inviteCodeRef.current) return;
+    const code = generateInviteCode();
+    supabase
+      .from('study_groups')
+      .update({ invite_code: code })
+      .eq('id', group.id)
+      .then(({ error }) => {
+        if (!error) {
+          setInviteCode(code);
+          onGroupUpdate?.(group.id, { invite_code: code });
+        }
+      });
+  }, [isAdmin, group?.id]); // intentionally omitting inviteCode — using ref above
 
   if (!group) {
     return (
@@ -756,7 +869,28 @@ function RightPanel({ group, userId, isMember, onLeft }) {
             <p className="text-xs text-white/35 truncate">{group.description}</p>
           )}
         </div>
+        {isAdmin && inviteCode && (
+          <button
+            onClick={() => setInviteOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold flex-shrink-0 transition-all hover:opacity-80"
+            style={{ background: 'rgba(245,168,0,0.15)', color: '#F5A800', border: '1px solid rgba(245,168,0,0.3)' }}
+          >
+            <Link2 size={12} /> Invite
+          </button>
+        )}
       </div>
+
+      {inviteOpen && inviteCode && (
+        <InviteModal
+          group={group}
+          inviteCode={inviteCode}
+          onClose={() => setInviteOpen(false)}
+          onCodeChange={(code) => {
+            setInviteCode(code);
+            onGroupUpdate?.(group.id, { invite_code: code });
+          }}
+        />
+      )}
 
       {/* Tab bar */}
       <div className="flex flex-shrink-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
@@ -890,6 +1024,11 @@ export default function StudyGroups() {
     setMobileShowDetail(true);
   };
 
+  const handleGroupUpdate = (groupId, updates) => {
+    setMyGroups(prev => prev.map(g => g.id === groupId ? { ...g, ...updates } : g));
+    setActiveGroup(prev => prev?.id === groupId ? { ...prev, ...updates } : prev);
+  };
+
   const isMember = activeGroup ? joinedIds.has(activeGroup.id) : false;
 
   return (
@@ -937,6 +1076,7 @@ export default function StudyGroups() {
             profile={profile}
             isMember={isMember}
             onLeft={handleLeft}
+            onGroupUpdate={handleGroupUpdate}
           />
         </div>
       </div>

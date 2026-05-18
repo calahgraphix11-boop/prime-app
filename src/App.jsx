@@ -22,6 +22,7 @@ import NoteSummarizer from "./pages/NoteSummarizer";
 import ExamPrep from "./pages/ExamPrep";
 import Upgrade from "./pages/Upgrade";
 import StudyGroups from "./pages/StudyGroups";
+import JoinGroup from "./pages/JoinGroup";
 
 class ErrorBoundary extends Component {
   state = { error: null };
@@ -99,6 +100,7 @@ function AppRoutes() {
       <Route path="/exam-prep" element={<ProtectedRoute><Layout><ExamPrep /></Layout></ProtectedRoute>} />
       <Route path="/payment-success" element={<ProtectedRoute><PaymentSuccess /></ProtectedRoute>} />
       <Route path="/upgrade" element={<ProtectedRoute><Upgrade /></ProtectedRoute>} />
+      <Route path="/join/:inviteCode" element={<ProtectedRoute><Layout><JoinGroup /></Layout></ProtectedRoute>} />
     </Routes>
   );
 }
