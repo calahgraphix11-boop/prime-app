@@ -44,8 +44,13 @@ function iconFg(hex) {
 }
 
 // ─── Invite code ─────────────────────────────────────────────────────────────
-// NOTE: Run this SQL in the Supabase SQL Editor before using invite links:
+// NOTE: Run these SQL statements in the Supabase SQL Editor:
 // ALTER TABLE study_groups ADD COLUMN IF NOT EXISTS invite_code text UNIQUE;
+//
+// Fix RLS so members tab can read group_members:
+// DROP POLICY IF EXISTS "Users can view group members" ON group_members;
+// CREATE POLICY "Users can view group members" ON group_members
+// FOR SELECT USING (true);
 
 const generateInviteCode = () => Math.random().toString(36).substring(2, 10).toUpperCase();
 
@@ -587,8 +592,12 @@ function MembersTab({ group, userId, onLeft }) {
       .from('group_members')
       .select('*, profiles:user_id(id, username, full_name, avatar_url)')
       .eq('group_id', group.id)
-      .order('joined_at', { ascending: true })
-      .then(({ data }) => { setMembers(data || []); setLoading(false); });
+      .order('created_at', { ascending: true })
+      .then(({ data, error }) => {
+        console.log('[MembersTab] query result:', { data, error, groupId: group.id });
+        setMembers(data || []);
+        setLoading(false);
+      });
   }, [group?.id]);
 
   const myRow = members.find(m => m.user_id === userId);
