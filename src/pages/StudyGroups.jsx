@@ -596,7 +596,9 @@ function ChatTab({ group, userId, isAdmin }) {
                     className="px-3 py-2 text-sm leading-relaxed"
                     style={isMe
                       ? { background: '#F5A800', color: '#111', borderRadius: '16px 16px 4px 16px' }
-                      : { background: 'rgba(0,0,0,0.08)', color: 'rgba(255,255,255,0.9)', borderRadius: '16px 16px 16px 4px' }}
+                      : document.documentElement.classList.contains('dark')
+                      ? { background: 'rgba(255,255,255,0.10)', color: 'rgba(255,255,255,0.9)', borderRadius: '16px 16px 16px 4px' }
+                      : { background: 'rgba(0,0,0,0.08)', color: 'rgba(0,0,0,0.85)', borderRadius: '16px 16px 16px 4px' }
                   >
                     {msg.message}
                   </div>
