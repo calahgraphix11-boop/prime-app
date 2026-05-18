@@ -976,7 +976,7 @@ export default function StudyGroups() {
     if (myGroupIds.length > 0) {
       const { data: myG } = await supabase
         .from('study_groups')
-        .select('*, member_count:group_members(count)')
+        .select('*')
         .in('id', myGroupIds)
         .order('created_at', { ascending: false });
       setMyGroups(myG || []);
@@ -986,7 +986,7 @@ export default function StudyGroups() {
 
     let discoverQuery = supabase
       .from('study_groups')
-      .select('*, member_count:group_members(count)')
+      .select('*')
       .eq('is_public', true);
 
     if (myGroupIds.length > 0) {
