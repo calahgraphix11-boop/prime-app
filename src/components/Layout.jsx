@@ -20,7 +20,6 @@ import { useState, useEffect, useRef } from 'react';
 import { Menu, Bell } from 'lucide-react';
 import Sidebar from './Sidebar';
 import ChatBubble from './ChatBubble';
-import OnboardingTour from './OnboardingTour';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
@@ -182,8 +181,6 @@ export default function Layout({ children }) {
       </div>
 
       <ChatBubble />
-
-      <OnboardingTour />
 
       {/* Global session-complete notes modal */}
       {pendingCompletedSession && (
