@@ -20,16 +20,16 @@ export default function Sidebar({ open, onClose }) {
   const initials = (profile?.full_name || user?.email || '?').charAt(0).toUpperCase();
 
   const navItems = [
-    { to: '/', icon: LayoutDashboard, label: t.dashboard },
-    { to: '/sessions', icon: Clock, label: t.studySessions },
-    { to: '/report', icon: FileText, label: t.aiReportWriter },
+    { to: '/', icon: LayoutDashboard, label: t.dashboard, id: 'nav-dashboard' },
+    { to: '/sessions', icon: Clock, label: t.studySessions, id: 'nav-sessions' },
+    { to: '/report', icon: FileText, label: t.aiReportWriter, id: 'nav-report' },
     { to: '/exam-prep', icon: GraduationCap, label: 'Exam Coach' },
     { to: '/summarizer', icon: FileText, label: 'Note Summarizer' },
     { to: '/chat', icon: MessageCircle, label: t.aiChatbot },
     { to: '/friends', icon: Users, label: 'Friends' },
-    { to: '/leaderboard', icon: Trophy, label: 'Leaderboard' },
+    { to: '/leaderboard', icon: Trophy, label: 'Leaderboard', id: 'nav-leaderboard' },
     { to: '/profile', icon: UserCircle, label: 'Profile' },
-    { to: '/settings', icon: Settings, label: t.settings },
+    { to: '/settings', icon: Settings, label: t.settings, id: 'nav-settings' },
   ];
 
   return (
@@ -38,6 +38,7 @@ export default function Sidebar({ open, onClose }) {
         <div className="fixed inset-0 bg-black/50 z-30 md:hidden" onClick={onClose} />
       )}
       <aside
+        id="prime-sidebar"
         className={`layout-sidebar fixed top-0 left-0 h-full w-64 z-40 flex flex-col transition-transform duration-300 ${open ? 'translate-x-0' : '-translate-x-full'}`}
       >
         {/* Profile header */}
@@ -76,9 +77,10 @@ export default function Sidebar({ open, onClose }) {
 
         {/* Nav */}
         <nav className="flex-1 overflow-y-auto p-4 space-y-1">
-          {navItems.map(({ to, icon: Icon, label }) => (
+          {navItems.map(({ to, icon: Icon, label, id }) => (
             <NavLink
               key={to}
+              id={id}
               to={to}
               end={to === '/'}
               onClick={onClose}

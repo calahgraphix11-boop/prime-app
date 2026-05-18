@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Pencil, Trash2, Check, X, BookOpen, Target, Eye, Monitor } from "lucide-react";
+import { Plus, Pencil, Trash2, Check, X, BookOpen, Target, Eye, Monitor, RotateCcw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useApp } from "../context/AppContext";
 import { useAuth } from "../context/AuthContext";
@@ -226,6 +226,27 @@ export default function Settings() {
             </button>
           ))}
         </div>
+      </div>
+
+      {/* Onboarding */}
+      <div className="glass rounded-2xl p-5">
+        <div className="flex items-center gap-2 mb-1">
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'rgba(201,148,58,0.18)' }}>
+            <RotateCcw size={16} style={{ color: '#C9943A' }} />
+          </div>
+          <h2 className="text-base font-semibold text-white">Onboarding Tour</h2>
+        </div>
+        <p className="text-sm text-white/40 mb-4 ml-10">Replay the walkthrough that shows you around Prime.</p>
+        <button
+          onClick={async () => {
+            if (!user) return;
+            await supabase.from("profiles").update({ onboarding_complete: false }).eq("id", user.id);
+            window.location.reload();
+          }}
+          className="px-5 py-2.5 rounded-xl text-sm font-semibold btn-ghost"
+        >
+          Restart Tour
+        </button>
       </div>
 
       {/* Divider */}

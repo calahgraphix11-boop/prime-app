@@ -159,6 +159,7 @@ export default function ChatBubble() {
       )}
 
       <button
+        id="chatbubble-btn"
         onClick={() => setOpen(!open)}
         className="w-14 h-14 rounded-full text-gray-900 shadow-lg flex items-center justify-center transition-transform hover:scale-110 font-bold"
         style={{ background: '#F5A800', boxShadow: '0 4px 20px rgba(245,168,0,0.4)' }}
