@@ -183,10 +183,7 @@ export default function Layout({ children }) {
 
       <ChatBubble />
 
-      <OnboardingTour
-        openSidebar={() => setSidebarOpen(true)}
-        closeSidebar={() => setSidebarOpen(false)}
-      />
+      <OnboardingTour />
 
       {/* Global session-complete notes modal */}
       {pendingCompletedSession && (
