@@ -1058,6 +1058,7 @@ function RightPanel({ group, userId, isMember, onLeft, onGroupUpdate, onJoin }) 
   const [isAdmin, setIsAdmin] = useState(false);
   const [inviteCode, setInviteCode] = useState(group?.invite_code || null);
   const [inviteOpen, setInviteOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const inviteCodeRef = useRef(inviteCode);
   inviteCodeRef.current = inviteCode;
 
@@ -1065,6 +1066,7 @@ function RightPanel({ group, userId, isMember, onLeft, onGroupUpdate, onJoin }) 
     setTab('chat');
     setIsAdmin(false);
     setInviteOpen(false);
+    setSettingsOpen(false);
     setInviteCode(group?.invite_code || null);
   }, [group?.id]);
 
@@ -1129,7 +1131,32 @@ function RightPanel({ group, userId, isMember, onLeft, onGroupUpdate, onJoin }) 
             <Link2 size={12} /> Invite
           </button>
         )}
+        <button
+          onClick={() => setSettingsOpen(true)}
+          className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 transition-all hover:bg-white/10"
+          style={{ border: '1px solid rgba(255,255,255,0.1)' }}
+          title="Group Settings"
+        >
+          <Settings size={15} className="text-white/50" />
+        </button>
       </div>
+
+      {settingsOpen && (
+        <GroupSettingsModal
+          group={group}
+          isAdmin={isAdmin}
+          userId={userId}
+          onClose={() => setSettingsOpen(false)}
+          onGroupUpdated={(updated) => {
+            onGroupUpdate?.(updated.id, updated);
+            setSettingsOpen(false);
+          }}
+          onGroupDeleted={() => {
+            onLeft?.();
+            setSettingsOpen(false);
+          }}
+        />
+      )}
 
       {inviteOpen && inviteCode && (
         <InviteModal
