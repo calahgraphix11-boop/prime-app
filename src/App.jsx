@@ -21,6 +21,7 @@ import PaymentSuccess from "./pages/PaymentSuccess";
 import NoteSummarizer from "./pages/NoteSummarizer";
 import ExamPrep from "./pages/ExamPrep";
 import Upgrade from "./pages/Upgrade";
+import StudyGroups from "./pages/StudyGroups";
 
 class ErrorBoundary extends Component {
   state = { error: null };
@@ -90,6 +91,7 @@ function AppRoutes() {
       <Route path="/chat" element={<ProtectedRoute><Layout><AIChatbot /></Layout></ProtectedRoute>} />
       <Route path="/settings" element={<ProtectedRoute><Layout><Settings /></Layout></ProtectedRoute>} />
       <Route path="/friends" element={<ProtectedRoute><Layout><Friends /></Layout></ProtectedRoute>} />
+      <Route path="/study-groups" element={<ProtectedRoute><Layout><StudyGroups /></Layout></ProtectedRoute>} />
       <Route path="/leaderboard" element={<ProtectedRoute><Layout><Leaderboard /></Layout></ProtectedRoute>} />
       <Route path="/profile/:userId" element={<ProtectedRoute><Layout><PublicProfile /></Layout></ProtectedRoute>} />
       <Route path="/profile" element={<ProtectedRoute><Layout><Profile /></Layout></ProtectedRoute>} />

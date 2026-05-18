@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard, Clock, FileText, GraduationCap, MessageCircle,
-  Moon, Sun, Globe, LogOut, X, Settings, UserCircle, HelpCircle, Users, Trophy, Crown,
+  Moon, Sun, Globe, LogOut, X, Settings, UserCircle, HelpCircle, Users, Users2, Trophy, Crown,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
@@ -27,6 +27,7 @@ export default function Sidebar({ open, onClose }) {
     { to: '/summarizer', icon: FileText, label: 'Note Summarizer' },
     { to: '/chat', icon: MessageCircle, label: t.aiChatbot, id: 'nav-studypal' },
     { to: '/friends', icon: Users, label: 'Friends' },
+    { to: '/study-groups', icon: Users2, label: 'Study Groups' },
     { to: '/leaderboard', icon: Trophy, label: 'Leaderboard', id: 'nav-leaderboard' },
     { to: '/profile', icon: UserCircle, label: 'Profile' },
     { to: '/settings', icon: Settings, label: t.settings, id: 'nav-settings' },
