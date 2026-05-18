@@ -592,7 +592,7 @@ function MembersTab({ group, userId, onLeft }) {
       .from('group_members')
       .select('*, profiles:user_id(id, username, full_name, avatar_url)')
       .eq('group_id', group.id)
-      .order('created_at', { ascending: true })
+      .order('joined_at', { ascending: true })
       .then(({ data, error }) => {
         console.log('[MembersTab] query result:', { data, error, groupId: group.id });
         setMembers(data || []);
