@@ -979,7 +979,17 @@ export default function StudyGroups() {
         .select('*')
         .in('id', myGroupIds)
         .order('created_at', { ascending: false });
-      setMyGroups(myG || []);
+      const { data: counts } = await supabase
+        .from('group_members')
+        .select('group_id')
+        .in('group_id', myGroupIds);
+
+      const countMap = {};
+      (counts || []).forEach(r => {
+        countMap[r.group_id] = (countMap[r.group_id] || 0) + 1;
+      });
+
+      setMyGroups((myG || []).map(g => ({ ...g, member_count: countMap[g.id] || 0 })));
     } else {
       setMyGroups([]);
     }
