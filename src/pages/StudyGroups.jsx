@@ -924,7 +924,7 @@ function RightPanel({ group, userId, isMember, onLeft, onGroupUpdate }) {
             className="flex-1 py-2.5 text-sm font-medium capitalize transition-colors"
             style={tab === t
               ? { color: '#F5A800', borderBottom: '2px solid #F5A800' }
-              : { color: 'rgba(255,255,255,0.4)' }}
+              : { color: 'rgba(128,128,128,0.7)' }}
           >
             {t}
           </button>
