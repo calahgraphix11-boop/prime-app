@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Users, Search, Plus, MessageCircle, Lock, Globe,
-  Send, ArrowLeft, X, Trophy, Crown, ShieldCheck, Link2, Settings,
+  Send, ArrowLeft, X, Trophy, Crown, ShieldCheck, Link2, Settings, Pin,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
@@ -467,8 +467,9 @@ function LeftPanel({ myGroups, discoverGroups, activeGroupId, onSelect, onJoin, 
 
 // ─── Chat Tab ────────────────────────────────────────────────────────────────
 
-function ChatTab({ group, userId }) {
+function ChatTab({ group, userId, isAdmin }) {
   const [messages, setMessages] = useState([]);
+  const [pinnedMessage, setPinnedMessage] = useState(null);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -480,16 +481,43 @@ function ChatTab({ group, userId }) {
   const fetchMessages = useCallback(async () => {
     if (!group?.id) return;
     setLoading(true);
-    const { data } = await supabase
-      .from('group_messages')
-      .select('*, profiles:user_id(id, username, full_name, avatar_url)')
-      .eq('group_id', group.id)
-      .order('created_at', { ascending: true })
-      .limit(150);
+    const [{ data }, { data: pinned }] = await Promise.all([
+      supabase
+        .from('group_messages')
+        .select('*, profiles:user_id(id, username, full_name, avatar_url)')
+        .eq('group_id', group.id)
+        .order('created_at', { ascending: true })
+        .limit(150),
+      supabase
+        .from('group_messages')
+        .select('*, profiles:user_id(id, username, full_name, avatar_url)')
+        .eq('group_id', group.id)
+        .eq('is_pinned', true)
+        .limit(1),
+    ]);
     setMessages(data || []);
+    setPinnedMessage(pinned?.[0] || null);
     setLoading(false);
     scrollDown();
   }, [group?.id]);
+
+  const pinMessage = async (msgId) => {
+    await supabase.from('group_messages').update({ is_pinned: false }).eq('group_id', group.id).eq('is_pinned', true);
+    await supabase.from('group_messages').update({ is_pinned: true }).eq('id', msgId);
+    const { data } = await supabase
+      .from('group_messages')
+      .select('*, profiles:user_id(id, username, full_name, avatar_url)')
+      .eq('id', msgId)
+      .single();
+    setPinnedMessage(data || null);
+    setMessages(prev => prev.map(m => ({ ...m, is_pinned: m.id === msgId })));
+  };
+
+  const unpinMessage = async () => {
+    await supabase.from('group_messages').update({ is_pinned: false }).eq('group_id', group.id).eq('is_pinned', true);
+    setPinnedMessage(null);
+    setMessages(prev => prev.map(m => ({ ...m, is_pinned: false })));
+  };
 
   useEffect(() => {
     fetchMessages();
@@ -532,6 +560,21 @@ function ChatTab({ group, userId }) {
 
   return (
     <div className="flex flex-col flex-1 min-h-0">
+      {pinnedMessage && (
+        <div
+          className="flex items-start gap-2.5 px-4 py-2.5 flex-shrink-0"
+          style={{ borderBottom: '1px solid rgba(255,255,255,0.07)', borderLeft: '3px solid #F5A800', background: 'rgba(245,168,0,0.06)' }}
+        >
+          <Pin size={13} style={{ color: '#F5A800', flexShrink: 0, marginTop: 2 }} />
+          <p className="flex-1 text-xs text-white/70 truncate">{pinnedMessage.message}</p>
+          {isAdmin && (
+            <button onClick={unpinMessage} className="flex-shrink-0 text-white/30 hover:text-white/60 transition-colors">
+              <X size={13} />
+            </button>
+          )}
+        </div>
+      )}
+
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
         {messages.length === 0 && (
           <div className="text-center py-16">
@@ -544,17 +587,28 @@ function ChatTab({ group, userId }) {
           const sender = msg.profiles;
           const name = sender?.username || sender?.full_name || 'Unknown';
           return (
-            <div key={msg.id} className={`flex gap-2.5 ${isMe ? 'flex-row-reverse' : ''}`}>
+            <div key={msg.id} className={`group/msg flex gap-2.5 ${isMe ? 'flex-row-reverse' : ''}`}>
               <Avi profile={sender} size={32} />
               <div className={`max-w-[72%] flex flex-col gap-1 ${isMe ? 'items-end' : 'items-start'}`}>
                 {!isMe && <span className="text-xs text-white/40 px-1">{name}</span>}
-                <div
-                  className="px-3 py-2 text-sm leading-relaxed"
-                  style={isMe
-                    ? { background: '#F5A800', color: '#111', borderRadius: '16px 16px 4px 16px' }
-                    : { background: 'rgba(0,0,0,0.08)', color: 'inherit', borderRadius: '16px 16px 16px 4px' }}
-                >
-                  {msg.message}
+                <div className={`flex items-center gap-1.5 ${isMe ? 'flex-row-reverse' : ''}`}>
+                  <div
+                    className="px-3 py-2 text-sm leading-relaxed"
+                    style={isMe
+                      ? { background: '#F5A800', color: '#111', borderRadius: '16px 16px 4px 16px' }
+                      : { background: 'rgba(0,0,0,0.08)', color: 'inherit', borderRadius: '16px 16px 16px 4px' }}
+                  >
+                    {msg.message}
+                  </div>
+                  {isAdmin && (
+                    <button
+                      onClick={() => pinMessage(msg.id)}
+                      className="opacity-0 group-hover/msg:opacity-100 transition-opacity p-1 rounded-lg hover:bg-white/10"
+                      title="Pin message"
+                    >
+                      <Pin size={13} style={{ color: msg.is_pinned ? '#F5A800' : 'rgba(255,255,255,0.35)' }} />
+                    </button>
+                  )}
                 </div>
                 <span className="text-xs text-white/20 px-1">{fmtAgo(msg.created_at)}</span>
               </div>
@@ -1237,7 +1291,7 @@ function RightPanel({ group, userId, isMember, onLeft, onGroupUpdate, onJoin }) 
       {/* Tab content */}
       {tab === 'chat' && (
         isMember
-          ? <ChatTab group={group} userId={userId} />
+          ? <ChatTab group={group} userId={userId} isAdmin={isAdmin} />
           : (
             <div className="flex-1 flex flex-col items-center justify-center gap-3 p-8">
               <Lock size={28} className="text-white/20" />
