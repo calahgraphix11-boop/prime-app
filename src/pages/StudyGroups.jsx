@@ -594,7 +594,8 @@ function MembersTab({ group, userId, onLeft }) {
       .eq('group_id', group.id)
       .order('joined_at', { ascending: true })
       .then(({ data, error }) => {
-        console.log('[MembersTab] query result:', { data, error, groupId: group.id });
+        console.log('[MembersTab] data:', JSON.stringify(data));
+        console.log('[MembersTab] error:', JSON.stringify(error));
         setMembers(data || []);
         setLoading(false);
       });
