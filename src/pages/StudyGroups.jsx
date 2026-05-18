@@ -976,7 +976,7 @@ export default function StudyGroups() {
     if (myGroupIds.length > 0) {
       const { data: myG } = await supabase
         .from('study_groups')
-        .select('*')
+        .select('*, member_count:group_members(count)')
         .in('id', myGroupIds)
         .order('created_at', { ascending: false });
       setMyGroups(myG || []);
@@ -986,7 +986,7 @@ export default function StudyGroups() {
 
     let discoverQuery = supabase
       .from('study_groups')
-      .select('*')
+      .select('*, member_count:group_members(count)')
       .eq('is_public', true);
 
     if (myGroupIds.length > 0) {
@@ -1018,7 +1018,7 @@ export default function StudyGroups() {
       .insert({ group_id: group.id, user_id: user.id, role: 'member' });
     if (!error) {
       setJoinedIds(prev => new Set([...prev, group.id]));
-      setMyGroups(prev => [group, ...prev]);
+      setMyGroups(prev => [{ ...group, member_count: (group.member_count ?? 0) + 1 }, ...prev]);
       setDiscoverGroups(prev => prev.filter(g => g.id !== group.id));
       setActiveGroup(group);
       setMobileShowDetail(true);
@@ -1041,7 +1041,7 @@ export default function StudyGroups() {
   };
 
   const handleCreated = (group) => {
-    setMyGroups(prev => [group, ...prev]);
+    setMyGroups(prev => [{ ...group, member_count: 1 }, ...prev]);
     setJoinedIds(prev => new Set([...prev, group.id]));
     setActiveGroup(group);
     setMobileShowDetail(true);
