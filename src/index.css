@@ -538,16 +538,24 @@ body {
   color: #ffffff;
 }
 
-/* Skip */
+/* Skip — absolute top-right so it never shifts the button row */
 .prime-intro-tooltip .introjs-skipbutton {
+  position: absolute;
+  top: 10px;
+  right: 10px;
   background: transparent;
   color: #8ab08a;
-  margin-right: auto;
-  padding-left: 0;
+  font-size: 13px;
+  padding: 4px 8px;
 }
 .prime-intro-tooltip .introjs-skipbutton:hover {
   color: #a8c8a8;
   background: transparent;
+}
+
+/* Extra top padding so tooltip text clears the absolute skip button */
+.prime-intro-tooltip.introjs-tooltip {
+  padding-top: 36px;
 }
 
 /* Overlay */
