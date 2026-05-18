@@ -826,6 +826,229 @@ function LeaderboardTab({ group }) {
   );
 }
 
+// ─── Group Settings Modal ─────────────────────────────────────────────────────
+
+function GroupSettingsModal({ group, isAdmin, userId, onClose, onGroupUpdated, onGroupDeleted }) {
+  const [name, setName] = useState(group?.name || '');
+  const [description, setDescription] = useState(group?.description || '');
+  const [isPublic, setIsPublic] = useState(group?.is_public ?? true);
+  const [iconColor, setIconColor] = useState(group?.icon_url || DEFAULT_COLOR);
+  const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [leaving, setLeaving] = useState(false);
+  const [error, setError] = useState('');
+
+  const previewGroup = { name, icon_url: iconColor };
+
+  const handleSave = async () => {
+    if (!name.trim()) { setError('Group name is required.'); return; }
+    setSaving(true);
+    setError('');
+    const { error: err } = await supabase
+      .from('study_groups')
+      .update({ name: name.trim(), description: description.trim(), is_public: isPublic, icon_url: iconColor })
+      .eq('id', group.id);
+    setSaving(false);
+    if (err) { setError(err.message); return; }
+    onGroupUpdated?.({ ...group, name: name.trim(), description: description.trim(), is_public: isPublic, icon_url: iconColor });
+    onClose();
+  };
+
+  const handleDelete = async () => {
+    if (!confirmDelete) { setConfirmDelete(true); return; }
+    setDeleting(true);
+    const { error: err } = await supabase.from('study_groups').delete().eq('id', group.id);
+    setDeleting(false);
+    if (err) { setError(err.message); return; }
+    onGroupDeleted?.();
+    onClose();
+  };
+
+  const handleLeave = async () => {
+    setLeaving(true);
+    const { error: err } = await supabase
+      .from('group_members')
+      .delete()
+      .eq('group_id', group.id)
+      .eq('user_id', userId);
+    setLeaving(false);
+    if (err) { setError(err.message); return; }
+    onGroupDeleted?.();
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.72)' }}>
+      <div
+        className="w-full max-w-md rounded-2xl p-6 space-y-5 overflow-y-auto"
+        style={{ background: 'rgba(0,22,12,0.99)', border: '1px solid rgba(255,255,255,0.1)', maxHeight: '90vh' }}
+      >
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-bold text-white">Group Settings</h2>
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-white/10 transition-colors">
+            <X size={18} className="text-white/60" />
+          </button>
+        </div>
+
+        {error && (
+          <p className="text-sm text-red-400 px-3 py-2 rounded-lg" style={{ background: 'rgba(239,68,68,0.1)' }}>
+            {error}
+          </p>
+        )}
+
+        {isAdmin ? (
+          <>
+            {/* Edit section */}
+            <div className="space-y-4">
+              <p className="text-xs font-semibold text-white/30 uppercase tracking-wider">Edit Group</p>
+
+              <div>
+                <label className="block text-xs text-white/50 mb-1.5">Group Name *</label>
+                <input
+                  value={name}
+                  onChange={e => setName(e.target.value)}
+                  className="w-full glass-input rounded-xl px-3 py-2.5 text-sm"
+                  maxLength={60}
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs text-white/50 mb-2">Group Icon</label>
+                <div className="flex items-center gap-3 mb-3">
+                  <GroupIcon group={previewGroup} size={44} />
+                  <p className="text-xs text-white/35">Pick a color for your group icon</p>
+                </div>
+                <div className="grid grid-cols-6 gap-2">
+                  {ICON_COLORS.map(color => (
+                    <button
+                      key={color}
+                      onClick={() => setIconColor(color)}
+                      className="relative aspect-square rounded-full transition-transform hover:scale-110"
+                      style={{ background: color }}
+                      title={color}
+                    >
+                      {iconColor === color && (
+                        <span
+                          className="absolute inset-0 rounded-full"
+                          style={{ boxShadow: `0 0 0 3px rgba(255,255,255,0.9)`, border: `2px solid ${color}` }}
+                        />
+                      )}
+                      <span
+                        className="absolute inset-0 flex items-center justify-center text-xs font-bold"
+                        style={{ color: iconFg(color) }}
+                      >
+                        {(name || 'G').charAt(0).toUpperCase()}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs text-white/50 mb-1.5">Description</label>
+                <textarea
+                  value={description}
+                  onChange={e => setDescription(e.target.value)}
+                  rows={3}
+                  className="w-full glass-input rounded-xl px-3 py-2.5 text-sm resize-none"
+                  maxLength={200}
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs text-white/50 mb-2">Visibility</label>
+                <div className="flex gap-2">
+                  {[{ val: true, label: 'Public', Icon: Globe }, { val: false, label: 'Private', Icon: Lock }].map(({ val, label, Icon }) => (
+                    <button
+                      key={label}
+                      onClick={() => setIsPublic(val)}
+                      className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium transition-all"
+                      style={isPublic === val
+                        ? { background: '#F5A800', color: '#111' }
+                        : { background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.5)' }}
+                    >
+                      <Icon size={14} /> {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <button
+                onClick={handleSave}
+                disabled={saving || !name.trim()}
+                className="w-full py-3 rounded-xl text-sm font-semibold transition-all btn-gold disabled:opacity-50"
+              >
+                {saving ? 'Saving…' : 'Save Changes'}
+              </button>
+            </div>
+
+            {/* Danger section */}
+            <div className="space-y-3 pt-2" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+              <p className="text-xs font-semibold text-white/30 uppercase tracking-wider pt-2">Danger Zone</p>
+              {confirmDelete && (
+                <p className="text-xs text-red-400 px-3 py-2 rounded-lg" style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}>
+                  This will permanently delete the group and all its messages. Click again to confirm.
+                </p>
+              )}
+              <button
+                onClick={handleDelete}
+                disabled={deleting}
+                className="w-full py-2.5 rounded-xl text-sm font-semibold transition-all disabled:opacity-50"
+                style={{ background: confirmDelete ? 'rgba(239,68,68,0.2)' : 'transparent', color: 'rgba(239,68,68,0.8)', border: '1px solid rgba(239,68,68,0.35)' }}
+              >
+                {deleting ? 'Deleting…' : confirmDelete ? 'Confirm Delete' : 'Delete Group'}
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            {/* Member info view */}
+            <div className="space-y-3">
+              <p className="text-xs font-semibold text-white/30 uppercase tracking-wider">Group Info</p>
+              <div className="flex items-center gap-3">
+                <GroupIcon group={group} size={48} />
+                <div className="min-w-0">
+                  <p className="text-base font-bold text-white truncate">{group.name}</p>
+                  {group.description && (
+                    <p className="text-xs text-white/45 mt-0.5">{group.description}</p>
+                  )}
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="px-3 py-2.5 rounded-xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                  <p className="text-xs text-white/35 mb-0.5">Members</p>
+                  <p className="text-sm font-semibold text-white">{group.member_count ?? 0}</p>
+                </div>
+                <div className="px-3 py-2.5 rounded-xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                  <p className="text-xs text-white/35 mb-0.5">Visibility</p>
+                  <p className="text-sm font-semibold text-white flex items-center gap-1">
+                    {group.is_public ? <><Globe size={12} /> Public</> : <><Lock size={12} /> Private</>}
+                  </p>
+                </div>
+              </div>
+              {group.created_at && (
+                <p className="text-xs text-white/25 px-1">Created {new Date(group.created_at).toLocaleDateString()}</p>
+              )}
+            </div>
+
+            <div className="pt-2" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+              <button
+                onClick={handleLeave}
+                disabled={leaving}
+                className="w-full py-2.5 rounded-xl text-sm font-semibold transition-all disabled:opacity-50 mt-2"
+                style={{ background: 'transparent', color: 'rgba(239,68,68,0.8)', border: '1px solid rgba(239,68,68,0.35)' }}
+              >
+                {leaving ? 'Leaving…' : 'Leave Group'}
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── Right Panel (Group Detail) ───────────────────────────────────────────────
 
 const TABS = ['chat', 'members', 'leaderboard'];
