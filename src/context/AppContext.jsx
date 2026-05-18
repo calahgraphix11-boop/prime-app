@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from './AuthContext';
+import { useTheme } from './ThemeContext';
 import en from '../i18n/en';
 import fr from '../i18n/fr';
 
@@ -51,7 +52,9 @@ const getWeekStart = () => {
 export function AppProvider({ children }) {
   const { user, trialActive, trialExpired, planActive, userPlan } = useAuth();
 
-  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('prime_dark') === 'true');
+  const { mode: themeMode, setMode: setThemeMode, resolvedTheme } = useTheme();
+  const darkMode = resolvedTheme === 'dark';
+  const setDarkMode = (val) => setThemeMode(val ? 'dark' : 'light');
   const [lang, setLang] = useState(() => localStorage.getItem('prime_lang') || 'en');
   const t = lang === 'fr' ? fr : en;
 
@@ -114,11 +117,6 @@ export function AppProvider({ children }) {
       setCourses(cData || []);
     }).finally(() => setDataLoading(false));
   }, [user?.id]);
-
-  useEffect(() => {
-    localStorage.setItem('prime_dark', darkMode);
-    document.documentElement.classList.toggle('dark', darkMode);
-  }, [darkMode]);
 
   useEffect(() => {
     localStorage.setItem('prime_lang', lang);

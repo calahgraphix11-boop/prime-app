@@ -103,20 +103,11 @@ export default function Layout({ children }) {
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <div className="min-h-screen">
-        <header
-          className="sticky top-0 z-20 px-4 py-4"
-          style={{
-            background: 'rgba(0, 20, 10, 0.4)',
-            backdropFilter: 'blur(12px)',
-            WebkitBackdropFilter: 'blur(12px)',
-            borderBottom: '1px solid rgba(255,255,255,0.08)',
-          }}
-        >
+        <header className="layout-header sticky top-0 z-20 px-4 py-4">
           <div className="flex items-center justify-between">
             <button
               onClick={() => setSidebarOpen(true)}
-              className="p-2 rounded-lg transition-colors"
-              style={{ background: 'rgba(255,255,255,0.1)' }}
+              className="layout-icon-btn p-2 rounded-lg transition-colors"
             >
               <Menu size={20} className="text-white" />
             </button>
@@ -139,8 +130,7 @@ export default function Layout({ children }) {
             <div ref={bellRef} className="relative">
               <button
                 onClick={handleBellClick}
-                className="relative p-2 rounded-lg transition-colors"
-                style={{ background: 'rgba(255,255,255,0.1)' }}
+                className="layout-icon-btn relative p-2 rounded-lg transition-colors"
               >
                 <Bell size={20} className="text-white" />
                 {unreadCount > 0 && (
@@ -152,20 +142,8 @@ export default function Layout({ children }) {
               </button>
 
               {bellOpen && (
-                <div
-                  className="absolute right-0 top-full mt-2 w-72 rounded-2xl z-50 overflow-hidden"
-                  style={{
-                    background: 'rgba(0, 22, 12, 0.97)',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    backdropFilter: 'blur(20px)',
-                    WebkitBackdropFilter: 'blur(20px)',
-                    boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
-                  }}
-                >
-                  <div
-                    className="px-4 py-3"
-                    style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}
-                  >
+                <div className="layout-notif-dropdown absolute right-0 top-full mt-2 w-72 rounded-2xl z-50 overflow-hidden">
+                  <div className="layout-notif-header px-4 py-3">
                     <p className="text-sm font-semibold text-white">Notifications</p>
                   </div>
 
@@ -176,11 +154,8 @@ export default function Layout({ children }) {
                       notifications.map((n) => (
                         <div
                           key={n.id}
-                          className="px-4 py-3 flex items-start gap-3"
-                          style={{
-                            borderBottom: '1px solid rgba(255,255,255,0.04)',
-                            background: n.is_read ? 'transparent' : 'rgba(245,168,0,0.05)',
-                          }}
+                          className="layout-notif-row px-4 py-3 flex items-start gap-3"
+                          style={{ background: n.is_read ? 'transparent' : 'rgba(245,168,0,0.05)' }}
                         >
                           <div
                             className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0"

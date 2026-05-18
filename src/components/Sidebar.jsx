@@ -38,19 +38,10 @@ export default function Sidebar({ open, onClose }) {
         <div className="fixed inset-0 bg-black/50 z-30 md:hidden" onClick={onClose} />
       )}
       <aside
-        className={`fixed top-0 left-0 h-full w-64 z-40 flex flex-col transition-transform duration-300 ${open ? 'translate-x-0' : '-translate-x-full'}`}
-        style={{
-          background: 'rgba(0, 26, 14, 0.92)',
-          backdropFilter: 'blur(40px)',
-          WebkitBackdropFilter: 'blur(40px)',
-          borderRight: '1px solid rgba(255,255,255,0.1)',
-        }}
+        className={`layout-sidebar fixed top-0 left-0 h-full w-64 z-40 flex flex-col transition-transform duration-300 ${open ? 'translate-x-0' : '-translate-x-full'}`}
       >
         {/* Profile header */}
-        <div
-          className="flex items-center justify-between px-5 py-4"
-          style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}
-        >
+        <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid var(--color-sidebar-divider)' }}>
           <NavLink
             to="/profile"
             onClick={onClose}
@@ -77,8 +68,7 @@ export default function Sidebar({ open, onClose }) {
           </NavLink>
           <button
             onClick={onClose}
-            className="ml-3 flex-shrink-0 p-1.5 rounded-lg transition-colors"
-            style={{ background: 'rgba(255,255,255,0.08)' }}
+            className="layout-icon-btn ml-3 flex-shrink-0 p-1.5 rounded-lg transition-colors"
           >
             <X size={18} className="text-white/60" />
           </button>
@@ -129,7 +119,7 @@ export default function Sidebar({ open, onClose }) {
         })()}
 
         {/* Bottom controls */}
-        <div className="p-4 space-y-1" style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+        <div className="p-4 space-y-1" style={{ borderTop: '1px solid var(--color-sidebar-divider)' }}>
           <button
             onClick={() => setDarkMode(!darkMode)}
             className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-white/65 hover:text-white hover:bg-white/10 transition-all"

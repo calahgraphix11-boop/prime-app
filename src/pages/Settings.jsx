@@ -1,13 +1,15 @@
 import { useState } from "react";
-import { Plus, Pencil, Trash2, Check, X, BookOpen, Target, Eye } from "lucide-react";
+import { Plus, Pencil, Trash2, Check, X, BookOpen, Target, Eye, Monitor } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useApp } from "../context/AppContext";
 import { useAuth } from "../context/AuthContext";
+import { useTheme } from "../context/ThemeContext";
 import { supabase } from "../lib/supabase";
 
 export default function Settings() {
   const { courses, addCourse, renameCourse, deleteCourse, weeklyGoalMinutes, setWeeklyGoal, t } = useApp();
   const { user, profile, updateProfile, signOut } = useAuth();
+  const { mode: themeMode, setMode: setThemeMode } = useTheme();
   const navigate = useNavigate();
   const activeStatusVisible = profile?.active_status_visible ?? true;
 
@@ -196,6 +198,36 @@ export default function Settings() {
           </button>
         </div>
       </div>
+      {/* Appearance */}
+      <div className="glass rounded-2xl p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'rgba(245,168,0,0.2)' }}>
+            <Monitor size={16} style={{ color: '#F5A800' }} />
+          </div>
+          <h2 className="text-base font-semibold text-white">Appearance</h2>
+        </div>
+        <div className="flex gap-2">
+          {[
+            { value: 'dark', label: 'Dark' },
+            { value: 'light', label: 'Light' },
+            { value: 'system', label: 'System' },
+          ].map(({ value, label }) => (
+            <button
+              key={value}
+              onClick={() => setThemeMode(value)}
+              className="flex-1 py-2 rounded-xl text-sm font-medium transition-all"
+              style={
+                themeMode === value
+                  ? { background: '#F5A800', color: '#1a0c00' }
+                  : { background: 'var(--color-ghost-bg)', color: 'var(--color-ghost-text)', border: '1px solid var(--color-ghost-border)' }
+              }
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Divider */}
       <div className="h-px" style={{ background: "rgba(255,255,255,0.07)" }} />
 
