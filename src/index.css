@@ -444,8 +444,8 @@ body {
 
 /* ─── Intro.js overrides — Prime theme ──────────────────── */
 .prime-intro-tooltip.introjs-tooltip {
-  background: #112211;
-  border: 1px solid #1e3a1e;
+  background: linear-gradient(135deg, #0a1f0a 0%, #1a3a1a 50%, #0f2a0f 100%) !important;
+  border: 1px solid #2a4a2a !important;
   border-radius: 14px;
   color: #ffffff;
   font-family: "Inter", system-ui, sans-serif;
@@ -550,3 +550,6 @@ body {
   border-radius: 12px !important;
   box-shadow: 0 0 0 2000px rgba(0, 0, 0, 0.45), 0 0 0 4px rgba(201, 148, 58, 0.15) !important;
 }
+
+/* Hide X close button */
+.introjs-skipbutton { display: none !important; }
