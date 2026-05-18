@@ -25,7 +25,7 @@ export default function Sidebar({ open, onClose }) {
     { to: '/report', icon: FileText, label: t.aiReportWriter, id: 'nav-report' },
     { to: '/exam-prep', icon: GraduationCap, label: 'Exam Coach' },
     { to: '/summarizer', icon: FileText, label: 'Note Summarizer' },
-    { to: '/chat', icon: MessageCircle, label: t.aiChatbot },
+    { to: '/chat', icon: MessageCircle, label: t.aiChatbot, id: 'nav-studypal' },
     { to: '/friends', icon: Users, label: 'Friends' },
     { to: '/leaderboard', icon: Trophy, label: 'Leaderboard', id: 'nav-leaderboard' },
     { to: '/profile', icon: UserCircle, label: 'Profile' },

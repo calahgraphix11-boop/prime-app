@@ -10,7 +10,16 @@ import { supabase } from "../lib/supabase";
 import { useAuth } from "../context/AuthContext";
 
 // Selector configs — resolved to real DOM elements at tour start.
-// IDs are set in: Sidebar.jsx (nav items + aside), ChatBubble.jsx (toggle btn).
+// IDs are defined in Sidebar.jsx on the NavLink elements.
+//
+// Sidebar nav IDs:
+//   #prime-sidebar   → <aside> container
+//   #nav-studypal    → /chat  (AI Chatbot / StudyPal)
+//   #nav-sessions    → /sessions
+//   #nav-report      → /report
+//   #nav-dashboard   → / (Analytics / Dashboard)
+//   #nav-leaderboard → /leaderboard
+//   #nav-settings    → /settings
 const STEP_CONFIGS = [
   {
     selector: "#prime-sidebar",
@@ -18,13 +27,13 @@ const STEP_CONFIGS = [
     position: "right",
   },
   {
-    selector: "#chatbubble-btn",
-    intro: "Chat with your AI study assistant anytime during a session.",
-    position: "left",
+    selector: "#nav-studypal",
+    intro: "Chat with your AI study assistant anytime.",
+    position: "right",
   },
   {
     selector: "#nav-sessions",
-    intro: "Start a focus session here. Track your study time with Pomodoro mode.",
+    intro: "Start a focus session here. Track your time with Pomodoro mode.",
     position: "right",
   },
   {
