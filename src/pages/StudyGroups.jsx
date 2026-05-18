@@ -590,7 +590,7 @@ function MembersTab({ group, userId, onLeft }) {
     setLoading(true);
     supabase
       .from('group_members')
-      .select('*, profiles:user_id(id, username, full_name, avatar_url)')
+      .select('id, group_id, user_id, role, joined_at, profiles:user_id(id, username, full_name, avatar_url)')
       .eq('group_id', group.id)
       .order('joined_at', { ascending: true })
       .then(({ data, error }) => {
