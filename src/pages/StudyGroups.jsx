@@ -51,6 +51,11 @@ function iconFg(hex) {
 // DROP POLICY IF EXISTS "Users can view group members" ON group_members;
 // CREATE POLICY "Users can view group members" ON group_members
 // FOR SELECT USING (true);
+//
+// Prevent duplicate joins at the database level:
+// ALTER TABLE group_members
+// ADD CONSTRAINT group_members_unique_member
+// UNIQUE (group_id, user_id);
 
 const generateInviteCode = () => Math.random().toString(36).substring(2, 10).toUpperCase();
 
