@@ -81,15 +81,19 @@ const DEFAULT_COLOR = '#C9943A';
 // ─── Group Icon ───────────────────────────────────────────────────────────────
 
 function GroupIcon({ group, size = 36 }) {
-  const color = group?.icon_url || DEFAULT_COLOR;
+  const url = group?.icon_url || '';
+  const isImage = url.startsWith('http');
+  const color = isImage ? DEFAULT_COLOR : (url || DEFAULT_COLOR);
   const letter = (group?.name || 'G').charAt(0).toUpperCase();
   const fg = iconFg(color);
   return (
     <div
-      className="rounded-full flex items-center justify-center font-bold select-none flex-shrink-0"
+      className="rounded-full flex items-center justify-center font-bold select-none flex-shrink-0 overflow-hidden"
       style={{ width: size, height: size, fontSize: size * 0.42, background: color, color: fg }}
     >
-      {letter}
+      {isImage
+        ? <img src={url} alt="" className="w-full h-full object-cover" />
+        : letter}
     </div>
   );
 }
@@ -832,26 +836,45 @@ function GroupSettingsModal({ group, isAdmin, userId, onClose, onGroupUpdated, o
   const [name, setName] = useState(group?.name || '');
   const [description, setDescription] = useState(group?.description || '');
   const [isPublic, setIsPublic] = useState(group?.is_public ?? true);
-  const [iconColor, setIconColor] = useState(group?.icon_url || DEFAULT_COLOR);
+  const [iconColor, setIconColor] = useState(
+    group?.icon_url?.startsWith('http') ? DEFAULT_COLOR : (group?.icon_url || DEFAULT_COLOR)
+  );
+  const [iconImage, setIconImage] = useState(group?.icon_url?.startsWith('http') ? group.icon_url : null);
+  const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [leaving, setLeaving] = useState(false);
   const [error, setError] = useState('');
+  const fileInputRef = useRef(null);
 
-  const previewGroup = { name, icon_url: iconColor };
+  const previewGroup = { name, icon_url: iconImage || iconColor };
+
+  const handleImageSelect = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    setError('');
+    const path = `${group.id}/${Date.now()}`;
+    const { error: upErr } = await supabase.storage.from('group-icons').upload(path, file, { upsert: true });
+    if (upErr) { setError(upErr.message); setUploading(false); return; }
+    const { data } = supabase.storage.from('group-icons').getPublicUrl(path);
+    setIconImage(data.publicUrl);
+    setUploading(false);
+  };
 
   const handleSave = async () => {
     if (!name.trim()) { setError('Group name is required.'); return; }
     setSaving(true);
     setError('');
+    const icon_url = iconImage || iconColor;
     const { error: err } = await supabase
       .from('study_groups')
-      .update({ name: name.trim(), description: description.trim(), is_public: isPublic, icon_url: iconColor })
+      .update({ name: name.trim(), description: description.trim(), is_public: isPublic, icon_url })
       .eq('id', group.id);
     setSaving(false);
     if (err) { setError(err.message); return; }
-    onGroupUpdated?.({ ...group, name: name.trim(), description: description.trim(), is_public: isPublic, icon_url: iconColor });
+    onGroupUpdated?.({ ...group, name: name.trim(), description: description.trim(), is_public: isPublic, icon_url });
     onClose();
   };
 
@@ -916,8 +939,33 @@ function GroupSettingsModal({ group, isAdmin, userId, onClose, onGroupUpdated, o
               <div>
                 <label className="block text-xs text-white/50 mb-2">Group Icon</label>
                 <div className="flex items-center gap-3 mb-3">
-                  <GroupIcon group={previewGroup} size={44} />
-                  <p className="text-xs text-white/35">Pick a color for your group icon</p>
+                  <div className="relative group/icon flex-shrink-0">
+                    <GroupIcon group={previewGroup} size={52} />
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploading}
+                      className="absolute inset-0 rounded-full flex items-center justify-center transition-opacity opacity-0 group-hover/icon:opacity-100"
+                      style={{ background: 'rgba(0,0,0,0.55)' }}
+                    >
+                      {uploading
+                        ? <div className="w-4 h-4 rounded-full border-2 border-white/40 border-t-white animate-spin" />
+                        : <Settings size={16} className="text-white" />}
+                    </button>
+                    <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageSelect} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs text-white/35">Upload a photo or pick a color</p>
+                    {iconImage && (
+                      <button
+                        type="button"
+                        onClick={() => setIconImage(null)}
+                        className="text-xs text-white/30 hover:text-white/60 transition-colors mt-1"
+                      >
+                        Remove image
+                      </button>
+                    )}
+                  </div>
                 </div>
                 <div className="grid grid-cols-6 gap-2">
                   {ICON_COLORS.map(color => (
