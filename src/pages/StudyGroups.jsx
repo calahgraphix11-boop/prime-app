@@ -588,17 +588,30 @@ function MembersTab({ group, userId, onLeft }) {
     if (!group?.id) return;
     setLeaveWarning(false);
     setLoading(true);
-    supabase
+    const run = async () => {
+    const { data: memberRows, error } = await supabase
       .from('group_members')
-      .select('id, group_id, user_id, role, joined_at, profiles:user_id(id, username, full_name, avatar_url)')
+      .select('id, group_id, user_id, role, joined_at')
       .eq('group_id', group.id)
-      .order('joined_at', { ascending: true })
-      .then(({ data, error }) => {
-        console.log('[MembersTab] data:', JSON.stringify(data));
-        console.log('[MembersTab] error:', JSON.stringify(error));
-        setMembers(data || []);
-        setLoading(false);
-      });
+      .order('joined_at', { ascending: true });
+
+    console.log('[MembersTab] data:', JSON.stringify(memberRows));
+    console.log('[MembersTab] error:', JSON.stringify(error));
+
+    if (!memberRows?.length) { setMembers([]); setLoading(false); return; }
+
+    const userIds = memberRows.map(m => m.user_id);
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id, username, full_name, avatar_url')
+      .in('id', userIds);
+
+    const profileMap = Object.fromEntries((profiles || []).map(p => [p.id, p]));
+    const combined = memberRows.map(m => ({ ...m, profiles: profileMap[m.user_id] || null }));
+    setMembers(combined);
+    setLoading(false);
+    };
+    run();
   }, [group?.id]);
 
   const myRow = members.find(m => m.user_id === userId);
