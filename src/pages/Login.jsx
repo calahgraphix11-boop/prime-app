@@ -4,6 +4,25 @@ import { Eye, EyeOff } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useApp } from "../context/AppContext";
 
+const DARK = {
+  bg: "#0a1a0e",
+  cardBg: "linear-gradient(135deg, rgba(255,255,255,0.08), rgba(10,26,14,0.8))",
+  cardBorder: "rgba(255,255,255,0.08)",
+  logoBg: "rgba(255,255,255,0.08)",
+  logoBorder: "rgba(255,255,255,0.12)",
+  inputBg: "rgba(255,255,255,0.08)",
+  inputBorder: "rgba(255,255,255,0.12)",
+  inputText: "#ffffff",
+  inputPlaceholder: "rgba(255,255,255,0.35)",
+  labelText: "rgba(255,255,255,0.6)",
+  divider: "rgba(255,255,255,0.08)",
+  orText: "rgba(255,255,255,0.25)",
+  mutedText: "#8ab08a",
+  gold: "#D4900A",
+  googleBg: "rgba(255,255,255,0.06)",
+  googleBorder: "rgba(255,255,255,0.10)",
+};
+
 export default function Login() {
   const { t } = useApp();
   const { signIn, signInWithGoogle } = useAuth();
@@ -12,17 +31,18 @@ export default function Login() {
   const location = useLocation();
   const plan = new URLSearchParams(location.search).get("plan");
 
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
   const handleGoogle = async () => {
     if (plan) sessionStorage.setItem("pendingUpgradePlan", plan);
     setGoogleLoading(true);
     const { error: err } = await signInWithGoogle();
     if (err) { setError(err.message || "Google sign-in failed"); setGoogleLoading(false); }
   };
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -39,22 +59,32 @@ export default function Login() {
 
   return (
     <div
-      className="min-h-screen w-full flex flex-col items-center justify-center px-4"
-      style={{ background: "#0a1a0e" }}
+      style={{
+        minHeight: "100vh",
+        width: "100%",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "0 1rem",
+        background: DARK.bg,
+      }}
     >
-      <div className="w-full max-w-sm">
+      <div style={{ width: "100%", maxWidth: 384 }}>
         {/* Logo */}
-        <div className="flex items-center justify-center mb-6">
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: 24 }}>
           <div
-            className="flex items-center justify-center"
             style={{
               width: 72,
               height: 72,
-              background: "rgba(255,255,255,0.08)",
+              background: DARK.logoBg,
               borderRadius: 20,
               backdropFilter: "blur(20px)",
               WebkitBackdropFilter: "blur(20px)",
-              border: "1px solid rgba(255,255,255,0.12)",
+              border: `1px solid ${DARK.logoBorder}`,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
             }}
           >
             <img
@@ -65,31 +95,33 @@ export default function Login() {
           </div>
         </div>
 
-        {/* Glass card */}
+        {/* Card */}
         <div
           style={{
-            background:
-              "linear-gradient(135deg, rgba(255,255,255,0.08), rgba(10,26,14,0.8))",
+            background: DARK.cardBg,
             backdropFilter: "blur(20px)",
             WebkitBackdropFilter: "blur(20px)",
-            border: "1px solid rgba(255,255,255,0.08)",
+            border: `1px solid ${DARK.cardBorder}`,
             borderRadius: 24,
             padding: "1.75rem",
           }}
         >
           <h2
-            className="text-2xl text-white mb-6"
-            style={{ fontFamily: "Inter, sans-serif", fontWeight: 600 }}
+            style={{
+              fontFamily: "Inter, sans-serif",
+              fontWeight: 600,
+              fontSize: "1.5rem",
+              color: "#ffffff",
+              marginBottom: 24,
+              marginTop: 0,
+            }}
           >
             Welcome back
           </h2>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             <div>
-              <label
-                className="text-sm font-medium"
-                style={{ color: "rgba(255,255,255,0.6)" }}
-              >
+              <label style={{ fontSize: "0.875rem", fontWeight: 500, color: DARK.labelText }}>
                 {t.email}
               </label>
               <input
@@ -97,32 +129,81 @@ export default function Login() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="mt-1.5 w-full px-4 py-3 text-sm glass-input-login"
-                style={{ borderRadius: 12 }}
+                style={{
+                  display: "block",
+                  width: "100%",
+                  marginTop: 6,
+                  padding: "0.75rem 1rem",
+                  fontSize: "0.875rem",
+                  background: DARK.inputBg,
+                  border: `1px solid ${DARK.inputBorder}`,
+                  borderRadius: 12,
+                  color: DARK.inputText,
+                  outline: "none",
+                  boxSizing: "border-box",
+                  fontFamily: "inherit",
+                  transition: "border-color 0.2s, box-shadow 0.2s",
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = DARK.gold;
+                  e.target.style.boxShadow = `0 0 0 3px rgba(212,144,10,0.18)`;
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = DARK.inputBorder;
+                  e.target.style.boxShadow = "none";
+                }}
               />
             </div>
             <div>
-              <label
-                className="text-sm font-medium"
-                style={{ color: "rgba(255,255,255,0.6)" }}
-              >
+              <label style={{ fontSize: "0.875rem", fontWeight: 500, color: DARK.labelText }}>
                 {t.password}
               </label>
-              <div className="relative mt-1.5">
+              <div style={{ position: "relative", marginTop: 6 }}>
                 <input
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="w-full pl-4 pr-10 py-3 text-sm glass-input-login"
-                  style={{ borderRadius: 12 }}
+                  style={{
+                    display: "block",
+                    width: "100%",
+                    padding: "0.75rem 2.5rem 0.75rem 1rem",
+                    fontSize: "0.875rem",
+                    background: DARK.inputBg,
+                    border: `1px solid ${DARK.inputBorder}`,
+                    borderRadius: 12,
+                    color: DARK.inputText,
+                    outline: "none",
+                    boxSizing: "border-box",
+                    fontFamily: "inherit",
+                    transition: "border-color 0.2s, box-shadow 0.2s",
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = DARK.gold;
+                    e.target.style.boxShadow = `0 0 0 3px rgba(212,144,10,0.18)`;
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = DARK.inputBorder;
+                    e.target.style.boxShadow = "none";
+                  }}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors"
-                  style={{ color: "#D4900A" }}
                   tabIndex={-1}
+                  style={{
+                    position: "absolute",
+                    right: 12,
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    color: DARK.gold,
+                    padding: 0,
+                    display: "flex",
+                    alignItems: "center",
+                  }}
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
@@ -131,10 +212,14 @@ export default function Login() {
 
             {error && (
               <p
-                className="text-sm text-red-300 px-3 py-2 rounded-lg"
                 style={{
+                  fontSize: "0.875rem",
+                  color: "#fca5a5",
                   background: "rgba(239,68,68,0.18)",
                   border: "1px solid rgba(239,68,68,0.3)",
+                  borderRadius: 8,
+                  padding: "0.5rem 0.75rem",
+                  margin: 0,
                 }}
               >
                 {error}
@@ -144,38 +229,62 @@ export default function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 rounded-full text-sm font-semibold mt-2 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
-              style={{ background: "#D4900A", color: "#000" }}
+              style={{
+                width: "100%",
+                padding: "0.75rem",
+                borderRadius: 999,
+                fontSize: "0.875rem",
+                fontWeight: 600,
+                marginTop: 8,
+                background: DARK.gold,
+                color: "#000",
+                border: "none",
+                cursor: loading ? "not-allowed" : "pointer",
+                opacity: loading ? 0.4 : 1,
+                transition: "opacity 0.15s, transform 0.1s ease-out",
+                fontFamily: "inherit",
+              }}
+              onMouseDown={(e) => { e.currentTarget.style.transform = "scale(0.97)"; }}
+              onMouseUp={(e) => { e.currentTarget.style.transform = "scale(1)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; }}
             >
               {loading ? "..." : t.signIn}
             </button>
           </form>
 
-          <div className="flex items-center gap-3 my-4">
-            <div
-              className="flex-1 h-px"
-              style={{ background: "rgba(255,255,255,0.08)" }}
-            />
-            <span
-              className="text-xs font-medium"
-              style={{ color: "rgba(255,255,255,0.25)" }}
-            >
-              or
-            </span>
-            <div
-              className="flex-1 h-px"
-              style={{ background: "rgba(255,255,255,0.08)" }}
-            />
+          {/* Divider */}
+          <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "16px 0" }}>
+            <div style={{ flex: 1, height: 1, background: DARK.divider }} />
+            <span style={{ fontSize: "0.75rem", fontWeight: 500, color: DARK.orText }}>or</span>
+            <div style={{ flex: 1, height: 1, background: DARK.divider }} />
           </div>
 
+          {/* Google */}
           <button
             onClick={handleGoogle}
             disabled={googleLoading}
-            className="w-full flex items-center justify-center gap-3 py-3 rounded-full text-sm font-medium text-white transition-all hover:bg-white/10 disabled:opacity-50"
             style={{
-              background: "rgba(255,255,255,0.06)",
-              border: "1px solid rgba(255,255,255,0.10)",
+              width: "100%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 12,
+              padding: "0.75rem",
+              borderRadius: 999,
+              fontSize: "0.875rem",
+              fontWeight: 500,
+              color: "#ffffff",
+              background: DARK.googleBg,
+              border: `1px solid ${DARK.googleBorder}`,
+              cursor: googleLoading ? "not-allowed" : "pointer",
+              opacity: googleLoading ? 0.5 : 1,
+              transition: "background 0.15s, transform 0.1s ease-out",
+              fontFamily: "inherit",
             }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.1)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = DARK.googleBg; e.currentTarget.style.transform = "scale(1)"; }}
+            onMouseDown={(e) => { e.currentTarget.style.transform = "scale(0.97)"; }}
+            onMouseUp={(e) => { e.currentTarget.style.transform = "scale(1)"; }}
           >
             <svg viewBox="0 0 24 24" width="18" height="18" xmlns="http://www.w3.org/2000/svg">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -186,12 +295,13 @@ export default function Login() {
             {googleLoading ? "Redirecting…" : "Continue with Google"}
           </button>
 
-          <p className="text-center text-sm mt-4" style={{ color: "#8ab08a" }}>
+          <p style={{ textAlign: "center", fontSize: "0.875rem", marginTop: 16, color: DARK.mutedText }}>
             {t.dontHaveAccount}{" "}
             <Link
               to="/signup"
-              className="font-medium hover:opacity-80 transition-opacity"
-              style={{ color: "#D4900A" }}
+              style={{ fontWeight: 500, color: DARK.gold, textDecoration: "none" }}
+              onMouseEnter={(e) => { e.currentTarget.style.opacity = "0.8"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.opacity = "1"; }}
             >
               {t.signup}
             </Link>

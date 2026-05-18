@@ -33,6 +33,10 @@
 
   --color-scrollbar: rgba(255, 255, 255, 0.15);
 
+  /* Gold */
+  --gold: #F5A800;
+  --gold-hover: #D4900A;
+
   /* Layout structural */
   --color-header-bg: rgba(0, 20, 10, 0.4);
   --color-header-border: rgba(255, 255, 255, 0.08);
@@ -73,6 +77,10 @@
   --color-ghost-hover: rgba(0, 0, 0, 0.08);
 
   --color-scrollbar: rgba(0, 0, 0, 0.15);
+
+  /* Gold — brighter yellow in light mode */
+  --gold: #E8B000;
+  --gold-hover: #cc9c00;
 
   --color-header-bg: rgba(255, 255, 255, 0.95);
   --color-header-border: #e0e0d8;
@@ -154,14 +162,14 @@ body {
 
 /* ─── Buttons ────────────────────────────────────────────── */
 .btn-gold {
-  background: #F5A800;
+  background: var(--gold);
   color: #1a0c00;
   font-weight: 600;
-  transition: opacity 0.15s;
+  transition: opacity 0.15s, transform 160ms ease-out;
 }
 
-[data-theme="light"] .btn-gold {
-  background: #C9943A;
+.btn-gold:active:not(:disabled) {
+  transform: scale(0.97);
 }
 
 .btn-gold:hover:not(:disabled) {
@@ -388,6 +396,26 @@ body {
 ::-webkit-scrollbar-thumb {
   background: var(--color-scrollbar);
   border-radius: 999px;
+}
+
+/* ─── Dashboard entrance animation ──────────────────────── */
+@keyframes dash-enter {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dash-enter {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
 }
 
 /* ─── Light mode: Tailwind text-white overrides ──────────── */

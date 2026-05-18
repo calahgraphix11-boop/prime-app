@@ -6,6 +6,10 @@ import {
 } from "recharts";
 import { useApp } from "../context/AppContext";
 
+// Strong ease-out — Emil Kowalski philosophy
+const EASE_OUT = "cubic-bezier(0.23, 1, 0.32, 1)";
+const ENTER_DURATION = "280ms";
+
 function formatTime(minutes) {
   if (minutes < 60) return `${minutes}m`;
   const h = Math.floor(minutes / 60);
@@ -27,6 +31,14 @@ function calcTrend(curr, prev) {
 }
 
 const DONUT_COLORS = ["#F5A800", "#34d399", "#a78bfa", "#f472b6", "#60a5fa", "#fb923c", "#e879f9", "#4ade80"];
+
+// Stagger delay per card index (Emil: 30-80ms between items)
+function enterStyle(i) {
+  return {
+    animation: `dash-enter ${ENTER_DURATION} ${EASE_OUT} both`,
+    animationDelay: `${i * 55}ms`,
+  };
+}
 
 function GlassTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
@@ -53,7 +65,7 @@ function TrendBadge({ trend }) {
     return (
       <span
         className="flex items-center gap-0.5 text-xs font-medium px-2 py-0.5 rounded-full"
-        style={{ background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.38)" }}
+        style={{ background: "var(--color-ghost-bg)", color: "var(--color-ghost-text)" }}
       >
         <Minus size={9} /> 0%
       </span>
@@ -74,27 +86,39 @@ function TrendBadge({ trend }) {
   );
 }
 
-function StatCard({ icon: Icon, label, value, iconColor, iconBg, borderColor, trend }) {
+// Premium stat card — Emil: larger numbers, breathing room, every detail compounds
+function StatCard({ icon: Icon, label, value, iconColor, iconBg, accentColor, trend, enterDelay }) {
   return (
     <div
-      className="glass rounded-2xl p-4 flex flex-col gap-3"
+      className="glass rounded-2xl p-5 flex flex-col gap-4"
       style={{
-        borderLeft: `3px solid ${borderColor}`,
-        boxShadow: `0 4px 20px ${borderColor}20`,
+        ...enterStyle(enterDelay),
+        borderBottom: `2px solid ${accentColor}`,
+        boxShadow: `0 4px 24px ${accentColor}18`,
+        transition: "transform 160ms ease-out, box-shadow 200ms ease",
       }}
+      onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = `0 8px 32px ${accentColor}28`; }}
+      onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = `0 4px 24px ${accentColor}18`; }}
     >
+      {/* Top row: icon + trend */}
       <div className="flex items-start justify-between">
         <div
-          className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+          className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
           style={{ background: iconBg }}
         >
-          <Icon size={17} style={{ color: iconColor }} />
+          <Icon size={18} style={{ color: iconColor }} />
         </div>
         <TrendBadge trend={trend} />
       </div>
+      {/* Number + label */}
       <div>
-        <div className="text-2xl font-bold text-white leading-tight">{value}</div>
-        <div className="text-xs text-white/50 mt-0.5">{label}</div>
+        <div
+          className="font-bold leading-none text-white"
+          style={{ fontSize: "2rem", letterSpacing: "-0.02em" }}
+        >
+          {value}
+        </div>
+        <div className="text-xs text-white/50 mt-1.5 font-medium">{label}</div>
       </div>
     </div>
   );
@@ -189,29 +213,37 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-5 pt-2">
-      {/* Header */}
-      <div className="flex items-start justify-between gap-3 flex-wrap">
+      {/* Header — stagger slot 0 */}
+      <div className="flex items-start justify-between gap-3 flex-wrap" style={enterStyle(0)}>
         <div>
-          <h1 className="text-2xl font-bold text-white">Analytics Dashboard</h1>
-          <p className="text-sm text-white/50 mt-0.5">Track your study progress</p>
+          <h1 className="text-2xl font-bold text-white" style={{ letterSpacing: "-0.02em" }}>
+            Dashboard
+          </h1>
+          <p className="text-sm text-white/50 mt-0.5">Your study progress at a glance</p>
         </div>
+
+        {/* Period toggle — Emil: active press scale(0.97), custom easing */}
         <div
           className="flex items-center gap-0.5 p-1 rounded-full flex-shrink-0"
           style={{
-            background: "rgba(255,255,255,0.08)",
-            border: "1px solid rgba(255,255,255,0.14)",
+            background: "var(--color-glass-bg)",
+            border: "1px solid var(--color-glass-border)",
           }}
         >
-          {[["7d", "Last 7 Days"], ["30d", "Last 30 Days"]].map(([val, lbl]) => (
+          {[["7d", "7 days"], ["30d", "30 days"]].map(([val, lbl]) => (
             <button
               key={val}
               onClick={() => setPeriod(val)}
-              className="px-3 py-1.5 rounded-full text-xs font-semibold transition-all"
-              style={
-                period === val
-                  ? { background: "#F5A800", color: "#1a0c00" }
-                  : { color: "rgba(255,255,255,0.55)" }
-              }
+              className="px-3 py-1.5 rounded-full text-xs font-semibold"
+              style={{
+                transition: `background 200ms ${EASE_OUT}, color 200ms ${EASE_OUT}, transform 160ms ease-out`,
+                ...(period === val
+                  ? { background: "var(--gold)", color: "#1a0c00" }
+                  : { color: "var(--color-ghost-text)" }),
+              }}
+              onMouseDown={(e) => { e.currentTarget.style.transform = "scale(0.97)"; }}
+              onMouseUp={(e) => { e.currentTarget.style.transform = "scale(1)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; }}
             >
               {lbl}
             </button>
@@ -219,57 +251,66 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Stat cards */}
+      {/* Stat cards — stagger slots 1-4 */}
       <div className="grid grid-cols-2 gap-3">
         <StatCard
           icon={Clock}
-          label="Total Study Time"
+          label="Study Time"
           value={formatTime(totalMinutes)}
           iconColor="#F5A800"
           iconBg="rgba(245,168,0,0.18)"
-          borderColor="#F5A800"
+          accentColor="#F5A800"
           trend={timeTrend}
+          enterDelay={1}
         />
         <StatCard
           icon={Flame}
-          label="Current Streak"
+          label="Day Streak"
           value={`${streak}d`}
           iconColor="#fb923c"
           iconBg="rgba(251,146,60,0.18)"
-          borderColor="#fb923c"
+          accentColor="#fb923c"
           trend={0}
+          enterDelay={2}
         />
         <StatCard
           icon={BookOpen}
-          label="Sessions Completed"
+          label="Sessions"
           value={periodSessions.length}
           iconColor="#34d399"
           iconBg="rgba(52,211,153,0.18)"
-          borderColor="#34d399"
+          accentColor="#34d399"
           trend={sessionTrend}
+          enterDelay={3}
         />
         <StatCard
           icon={Zap}
-          label="AI Features Used"
+          label="AI Uses"
           value={aiUsed}
           iconColor="#a78bfa"
           iconBg="rgba(167,139,250,0.18)"
-          borderColor="#a78bfa"
+          accentColor="#a78bfa"
           trend={aiTrend}
+          enterDelay={4}
         />
       </div>
 
-      {/* Area chart */}
+      {/* Area chart — stagger slot 5 */}
       <div
         className="glass rounded-2xl p-5"
-        style={{ boxShadow: "0 4px 24px rgba(245,168,0,0.07)" }}
+        style={{
+          ...enterStyle(5),
+          boxShadow: "0 4px 24px rgba(245,168,0,0.07)",
+        }}
       >
-        <h2 className="text-base font-semibold text-white mb-4">Study Time per Day</h2>
+        <h2 className="text-sm font-semibold text-white/70 uppercase tracking-wider mb-4" style={{ letterSpacing: "0.07em" }}>
+          Study time per day
+        </h2>
         <ResponsiveContainer width="100%" height={200}>
           <AreaChart data={areaData} margin={{ top: 4, right: 4, left: -24, bottom: 0 }}>
             <defs>
               <linearGradient id="goldFill" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#F5A800" stopOpacity={0.28} />
+                <stop offset="5%" stopColor="#F5A800" stopOpacity={0.3} />
                 <stop offset="95%" stopColor="#F5A800" stopOpacity={0} />
               </linearGradient>
             </defs>
@@ -307,9 +348,11 @@ export default function Dashboard() {
         </ResponsiveContainer>
       </div>
 
-      {/* Donut chart */}
-      <div className="glass rounded-2xl p-5">
-        <h2 className="text-base font-semibold text-white mb-4">Time by Subject</h2>
+      {/* Subject donut — stagger slot 6 */}
+      <div className="glass rounded-2xl p-5" style={enterStyle(6)}>
+        <h2 className="text-sm font-semibold text-white/70 uppercase tracking-wider mb-4" style={{ letterSpacing: "0.07em" }}>
+          Time by subject
+        </h2>
         {subjectData.length === 0 ? (
           <p className="text-sm text-white/35 text-center py-6">No data for this period</p>
         ) : (
@@ -359,18 +402,27 @@ export default function Dashboard() {
         )}
       </div>
 
-      {/* Recent sessions */}
-      <div className="glass rounded-2xl p-5">
-        <h2 className="text-base font-semibold text-white mb-4">Recent Sessions</h2>
+      {/* Recent sessions — stagger slot 7 */}
+      <div className="glass rounded-2xl p-5" style={enterStyle(7)}>
+        <h2 className="text-sm font-semibold text-white/70 uppercase tracking-wider mb-4" style={{ letterSpacing: "0.07em" }}>
+          Recent sessions
+        </h2>
         <div className="space-y-2">
           {recentSessions.length === 0 ? (
             <p className="text-sm text-white/35 text-center py-4">No sessions yet</p>
           ) : (
-            recentSessions.map((s) => (
+            recentSessions.map((s, i) => (
               <div
                 key={s.id}
                 className="flex items-center gap-3 p-3 rounded-xl"
-                style={{ background: "rgba(255,255,255,0.055)" }}
+                style={{
+                  background: "var(--color-glass-bg)",
+                  border: "1px solid var(--color-glass-border)",
+                  transition: `background 150ms ${EASE_OUT}, transform 160ms ease-out`,
+                  animationDelay: `${(7 + i) * 40}ms`,
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = "var(--color-glass-elev-bg)"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = "var(--color-glass-bg)"; }}
               >
                 <div
                   className="w-9 h-9 rounded-xl flex-shrink-0 flex items-center justify-center"
