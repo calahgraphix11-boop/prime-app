@@ -9,39 +9,41 @@ import "intro.js/introjs.css";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../context/AuthContext";
 
-const STEPS = [
+// Selector configs — resolved to real DOM elements at tour start.
+// IDs are set in: Sidebar.jsx (nav items + aside), ChatBubble.jsx (toggle btn).
+const STEP_CONFIGS = [
   {
-    element: "#prime-sidebar",
+    selector: "#prime-sidebar",
     intro: "This is your navigation. Access all Prime features from here.",
     position: "right",
   },
   {
-    element: "#chatbubble-btn",
+    selector: "#chatbubble-btn",
     intro: "Chat with your AI study assistant anytime during a session.",
     position: "left",
   },
   {
-    element: "#nav-sessions",
+    selector: "#nav-sessions",
     intro: "Start a focus session here. Track your study time with Pomodoro mode.",
     position: "right",
   },
   {
-    element: "#nav-report",
+    selector: "#nav-report",
     intro: "Generate and rewrite academic reports with AI in seconds.",
     position: "right",
   },
   {
-    element: "#nav-dashboard",
+    selector: "#nav-dashboard",
     intro: "Track your progress, streaks, and study habits over time.",
     position: "right",
   },
   {
-    element: "#nav-leaderboard",
+    selector: "#nav-leaderboard",
     intro: "Compete with friends and climb the weekly rankings.",
     position: "right",
   },
   {
-    element: "#nav-settings",
+    selector: "#nav-settings",
     intro: "Manage your account, appearance, and preferences here.",
     position: "right",
   },
@@ -78,18 +80,34 @@ export default function OnboardingTour({ openSidebar, closeSidebar }) {
   function launchTour() {
     openSidebar();
 
-    // Give sidebar animation time to finish before targeting elements
+    // Wait for sidebar slide-in transition (300ms) before resolving elements
     setTimeout(() => {
+      const steps = STEP_CONFIGS
+        .map(({ selector, intro, position }) => {
+          const el = document.querySelector(selector);
+          if (!el) {
+            console.warn(`OnboardingTour: element not found for selector "${selector}" — step skipped`);
+            return null;
+          }
+          return { element: el, intro, position, scrollTo: "element" };
+        })
+        .filter(Boolean);
+
+      if (steps.length === 0) {
+        markComplete();
+        return;
+      }
+
       const tour = introJs();
       tourRef.current = tour;
 
       tour.setOptions({
-        steps: STEPS,
+        steps,
         showProgress: true,
         showBullets: false,
         exitOnOverlayClick: false,
         disableInteraction: true,
-        scrollToElement: false,
+        scrollToElement: true,
         showSkipButton: false,
         nextLabel: "Next →",
         prevLabel: "← Back",
