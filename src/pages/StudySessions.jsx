@@ -10,7 +10,7 @@ function formatDate(iso) {
     d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
 }
 
-function CircularTimer({ totalSeconds, remaining, running, phase }) {
+function CircularTimer({ totalSeconds, remaining, running, phase, darkMode }) {
   const r = 54;
   const circ = 2 * Math.PI * r;
   const progress = totalSeconds > 0 ? remaining / totalSeconds : 0;
@@ -18,6 +18,16 @@ function CircularTimer({ totalSeconds, remaining, running, phase }) {
   const mins = Math.floor(remaining / 60).toString().padStart(2, "0");
   const secs = (remaining % 60).toString().padStart(2, "0");
   const isBreak = phase === "break";
+
+  console.log(phase, remaining);
+
+  let stroke;
+  if (isBreak) {
+    stroke = darkMode ? "#ffffff" : "#86efac";
+  } else {
+    stroke = "#C9943A";
+  }
+
   return (
     <div className="flex items-center justify-center py-6">
       <div className="relative w-40 h-40">
@@ -25,7 +35,7 @@ function CircularTimer({ totalSeconds, remaining, running, phase }) {
           <circle cx="60" cy="60" r={r} fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth="8" />
           <circle
             cx="60" cy="60" r={r} fill="none"
-            stroke={isBreak ? "#F59E0B" : "#F5A800"}
+            stroke={stroke}
             strokeWidth="8"
             strokeDasharray={circ}
             strokeDashoffset={offset}
@@ -140,6 +150,7 @@ export default function StudySessions() {
     t, sessions, deleteSession, courses,
     activeSession, remaining, running, pomodoroPhase, pomodoroRounds,
     startTimerSession, pauseTimer, resumeTimer, cancelTimer, endTimerSession,
+    darkMode,
   } = useApp();
   const [showForm, setShowForm] = useState(false);
   const [title, setTitle] = useState("");
@@ -301,6 +312,7 @@ export default function StudySessions() {
             remaining={remaining}
             running={running}
             phase={pomodoroPhase}
+            darkMode={darkMode}
           />
 
           {activeSession.pomodoroEnabled ? (
