@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Users, Search, Plus, MessageCircle, Lock, Globe,
-  Send, ArrowLeft, X, Trophy, Crown,
+  Send, ArrowLeft, X, Trophy, Crown, ShieldCheck,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
@@ -34,7 +34,51 @@ function currentWeekStart() {
   return monday.toISOString().split('T')[0];
 }
 
-// ─── Avatar ──────────────────────────────────────────────────────────────────
+// perceived brightness — returns light text color for dark bgs and vice versa
+function iconFg(hex) {
+  if (!hex || hex.length < 7) return '#111';
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.45 ? '#111' : '#f0f0f0';
+}
+
+// ─── Icon color palette ───────────────────────────────────────────────────────
+
+const ICON_COLORS = [
+  '#C9943A', // gold (default)
+  '#004d2e', // deep green
+  '#1e40af', // royal blue
+  '#6d28d9', // purple
+  '#991b1b', // red
+  '#0f766e', // teal
+  '#b45309', // amber
+  '#0e7490', // cyan
+  '#9d174d', // pink
+  '#065f46', // emerald
+  '#5b21b6', // violet
+  '#334155', // slate
+];
+
+const DEFAULT_COLOR = '#C9943A';
+
+// ─── Group Icon ───────────────────────────────────────────────────────────────
+
+function GroupIcon({ group, size = 36 }) {
+  const color = group?.icon_url || DEFAULT_COLOR;
+  const letter = (group?.name || 'G').charAt(0).toUpperCase();
+  const fg = iconFg(color);
+  return (
+    <div
+      className="rounded-full flex items-center justify-center font-bold select-none flex-shrink-0"
+      style={{ width: size, height: size, fontSize: size * 0.42, background: color, color: fg }}
+    >
+      {letter}
+    </div>
+  );
+}
+
+// ─── User Avatar ─────────────────────────────────────────────────────────────
 
 function Avi({ profile, size = 36 }) {
   const initials = (profile?.full_name || profile?.username || '?').charAt(0).toUpperCase();
@@ -69,8 +113,11 @@ function CreateGroupModal({ onClose, onCreated, userId }) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [isPublic, setIsPublic] = useState(true);
+  const [iconColor, setIconColor] = useState(DEFAULT_COLOR);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const previewGroup = { name, icon_url: iconColor };
 
   const handleCreate = async () => {
     if (!name.trim()) { setError('Group name is required.'); return; }
@@ -79,7 +126,13 @@ function CreateGroupModal({ onClose, onCreated, userId }) {
 
     const { data: group, error: groupErr } = await supabase
       .from('study_groups')
-      .insert({ name: name.trim(), description: description.trim(), is_public: isPublic, creator_id: userId })
+      .insert({
+        name: name.trim(),
+        description: description.trim(),
+        is_public: isPublic,
+        creator_id: userId,
+        icon_url: iconColor,
+      })
       .select()
       .single();
 
@@ -99,8 +152,8 @@ function CreateGroupModal({ onClose, onCreated, userId }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.72)' }}>
       <div
-        className="w-full max-w-md rounded-2xl p-6 space-y-4"
-        style={{ background: 'rgba(0,22,12,0.99)', border: '1px solid rgba(255,255,255,0.1)' }}
+        className="w-full max-w-md rounded-2xl p-6 space-y-4 overflow-y-auto"
+        style={{ background: 'rgba(0,22,12,0.99)', border: '1px solid rgba(255,255,255,0.1)', maxHeight: '90vh' }}
       >
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-bold text-white">Create Study Group</h2>
@@ -115,7 +168,8 @@ function CreateGroupModal({ onClose, onCreated, userId }) {
           </p>
         )}
 
-        <div className="space-y-3">
+        <div className="space-y-4">
+          {/* Group name */}
           <div>
             <label className="block text-xs text-white/50 mb-1.5">Group Name *</label>
             <input
@@ -126,17 +180,54 @@ function CreateGroupModal({ onClose, onCreated, userId }) {
               maxLength={60}
             />
           </div>
+
+          {/* Icon picker */}
+          <div>
+            <label className="block text-xs text-white/50 mb-2">Group Icon</label>
+            <div className="flex items-center gap-3 mb-3">
+              <GroupIcon group={previewGroup} size={44} />
+              <p className="text-xs text-white/35">Pick a color for your group icon</p>
+            </div>
+            <div className="grid grid-cols-6 gap-2">
+              {ICON_COLORS.map(color => (
+                <button
+                  key={color}
+                  onClick={() => setIconColor(color)}
+                  className="relative aspect-square rounded-full transition-transform hover:scale-110"
+                  style={{ background: color }}
+                  title={color}
+                >
+                  {iconColor === color && (
+                    <span
+                      className="absolute inset-0 rounded-full"
+                      style={{ boxShadow: `0 0 0 3px rgba(255,255,255,0.9)`, border: `2px solid ${color}` }}
+                    />
+                  )}
+                  <span
+                    className="absolute inset-0 flex items-center justify-center text-xs font-bold"
+                    style={{ color: iconFg(color) }}
+                  >
+                    {(name || 'G').charAt(0).toUpperCase()}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Description */}
           <div>
             <label className="block text-xs text-white/50 mb-1.5">Description</label>
             <textarea
               value={description}
               onChange={e => setDescription(e.target.value)}
-              placeholder="What's this group about?"
+              placeholder="What is this group about?"
               rows={3}
               className="w-full glass-input rounded-xl px-3 py-2.5 text-sm resize-none"
               maxLength={200}
             />
           </div>
+
+          {/* Visibility */}
           <div>
             <label className="block text-xs text-white/50 mb-2">Visibility</label>
             <div className="flex gap-2">
@@ -176,18 +267,10 @@ function GroupItem({ group, isActive, onClick, onJoin, showJoin, joined }) {
       onClick={onClick}
       className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl cursor-pointer transition-all hover:bg-white/5"
       style={isActive
-        ? { background: 'rgba(245,168,0,0.15)', border: '1px solid rgba(245,168,0,0.3)' }
+        ? { background: 'rgba(245,168,0,0.12)', border: '1px solid rgba(245,168,0,0.28)' }
         : { border: '1px solid transparent' }}
     >
-      <div
-        className="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0"
-        style={{
-          background: isActive ? '#F5A800' : 'rgba(255,255,255,0.08)',
-          color: isActive ? '#111' : 'rgba(255,255,255,0.6)',
-        }}
-      >
-        {(group.name || 'G').charAt(0).toUpperCase()}
-      </div>
+      <GroupIcon group={group} size={36} />
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-white truncate leading-tight">{group.name}</p>
         <div className="flex items-center gap-1.5 mt-0.5">
@@ -221,7 +304,6 @@ function GroupItem({ group, isActive, onClick, onJoin, showJoin, joined }) {
 function LeftPanel({ myGroups, discoverGroups, activeGroupId, onSelect, onJoin, joinedIds, searchQuery, setSearchQuery, onCreateClick, loading }) {
   return (
     <div className="flex flex-col h-full" style={{ width: 280, minWidth: 280, flexShrink: 0, borderRight: '1px solid rgba(255,255,255,0.07)' }}>
-      {/* Header */}
       <div className="p-4 space-y-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-bold text-white">Study Groups</h2>
@@ -243,7 +325,6 @@ function LeftPanel({ myGroups, discoverGroups, activeGroupId, onSelect, onJoin, 
         </div>
       </div>
 
-      {/* List */}
       <div className="flex-1 overflow-y-auto p-3 space-y-4">
         {loading && <Spinner />}
 
@@ -361,7 +442,6 @@ function ChatTab({ group, userId }) {
 
   return (
     <div className="flex flex-col flex-1 min-h-0">
-      {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
         {messages.length === 0 && (
           <div className="text-center py-16">
@@ -394,7 +474,6 @@ function ChatTab({ group, userId }) {
         <div ref={bottomRef} />
       </div>
 
-      {/* Input bar */}
       <div className="p-3 flex items-center gap-2" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
         <input
           value={input}
@@ -422,10 +501,11 @@ function ChatTab({ group, userId }) {
 function MembersTab({ group, userId, onLeft }) {
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const isAdmin = group?.creator_id === userId;
+  const [leaveWarning, setLeaveWarning] = useState(false);
 
   useEffect(() => {
     if (!group?.id) return;
+    setLeaveWarning(false);
     setLoading(true);
     supabase
       .from('group_members')
@@ -435,16 +515,33 @@ function MembersTab({ group, userId, onLeft }) {
       .then(({ data }) => { setMembers(data || []); setLoading(false); });
   }, [group?.id]);
 
-  const removeMember = async (memberId, memberUserId) => {
-    if (!isAdmin || memberUserId === userId) return;
+  const myRow = members.find(m => m.user_id === userId);
+  const amIAdmin = myRow?.role === 'admin';
+  const adminCount = members.filter(m => m.role === 'admin').length;
+
+  const makeAdmin = async (memberId) => {
+    const { error } = await supabase
+      .from('group_members')
+      .update({ role: 'admin' })
+      .eq('id', memberId);
+    if (!error) {
+      setMembers(prev => prev.map(m => m.id === memberId ? { ...m, role: 'admin' } : m));
+    }
+  };
+
+  const removeMember = async (memberId) => {
+    if (!amIAdmin) return;
     const { error } = await supabase.from('group_members').delete().eq('id', memberId);
     if (!error) setMembers(prev => prev.filter(m => m.id !== memberId));
   };
 
   const leaveGroup = async () => {
-    const me = members.find(m => m.user_id === userId);
-    if (!me) return;
-    const { error } = await supabase.from('group_members').delete().eq('id', me.id);
+    if (amIAdmin && adminCount === 1) {
+      setLeaveWarning(true);
+      return;
+    }
+    if (!myRow) return;
+    const { error } = await supabase.from('group_members').delete().eq('id', myRow.id);
     if (!error) onLeft?.();
   };
 
@@ -452,11 +549,28 @@ function MembersTab({ group, userId, onLeft }) {
 
   return (
     <div className="flex-1 overflow-y-auto p-4 space-y-2">
+      {leaveWarning && (
+        <div
+          className="flex items-start gap-3 px-4 py-3 rounded-xl mb-1"
+          style={{ background: 'rgba(234,179,8,0.1)', border: '1px solid rgba(234,179,8,0.3)' }}
+        >
+          <Crown size={15} style={{ color: '#F5A800', flexShrink: 0, marginTop: 1 }} />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium" style={{ color: '#F5A800' }}>You are the only admin</p>
+            <p className="text-xs text-white/50 mt-0.5">Make someone else admin before leaving the group.</p>
+          </div>
+          <button onClick={() => setLeaveWarning(false)} className="text-white/30 hover:text-white/60 transition-colors flex-shrink-0">
+            <X size={14} />
+          </button>
+        </div>
+      )}
+
       {members.map(member => {
         const p = member.profiles;
         const name = p?.username || p?.full_name || 'Unknown';
-        const isCreator = member.role === 'admin' || group?.creator_id === member.user_id;
+        const isAdmin = member.role === 'admin';
         const isMe = member.user_id === userId;
+
         return (
           <div
             key={member.id}
@@ -464,39 +578,60 @@ function MembersTab({ group, userId, onLeft }) {
             style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}
           >
             <Avi profile={p} size={36} />
+
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <p className="text-sm font-medium text-white truncate">{name}</p>
-                {isCreator && (
-                  <span className="text-xs px-1.5 py-0.5 rounded-md font-semibold flex-shrink-0 flex items-center gap-1"
-                    style={{ background: 'rgba(245,168,0,0.2)', color: '#F5A800' }}>
+                {isAdmin && (
+                  <span
+                    className="text-xs px-1.5 py-0.5 rounded-md font-semibold flex-shrink-0 flex items-center gap-1"
+                    style={{ background: 'rgba(245,168,0,0.18)', color: '#F5A800' }}
+                  >
                     <Crown size={10} /> Admin
                   </span>
                 )}
-                {isMe && !isCreator && (
-                  <span className="text-xs text-white/25">(you)</span>
+                {isMe && !isAdmin && (
+                  <span className="text-xs text-white/25 flex-shrink-0">(you)</span>
                 )}
               </div>
               <p className="text-xs text-white/30">Joined {fmtAgo(member.joined_at)}</p>
             </div>
-            {isMe && !isCreator && (
-              <button
-                onClick={leaveGroup}
-                className="text-xs font-medium px-3 py-1.5 rounded-lg transition-colors flex-shrink-0"
-                style={{ border: '1px solid rgba(239,68,68,0.4)', color: 'rgba(239,68,68,0.75)' }}
-              >
-                Leave
-              </button>
-            )}
-            {isAdmin && !isMe && (
-              <button
-                onClick={() => removeMember(member.id, member.user_id)}
-                className="text-xs font-medium px-3 py-1.5 rounded-lg transition-colors flex-shrink-0 hover:bg-white/5"
-                style={{ border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.3)' }}
-              >
-                Remove
-              </button>
-            )}
+
+            {/* Action buttons */}
+            <div className="flex items-center gap-1.5 flex-shrink-0">
+              {/* Make Admin — shown to admins for non-admin members who aren't me */}
+              {amIAdmin && !isMe && !isAdmin && (
+                <button
+                  onClick={() => makeAdmin(member.id)}
+                  className="text-xs font-medium px-2.5 py-1.5 rounded-lg transition-all hover:bg-white/5 flex items-center gap-1"
+                  style={{ border: '1px solid rgba(245,168,0,0.3)', color: 'rgba(245,168,0,0.8)' }}
+                  title="Make Admin"
+                >
+                  <ShieldCheck size={12} />
+                  <span className="hidden sm:inline">Admin</span>
+                </button>
+              )}
+              {/* Remove — shown to admins for non-admin members who aren't me */}
+              {amIAdmin && !isMe && !isAdmin && (
+                <button
+                  onClick={() => removeMember(member.id)}
+                  className="text-xs font-medium px-2.5 py-1.5 rounded-lg transition-all hover:bg-white/5"
+                  style={{ border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.3)' }}
+                >
+                  Remove
+                </button>
+              )}
+              {/* Leave — shown only on my own row */}
+              {isMe && (
+                <button
+                  onClick={leaveGroup}
+                  className="text-xs font-medium px-2.5 py-1.5 rounded-lg transition-all"
+                  style={{ border: '1px solid rgba(239,68,68,0.4)', color: 'rgba(239,68,68,0.75)' }}
+                >
+                  Leave
+                </button>
+              )}
+            </div>
           </div>
         );
       })}
@@ -610,9 +745,7 @@ function RightPanel({ group, userId, isMember, onLeft }) {
     <div className="flex-1 flex flex-col min-w-0 min-h-0">
       {/* Group header */}
       <div className="flex items-center gap-3 px-5 py-3.5 flex-shrink-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-        <div className="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0" style={{ background: '#F5A800', color: '#111' }}>
-          {(group.name || 'G').charAt(0).toUpperCase()}
-        </div>
+        <GroupIcon group={group} size={38} />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <h2 className="text-base font-bold text-white truncate">{group.name}</h2>
@@ -760,20 +893,19 @@ export default function StudyGroups() {
 
   return (
     <div className="flex flex-col" style={{ height: 'calc(100vh - 100px)' }}>
-      {/* Page title */}
       <div className="mb-3 flex-shrink-0">
         <h1 className="text-2xl font-bold text-white">Study Groups</h1>
         <p className="text-sm text-white/50 mt-0.5">Study together, grow together</p>
       </div>
 
-      {/* Two-panel container */}
       <div
         className="flex flex-1 rounded-2xl overflow-hidden min-h-0"
         style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.07)' }}
       >
-        {/* Left panel — hidden on mobile when showing detail */}
-        <div className={`${mobileShowDetail ? 'hidden md:flex' : 'flex'} flex-col h-full`}
-          style={{ width: 280, minWidth: 280, flexShrink: 0, borderRight: '1px solid rgba(255,255,255,0.07)' }}>
+        <div
+          className={`${mobileShowDetail ? 'hidden md:flex' : 'flex'} flex-col h-full`}
+          style={{ width: 280, minWidth: 280, flexShrink: 0, borderRight: '1px solid rgba(255,255,255,0.07)' }}
+        >
           <LeftPanel
             myGroups={filteredMy}
             discoverGroups={filteredDiscover}
@@ -788,9 +920,7 @@ export default function StudyGroups() {
           />
         </div>
 
-        {/* Right panel */}
         <div className={`${mobileShowDetail ? 'flex' : 'hidden md:flex'} flex-1 flex-col min-w-0 min-h-0`}>
-          {/* Mobile back button */}
           {mobileShowDetail && (
             <button
               onClick={() => setMobileShowDetail(false)}
