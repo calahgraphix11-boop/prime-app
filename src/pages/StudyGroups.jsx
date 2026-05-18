@@ -825,7 +825,7 @@ function LeaderboardTab({ group }) {
 
 const TABS = ['chat', 'members', 'leaderboard'];
 
-function RightPanel({ group, userId, isMember, onLeft, onGroupUpdate }) {
+function RightPanel({ group, userId, isMember, onLeft, onGroupUpdate, onJoin }) {
   const [tab, setTab] = useState('chat');
   const [isAdmin, setIsAdmin] = useState(false);
   const [inviteCode, setInviteCode] = useState(group?.invite_code || null);
@@ -939,6 +939,14 @@ function RightPanel({ group, userId, isMember, onLeft, onGroupUpdate }) {
             <div className="flex-1 flex flex-col items-center justify-center gap-3 p-8">
               <Lock size={28} className="text-white/20" />
               <p className="text-sm text-white/40">Join this group to participate in the chat</p>
+              {group?.is_public && (
+                <button
+                  onClick={() => onJoin?.(group)}
+                  className="px-5 py-2.5 rounded-xl text-sm font-semibold btn-gold"
+                >
+                  Join Group
+                </button>
+              )}
             </div>
           )
       )}
@@ -1110,6 +1118,7 @@ export default function StudyGroups() {
             isMember={isMember}
             onLeft={handleLeft}
             onGroupUpdate={handleGroupUpdate}
+            onJoin={handleJoin}
           />
         </div>
       </div>
