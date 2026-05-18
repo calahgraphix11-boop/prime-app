@@ -90,10 +90,10 @@ export default function OnboardingTour({ openSidebar, closeSidebar }) {
         exitOnOverlayClick: false,
         disableInteraction: true,
         scrollToElement: false,
+        showSkipButton: false,
         nextLabel: "Next →",
         prevLabel: "← Back",
         doneLabel: "Done",
-        skipLabel: "Skip",
         tooltipClass: "prime-intro-tooltip",
         highlightClass: "prime-intro-highlight",
       });

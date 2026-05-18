@@ -538,32 +538,6 @@ body {
   color: #ffffff;
 }
 
-/* Skip — absolute top-right corner */
-.prime-intro-tooltip.introjs-tooltip {
-  position: relative;
-  padding: 20px 20px 60px 20px;
-}
-
-.prime-intro-tooltip .introjs-skipbutton {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  color: #8ab08a !important;
-  font-size: 12px !important;
-  text-decoration: none;
-  background: none;
-  border: none;
-  cursor: pointer;
-  z-index: 9999;
-}
-.prime-intro-tooltip .introjs-skipbutton:hover {
-  color: #a8c8a8 !important;
-  background: none;
-}
-
-.prime-intro-tooltip .introjs-tooltiptext {
-  padding-right: 40px;
-}
 
 /* Overlay */
 .introjs-overlay {
