@@ -131,6 +131,7 @@ function CreateGroupModal({ onClose, onCreated, userId }) {
         description: description.trim(),
         is_public: isPublic,
         creator_id: userId,
+        created_by: userId,
         icon_url: iconColor,
       })
       .select()
