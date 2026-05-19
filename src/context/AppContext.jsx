@@ -441,9 +441,7 @@ export function AppProvider({ children }) {
   const examRemaining = (trialActive || planActive) ? 999 : Math.max(0, EXAM_LIMIT - dailyUsage.exam_prep_count);
   const fileUploadsRemaining = planActive
     ? (userPlan === 'pro' ? 999 : Math.max(0, FILE_UPLOAD_LIMIT_BASIC - dailyUsage.file_uploads))
-    : trialActive
-    ? Math.max(0, FILE_UPLOAD_LIMIT_TRIAL - dailyUsage.file_uploads)
-    : 0;
+    : Math.max(0, FILE_UPLOAD_LIMIT_TRIAL - dailyUsage.file_uploads);
 
   // ── Computed ──────────────────────────────────────────────
   const todayMinutes = sessions

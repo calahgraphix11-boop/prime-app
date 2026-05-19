@@ -10,7 +10,7 @@ const SYSTEM_PROMPT =
 
 export default function NoteSummarizer() {
   const { courses, summaryRemaining, incrementSummary, trialExpired, fileUploadsRemaining, incrementFileUpload, trialActive, planActive } = useApp();
-  const canUploadFiles = trialActive || planActive;
+  const canUploadFiles = fileUploadsRemaining > 0;
 
   const [instructions, setInstructions] = useState("");
   const [subject, setSubject] = useState("");

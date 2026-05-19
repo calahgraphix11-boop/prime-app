@@ -35,7 +35,7 @@ export default function ExamPrep() {
   const [fileError, setFileError] = useState("");
   const [showUpgrade, setShowUpgrade] = useState(false);
   const fileInputRef = useRef(null);
-  const canUploadFiles = trialActive || planActive;
+  const canUploadFiles = fileUploadsRemaining > 0;
 
   const handleFileChange = async (e) => {
     const file = e.target.files[0];

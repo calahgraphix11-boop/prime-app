@@ -9,7 +9,7 @@ import { ACCEPTED_FILE_TYPES, MAX_FILE_SIZE, getMediaType, readFileAsBase64 } fr
 export default function AIChatbot() {
   const { t, chatSessions, createChatSession, updateChatSession, dataLoading, chatRemaining, incrementChat, trialExpired, fileUploadsRemaining, incrementFileUpload, trialActive, planActive } = useApp();
   const { profile } = useAuth();
-  const canUploadFiles = trialActive || planActive;
+  const canUploadFiles = fileUploadsRemaining > 0;
   const username = profile?.username || profile?.full_name || null;
   const [activeChatId, setActiveChatId] = useState(null);
   const [input, setInput] = useState("");
