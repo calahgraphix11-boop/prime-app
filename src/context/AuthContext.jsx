@@ -89,8 +89,8 @@ export function AuthProvider({ children }) {
 
   const trialStartDate = profile?.trial_start_date ? new Date(profile.trial_start_date) : null;
   const daysSinceTrial = trialStartDate ? (Date.now() - trialStartDate.getTime()) / 86400000 : null;
-  const trialActive = daysSinceTrial !== null && daysSinceTrial <= 7;
-  const trialExpired = daysSinceTrial !== null && daysSinceTrial > 7;
+  const trialActive = daysSinceTrial !== null && daysSinceTrial <= 1;
+  const trialExpired = daysSinceTrial !== null && daysSinceTrial > 1;
 
   const userPlan = profile?.plan || 'free';
   const planExpiry = profile?.plan_expiry ? new Date(profile.plan_expiry) : null;
