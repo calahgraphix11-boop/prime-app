@@ -31,7 +31,9 @@ export default function PaymentSuccess() {
         if (data.status === 'SUCCESSFUL') {
           const expiry = new Date();
           expiry.setDate(expiry.getDate() + 30);
-          await updateProfile({ plan, plan_expiry: expiry.toISOString() });
+          console.log('[PaymentSuccess] user:', user?.id, 'plan:', plan);
+          const result = await updateProfile({ plan, plan_expiry: expiry.toISOString() });
+          console.log('[PaymentSuccess] updateProfile result:', result);
           const couponCode = params.get('coupon');
           if (couponCode) {
             const { data: couponRow } = await supabase
