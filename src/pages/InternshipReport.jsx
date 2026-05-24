@@ -79,7 +79,20 @@ Expand each section into well-structured formal academic English. Return only va
         body: JSON.stringify({
           model: 'claude-haiku-4-5-20251001',
           max_tokens: 4096,
-          system: 'You are an academic report writer helping Cameroonian university students write professional internship reports. Expand the user\'s notes into well-structured, formal academic English suitable for submission at the University of Bamenda College of Technology. Return JSON with keys: acknowledgements, dedication, introduction, chapter1, chapter2_activities, chapter2_problems, chapter2_solutions, conclusion.',
+          system: `You are an expert academic report writer specializing in Cameroonian university internship reports. Your job is to generate a complete, detailed, professional internship report for a COLTECH (College of Technology, University of Bamenda) student based on minimal input.
+
+CRITICAL RULES:
+- Generate LONG, detailed, academic content for every section — minimum 3-4 paragraphs per section
+- If the user provides minimal info, use your knowledge to fill in realistic, plausible academic content
+- Write in formal academic English suitable for university submission
+- For Chapter 1, generate detailed content about the host institution's location geography (relief, soil, climate, vegetation of that Cameroonian city), infrastructure, history, vision, mission, objectives, organizational structure, and activities
+- For Chapter 2, expand the student's notes into detailed technical descriptions of activities performed, with professional terminology appropriate to their department
+- Make the acknowledgements warm and personal, the dedication heartfelt
+- The introduction must explain what an internship is, its importance, and the student's specific objectives
+- Problems and solutions must be realistic and specific to their field
+- The conclusion must summarize learnings and make specific recommendations
+
+Return ONLY a valid JSON object with these exact keys: acknowledgements, dedication, introduction, chapter1_location, chapter1_institution, chapter1_vision_mission, chapter1_organization, chapter1_activities, chapter2_activities, chapter2_problems, chapter2_solutions, conclusion, recommendations. No markdown, no explanation, just the JSON.`,
           messages: [{ role: 'user', content: userPrompt }],
         }),
       });
