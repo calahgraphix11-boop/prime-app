@@ -20,17 +20,12 @@ export default function Sidebar({ open, onClose }) {
   const initials = (profile?.full_name || user?.email || '?').charAt(0).toUpperCase();
 
   const navItems = [
-    { to: '/', icon: LayoutDashboard, label: t.dashboard, id: 'nav-dashboard' },
-    { to: '/sessions', icon: Clock, label: t.studySessions, id: 'nav-sessions' },
     { to: '/report', icon: FileText, label: t.aiReportWriter, id: 'nav-report' },
     { to: '/internship-report', icon: FileText, label: 'Internship Report' },
     { to: '/exam-prep', icon: GraduationCap, label: 'Exam Coach' },
     { to: '/summarizer', icon: FileText, label: 'Note Summarizer' },
     { to: '/chat', icon: MessageCircle, label: t.aiChatbot, id: 'nav-studypal' },
     { to: '/friends', icon: Users, label: 'Friends' },
-    { to: '/study-groups', icon: Users2, label: 'Study Groups' },
-    { to: '/leaderboard', icon: Trophy, label: 'Leaderboard', id: 'nav-leaderboard' },
-    { to: '/profile', icon: UserCircle, label: 'Profile' },
     { to: '/settings', icon: Settings, label: t.settings, id: 'nav-settings' },
   ];
 
