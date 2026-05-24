@@ -143,7 +143,7 @@ export default function Sidebar({ open, onClose }) {
               className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold btn-gold"
             >
               <Crown size={18} />
-              Upgrade to Pro
+              Upgrade
             </button>
           )}
           <button
