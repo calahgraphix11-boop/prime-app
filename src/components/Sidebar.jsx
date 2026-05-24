@@ -66,6 +66,12 @@ export default function Sidebar({ open, onClose }) {
               {profile?.username && (
                 <p className="text-xs text-white/35 truncate leading-tight">{user?.email}</p>
               )}
+              {userPlan === 'pro' && (
+                <span className="inline-block mt-1 px-2 py-0.5 rounded-full text-xs font-semibold" style={{ background: '#F5A800', color: '#111' }}>Pro</span>
+              )}
+              {userPlan === 'basic' && (
+                <span className="inline-block mt-1 px-2 py-0.5 rounded-full text-xs font-semibold" style={{ border: '1px solid #F5A800', color: '#F5A800' }}>Basic</span>
+              )}
             </div>
           </NavLink>
           <button
