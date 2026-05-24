@@ -284,7 +284,16 @@ async function buildAndDownload(info, s) {
         // Chapter 1
         new Paragraph({ children: [new PageBreak()] }),
         title('CHAPTER ONE: PRESENTATION OF HOST INSTITUTION', HeadingLevel.HEADING_1),
-        ...splitBody(s.chapter1),
+        title('1.1 Geographical Location', HeadingLevel.HEADING_2),
+        ...splitBody(s.chapter1_location),
+        title('1.2 Presentation of the Institution', HeadingLevel.HEADING_2),
+        ...splitBody(s.chapter1_institution),
+        title('1.3 Vision, Mission and Objectives', HeadingLevel.HEADING_2),
+        ...splitBody(s.chapter1_vision_mission),
+        title('1.4 Organisational Structure', HeadingLevel.HEADING_2),
+        ...splitBody(s.chapter1_organization),
+        title('1.5 Activities of the Institution', HeadingLevel.HEADING_2),
+        ...splitBody(s.chapter1_activities),
 
         // Chapter 2
         new Paragraph({ children: [new PageBreak()] }),
@@ -298,8 +307,10 @@ async function buildAndDownload(info, s) {
 
         // Conclusion
         new Paragraph({ children: [new PageBreak()] }),
-        title('GENERAL CONCLUSION AND RECOMMENDATIONS', HeadingLevel.HEADING_1),
+        title('GENERAL CONCLUSION', HeadingLevel.HEADING_1),
         ...splitBody(s.conclusion),
+        title('RECOMMENDATIONS', HeadingLevel.HEADING_1),
+        ...splitBody(s.recommendations),
       ],
     }],
   });
