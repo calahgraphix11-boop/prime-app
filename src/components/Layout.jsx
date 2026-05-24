@@ -17,7 +17,8 @@
     for update using (auth.uid() = user_id);
 */
 import { useState, useEffect, useRef } from 'react';
-import { Menu, Bell } from 'lucide-react';
+import { Menu, Bell, LayoutDashboard, Clock, Users2, Trophy, UserCircle } from 'lucide-react';
+import { NavLink } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import ChatBubble from './ChatBubble';
 import { useApp } from '../context/AppContext';
@@ -181,6 +182,31 @@ export default function Layout({ children }) {
       </div>
 
       <ChatBubble />
+
+      {/* Mobile bottom nav */}
+      <nav
+        className="md:hidden fixed bottom-0 left-0 right-0 z-30 flex"
+        style={{ background: 'rgba(10,26,14,0.97)', borderTop: '1px solid rgba(255,255,255,0.07)' }}
+      >
+        {[
+          { to: '/', icon: LayoutDashboard, label: 'Home' },
+          { to: '/sessions', icon: Clock, label: 'Study' },
+          { to: '/study-groups', icon: Users2, label: 'Groups' },
+          { to: '/leaderboard', icon: Trophy, label: 'Progress' },
+          { to: '/profile', icon: UserCircle, label: 'Profile' },
+        ].map(({ to, icon: Icon, label }) => (
+          <NavLink
+            key={to}
+            to={to}
+            end={to === '/'}
+            className="flex flex-col items-center justify-center gap-1 py-2 flex-1"
+            style={({ isActive }) => ({ color: isActive ? '#F5A800' : 'rgba(255,255,255,0.4)' })}
+          >
+            <Icon size={22} />
+            <span className="text-xs font-medium">{label}</span>
+          </NavLink>
+        ))}
+      </nav>
 
       {/* Global session-complete notes modal */}
       {pendingCompletedSession && (
