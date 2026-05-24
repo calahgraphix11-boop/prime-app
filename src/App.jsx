@@ -23,6 +23,7 @@ import ExamPrep from "./pages/ExamPrep";
 import Upgrade from "./pages/Upgrade";
 import StudyGroups from "./pages/StudyGroups";
 import JoinGroup from "./pages/JoinGroup";
+import InternshipReport from "./pages/InternshipReport";
 
 class ErrorBoundary extends Component {
   state = { error: null };
@@ -89,6 +90,7 @@ function AppRoutes() {
       <Route path="/" element={<HomeRoute />} />
       <Route path="/sessions" element={<ProtectedRoute><Layout><StudySessions /></Layout></ProtectedRoute>} />
       <Route path="/report" element={<ProtectedRoute><Layout><AIReportWriter /></Layout></ProtectedRoute>} />
+      <Route path="/internship-report" element={<ProtectedRoute><Layout><InternshipReport /></Layout></ProtectedRoute>} />
       <Route path="/chat" element={<ProtectedRoute><Layout><AIChatbot /></Layout></ProtectedRoute>} />
       <Route path="/settings" element={<ProtectedRoute><Layout><Settings /></Layout></ProtectedRoute>} />
       <Route path="/friends" element={<ProtectedRoute><Layout><Friends /></Layout></ProtectedRoute>} />

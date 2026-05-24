@@ -23,6 +23,7 @@ export default function Sidebar({ open, onClose }) {
     { to: '/', icon: LayoutDashboard, label: t.dashboard, id: 'nav-dashboard' },
     { to: '/sessions', icon: Clock, label: t.studySessions, id: 'nav-sessions' },
     { to: '/report', icon: FileText, label: t.aiReportWriter, id: 'nav-report' },
+    { to: '/internship-report', icon: FileText, label: 'Internship Report' },
     { to: '/exam-prep', icon: GraduationCap, label: 'Exam Coach' },
     { to: '/summarizer', icon: FileText, label: 'Note Summarizer' },
     { to: '/chat', icon: MessageCircle, label: t.aiChatbot, id: 'nav-studypal' },
