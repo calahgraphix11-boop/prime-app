@@ -27,7 +27,7 @@ export default function NoteSummarizer() {
     const file = e.target.files[0];
     e.target.value = "";
     if (!file) return;
-    if (file.size > MAX_FILE_SIZE) { setFileError("File exceeds 5 MB limit."); return; }
+    if (file.size > 5 * 1024 * 1024) { setFileError("File too large. Please attach a file under 5MB."); if (fileInputRef.current) fileInputRef.current.value = ""; return; }
     setFileError("");
     const base64 = await readFileAsBase64(file);
     setAttachedFile({ file, base64, mediaType: getMediaType(file.name) });
@@ -132,6 +132,7 @@ export default function NoteSummarizer() {
             <p className="text-xs text-white/30">PDF, image, or text file — used alongside or instead of typed notes</p>
           )}
           {fileError && <p className="text-xs mt-1" style={{ color: '#f87171' }}>{fileError}</p>}
+          <p className="text-xs text-white/30 mt-1">PDF, DOCX or TXT — max 5MB</p>
         </div>
 
         {summaryRemaining === 0 ? (
