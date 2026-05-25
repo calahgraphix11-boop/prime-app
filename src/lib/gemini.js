@@ -111,15 +111,10 @@ export async function chatWithAssistant(messages, model = DEFAULT_MODEL, usernam
   return data.content?.[0]?.text ?? '';
 }
 
-export async function generateWithFile({ systemPrompt, userPrompt, file }) {
-  const content = [];
-  if (userPrompt) content.push({ type: 'text', text: userPrompt });
-  if (file) {
-    const block = buildAnthropicFileBlock(file);
-    if (block) content.push(block);
-  }
-  const userMsg = content.length === 1 ? userPrompt : content;
-  const messages = [{ role: 'user', content: userMsg }];
+export async function generateWithFile({ systemPrompt, userPrompt, referenceText }) {
+  let msgContent = userPrompt || '';
+  if (referenceText) msgContent += `\n\nReference material:\n${referenceText}`;
+  const messages = [{ role: 'user', content: msgContent }];
   const res = await fetch('https://dqxymdocyxzzqvulleob.supabase.co/functions/v1/note-summarizer', {
     method: 'POST',
     headers: {
@@ -136,15 +131,10 @@ export async function generateWithFile({ systemPrompt, userPrompt, file }) {
   return data.content?.[0]?.text ?? '';
 }
 
-export async function examCoach({ systemPrompt, userPrompt, file }) {
-  const content = [];
-  if (userPrompt) content.push({ type: 'text', text: userPrompt });
-  if (file) {
-    const block = buildAnthropicFileBlock(file);
-    if (block) content.push(block);
-  }
-  const userMsg = content.length === 1 ? userPrompt : content;
-  const messages = [{ role: 'user', content: userMsg }];
+export async function examCoach({ systemPrompt, userPrompt, referenceText }) {
+  let msgContent = userPrompt || '';
+  if (referenceText) msgContent += `\n\nReference material:\n${referenceText}`;
+  const messages = [{ role: 'user', content: msgContent }];
   console.log('[exam-coach] messages:', JSON.stringify(messages, null, 2));
   console.log('[exam-coach] systemPrompt:', systemPrompt);
   const res = await fetch('https://dqxymdocyxzzqvulleob.supabase.co/functions/v1/exam-coach', {

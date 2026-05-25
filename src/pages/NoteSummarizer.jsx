@@ -3,7 +3,7 @@ import { Sparkles, List, BookOpen, HelpCircle, Paperclip, X, Zap } from "lucide-
 import { generateWithFile } from "../lib/gemini";
 import { useApp } from "../context/AppContext";
 import UpgradeModal from "../components/UpgradeModal";
-import { ACCEPTED_FILE_TYPES, MAX_FILE_SIZE, getMediaType, readFileAsBase64 } from "../lib/fileUtils";
+import { ACCEPTED_FILE_TYPES, extractTextFromFile } from "../lib/fileUtils";
 
 const SYSTEM_PROMPT =
   "You are an expert study assistant. The user may provide lecture notes as text or as an attached file, and may also provide optional instructions for what they want. If no instructions are given, return a full summary as a JSON object with: keyPoints (array of strings), keyDefinitions (array of objects with term and definition), examQuestions (array of strings). If the user gives specific instructions, follow them and return the result in the same JSON format. Return ONLY valid JSON with no markdown or backticks.";
@@ -29,8 +29,8 @@ export default function NoteSummarizer() {
     if (!file) return;
     if (file.size > 5 * 1024 * 1024) { setFileError("File too large. Please attach a file under 5MB."); if (fileInputRef.current) fileInputRef.current.value = ""; return; }
     setFileError("");
-    const base64 = await readFileAsBase64(file);
-    setAttachedFile({ file, base64, mediaType: getMediaType(file.name) });
+    const referenceText = await extractTextFromFile(file);
+    setAttachedFile({ file, referenceText });
   };
 
   const handleSummarize = async () => {
@@ -41,12 +41,11 @@ export default function NoteSummarizer() {
     setError("");
     setResult(null);
     const subjectLabel = subject === "__custom__" ? customSubject : subject;
-    const fileArg = attachedFile ? { base64: attachedFile.base64, mediaType: attachedFile.mediaType, filename: attachedFile.file.name } : undefined;
     try {
       const raw = await generateWithFile({
         systemPrompt: SYSTEM_PROMPT,
         userPrompt: `Subject: ${subjectLabel || "General"}${instructions.trim() ? `\n\nInstructions: ${instructions}` : ''}`,
-        file: fileArg,
+        referenceText: attachedFile?.referenceText,
       });
       const jsonStr = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
       setResult(JSON.parse(jsonStr));

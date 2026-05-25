@@ -3,7 +3,7 @@ import { Sparkles, ChevronRight, Trophy, RotateCcw, Target, Paperclip, X, Zap } 
 import { examCoach } from "../lib/gemini";
 import { useApp } from "../context/AppContext";
 import UpgradeModal from "../components/UpgradeModal";
-import { ACCEPTED_FILE_TYPES, MAX_FILE_SIZE, getMediaType, readFileAsBase64 } from "../lib/fileUtils";
+import { ACCEPTED_FILE_TYPES, extractTextFromFile } from "../lib/fileUtils";
 
 const SYSTEM_PROMPT =
   "You are an exam preparation assistant. Return ONLY a valid JSON array with no markdown or backticks. Each object must have: question (string), options (array of exactly 4 strings labeled A. B. C. D.), correct (string matching one of the options exactly), explanation (string, one sentence max).";
@@ -43,8 +43,8 @@ export default function ExamPrep() {
     if (!file) return;
     if (file.size > 5 * 1024 * 1024) { setFileError("File too large. Please attach a file under 5MB."); if (fileInputRef.current) fileInputRef.current.value = ""; return; }
     setFileError("");
-    const base64 = await readFileAsBase64(file);
-    setAttachedFile({ file, base64, mediaType: getMediaType(file.name) });
+    const referenceText = await extractTextFromFile(file);
+    setAttachedFile({ file, referenceText });
   };
 
   const generate = async () => {
@@ -52,12 +52,11 @@ export default function ExamPrep() {
     setLoading(true);
     setError("");
     const subjectLabel = subject === "__custom__" ? customSubject : subject;
-    const fileArg = attachedFile ? { base64: attachedFile.base64, mediaType: attachedFile.mediaType, filename: attachedFile.file.name } : undefined;
     try {
       const raw = await examCoach({
         systemPrompt: SYSTEM_PROMPT,
         userPrompt: `Topic: ${topic}\nSubject: ${subjectLabel || "General"}\nDifficulty: ${difficulty}\nQuestion count: ${questionCount}`,
-        file: fileArg,
+        referenceText: attachedFile?.referenceText,
       });
       const jsonStr = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
       const parsed = JSON.parse(jsonStr);
