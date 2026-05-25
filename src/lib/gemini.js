@@ -102,7 +102,20 @@ export async function chatWithAssistant(messages, model = DEFAULT_MODEL, usernam
     return { role, content: m.content };
   });
 
-  return callAnthropic(apiMessages, model, system, 1024);
+  const res = await fetch('https://dqxymdocyxzzqvulleob.supabase.co/functions/v1/studypal-chat', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+    },
+    body: JSON.stringify({ messages: apiMessages, systemPrompt: system }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || 'StudyPal request failed');
+  }
+  const data = await res.json();
+  return data.content?.[0]?.text ?? '';
 }
 
 export async function generateWithFile({ systemPrompt, userPrompt, file }) {
