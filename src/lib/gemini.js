@@ -49,7 +49,21 @@ Report Title: ${title}
 Original Content: ${content}
 
 Provide a well-structured, polished rewrite. Return only the rewritten content.`;
-  return generateContent(prompt, model);
+  const messages = [{ role: 'user', content: prompt }];
+  const res = await fetch('https://dqxymdocyxzzqvulleob.supabase.co/functions/v1/report-writer', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+    },
+    body: JSON.stringify({ messages, systemPrompt: null }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || 'Report Writer request failed');
+  }
+  const data = await res.json();
+  return data.content?.[0]?.text ?? '';
 }
 
 const SUPPORT_SYSTEM = "You are Prime's friendly support assistant. You help students with questions about the Prime app. Prime is a student productivity app with these features: StudyPal AI chat, AI Report Writer, Note Summarizer, Study Sessions with Pomodoro timer, Analytics dashboard, and Course Manager. New users get a 7-day free trial with no daily limits — the trial applies to both the Basic (2,500 FCFA/mo) and Pro (5,000 FCFA/mo) plans. After the trial ends, daily limits apply: 10 chats, 5 report rewrites, and 5 note summaries per day. To remove limits, users can upgrade to Basic (2,500 FCFA/mo) or Pro (5,000 FCFA/mo). Payments are made via MTN Mobile Money or Orange Money — no credit card needed. For payment or account issues you cannot resolve, tell the user to contact the team on WhatsApp. Be concise, friendly, and helpful. Do not answer questions unrelated to the app.";
