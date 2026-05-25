@@ -145,6 +145,8 @@ export async function examCoach({ systemPrompt, userPrompt, file }) {
   }
   const userMsg = content.length === 1 ? userPrompt : content;
   const messages = [{ role: 'user', content: userMsg }];
+  console.log('[exam-coach] messages:', JSON.stringify(messages, null, 2));
+  console.log('[exam-coach] systemPrompt:', systemPrompt);
   const res = await fetch('https://dqxymdocyxzzqvulleob.supabase.co/functions/v1/exam-coach', {
     method: 'POST',
     headers: {
@@ -153,10 +155,13 @@ export async function examCoach({ systemPrompt, userPrompt, file }) {
     },
     body: JSON.stringify({ messages, systemPrompt }),
   });
+  const bodyText = await res.text();
+  console.log('[exam-coach] response status:', res.status);
+  console.log('[exam-coach] response body:', bodyText);
   if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
+    const err = JSON.parse(bodyText || '{}');
     throw new Error(err.error || 'Exam Coach request failed');
   }
-  const data = await res.json();
+  const data = JSON.parse(bodyText);
   return data.content?.[0]?.text ?? '';
 }
