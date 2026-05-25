@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { Sparkles, ChevronRight, Trophy, RotateCcw, Target, Paperclip, X, Zap } from "lucide-react";
-import { generateWithFile } from "../lib/gemini";
+import { examCoach } from "../lib/gemini";
 import { useApp } from "../context/AppContext";
 import UpgradeModal from "../components/UpgradeModal";
 import { ACCEPTED_FILE_TYPES, MAX_FILE_SIZE, getMediaType, readFileAsBase64 } from "../lib/fileUtils";
@@ -54,7 +54,7 @@ export default function ExamPrep() {
     const subjectLabel = subject === "__custom__" ? customSubject : subject;
     const fileArg = attachedFile ? { base64: attachedFile.base64, mediaType: attachedFile.mediaType, filename: attachedFile.file.name } : undefined;
     try {
-      const raw = await generateWithFile({
+      const raw = await examCoach({
         systemPrompt: SYSTEM_PROMPT,
         userPrompt: `Topic: ${topic}\nSubject: ${subjectLabel || "General"}\nDifficulty: ${difficulty}\nQuestion count: ${questionCount}`,
         file: fileArg,

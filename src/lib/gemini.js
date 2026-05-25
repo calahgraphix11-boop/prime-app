@@ -142,3 +142,28 @@ export async function generateWithFile({ systemPrompt, userPrompt, file }) {
   const userMsg = content.length === 1 ? userPrompt : content;
   return callAnthropic([{ role: 'user', content: userMsg }], DEFAULT_MODEL, systemPrompt, 4096);
 }
+
+export async function examCoach({ systemPrompt, userPrompt, file }) {
+  const content = [];
+  if (userPrompt) content.push({ type: 'text', text: userPrompt });
+  if (file) {
+    const block = buildAnthropicFileBlock(file);
+    if (block) content.push(block);
+  }
+  const userMsg = content.length === 1 ? userPrompt : content;
+  const messages = [{ role: 'user', content: userMsg }];
+  const res = await fetch('https://dqxymdocyxzzqvulleob.supabase.co/functions/v1/exam-coach', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+    },
+    body: JSON.stringify({ messages, systemPrompt }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || 'Exam Coach request failed');
+  }
+  const data = await res.json();
+  return data.content?.[0]?.text ?? '';
+}
