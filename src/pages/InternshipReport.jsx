@@ -68,18 +68,8 @@ ${content.conclusion || 'No notes provided.'}
 Expand each section into well-structured formal academic English. Return only valid JSON with these exact keys: acknowledgements, dedication, introduction, chapter1, chapter2_activities, chapter2_problems, chapter2_solutions, conclusion.
 `.trim();
 
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': apiKey,
-          'anthropic-version': '2023-06-01',
-          'anthropic-dangerous-direct-browser-access': 'true',
-        },
-        body: JSON.stringify({
-          model: 'claude-haiku-4-5-20251001',
-          max_tokens: 4096,
-          system: `You are an expert academic report writer specializing in Cameroonian university internship reports. Your job is to generate a complete, detailed, professional internship report for a COLTECH (College of Technology, University of Bamenda) student based on minimal input.
+      const messages = [{ role: 'user', content: userPrompt }];
+      const systemPrompt = `You are an expert academic report writer specializing in Cameroonian university internship reports. Your job is to generate a complete, detailed, professional internship report for a COLTECH (College of Technology, University of Bamenda) student based on minimal input.
 
 CRITICAL RULES:
 - Generate LONG, detailed, academic content for every section — minimum 3-4 paragraphs per section
@@ -92,9 +82,14 @@ CRITICAL RULES:
 - Problems and solutions must be realistic and specific to their field
 - The conclusion must summarize learnings and make specific recommendations
 
-Return ONLY a valid JSON object with these exact keys: acknowledgements, dedication, introduction, chapter1_location, chapter1_institution, chapter1_vision_mission, chapter1_organization, chapter1_activities, chapter2_activities, chapter2_problems, chapter2_solutions, conclusion, recommendations. No markdown, no explanation, just the JSON.`,
-          messages: [{ role: 'user', content: userPrompt }],
-        }),
+Return ONLY a valid JSON object with these exact keys: acknowledgements, dedication, introduction, chapter1_location, chapter1_institution, chapter1_vision_mission, chapter1_organization, chapter1_activities, chapter2_activities, chapter2_problems, chapter2_solutions, conclusion, recommendations. No markdown, no explanation, just the JSON.`;
+      const res = await fetch('https://dqxymdocyxzzqvulleob.supabase.co/functions/v1/internship-report', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({ messages, systemPrompt }),
       });
 
       if (!res.ok) {
