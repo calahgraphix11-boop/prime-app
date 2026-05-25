@@ -39,8 +39,7 @@ export default function InternshipReport() {
     setError('');
     setLoading(true);
     try {
-      const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY;
-      const userPrompt = `
+const userPrompt = `
 Student: ${info.fullName} | Reg: ${info.regNumber} | Dept: ${info.department}
 Academic Year: ${info.academicYear} | Supervisor: ${info.supervisorName}
 Host Institution: ${info.hostName}, ${info.hostLocation}
