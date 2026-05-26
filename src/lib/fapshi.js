@@ -60,20 +60,13 @@ export const PLANS = {
 export async function initiatePayment({ amount, email, userId, plan, coupon }) {
   const externalId = `${userId}_${plan}_${Date.now()}`;
   const redirectUrl = `https://primestudyapp.com/payment-success?plan=${plan}${coupon ? `&coupon=${encodeURIComponent(coupon)}` : ''}`;
-  const res = await fetch(`${BASE}/initiate-pay`, {
+  const res = await fetch('https://dqxymdocyxzzqvulleob.supabase.co/functions/v1/fapshi-payment', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      apiuser: API_USER,
-      apikey: API_KEY,
+      'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
     },
-    body: JSON.stringify({
-      amount,
-      email,
-      redirectUrl,
-      userId,
-      externalId,
-    }),
+    body: JSON.stringify({ amount, email, redirectUrl, userId, plan }),
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
