@@ -58,8 +58,9 @@ export default function ExamPrep() {
         userPrompt: `Topic: ${topic}\nSubject: ${subjectLabel || "General"}\nDifficulty: ${difficulty}\nQuestion count: ${questionCount}`,
         referenceText: attachedFile?.referenceText,
       });
-      const jsonStr = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
-      const parsed = JSON.parse(jsonStr);
+      const jsonMatch = raw.match(/\[[\s\S]*\]/);
+      if (!jsonMatch) throw new Error('Could not parse response. Please try again.');
+      const parsed = JSON.parse(jsonMatch[0]);
       incrementExam();
       if (attachedFile && canUploadFiles && fileUploadsRemaining > 0) incrementFileUpload();
       setQuestions(parsed.slice(0, questionCount));
