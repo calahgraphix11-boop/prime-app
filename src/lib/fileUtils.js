@@ -28,6 +28,11 @@ export function readFileAsBase64(file) {
   });
 }
 
+function truncateTo3000Words(text) {
+  const words = text.trim().split(/\s+/);
+  return words.length <= 3000 ? text : words.slice(0, 3000).join(' ');
+}
+
 export async function extractTextFromFile(file) {
   const ext = file.name.split('.').pop().toLowerCase();
   if (ext === 'pdf') {
@@ -39,11 +44,11 @@ export async function extractTextFromFile(file) {
       const content = await page.getTextContent();
       pageTexts.push(content.items.map((item) => item.str).join(' '));
     }
-    return pageTexts.join('\n');
+    return truncateTo3000Words(pageTexts.join('\n'));
   }
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
+    reader.onload = () => resolve(truncateTo3000Words(reader.result));
     reader.onerror = reject;
     reader.readAsText(file);
   });
