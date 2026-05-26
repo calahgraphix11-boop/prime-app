@@ -88,15 +88,22 @@ export default function NoteSummarizer() {
       const parsed = JSON.parse(jsonMatch[0]);
       setResult(parsed);
       supabase.auth.getUser().then(({ data: { user } }) => {
-        if (user) supabase.from("summary_history").insert({
-          user_id: user.id,
-          subject: subjectLabel || null,
-          instructions: instructions.trim() || null,
-          summary: JSON.stringify(parsed),
-          title: randomTitle(),
-        });
+        if (user) {
+          const payload = {
+            user_id: user.id,
+            subject: subjectLabel || null,
+            instructions: instructions.trim() || null,
+            summary: JSON.stringify(parsed),
+            title: randomTitle(),
+          };
+          console.log('[summary_history] saving:', payload);
+          supabase.from("summary_history").insert(payload).then(({ error }) => {
+            if (error) console.error('[summary_history] save error:', error);
+          });
+        }
       });
-    } catch {
+    } catch (error) {
+      console.error('[summary_history] save error:', error);
       setError("Failed to summarize. Please try again.");
     } finally {
       setLoading(false);
