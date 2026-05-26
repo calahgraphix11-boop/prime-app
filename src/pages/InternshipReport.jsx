@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { FileDown, Loader, AlertCircle } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 import {
   Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, PageBreak,
 } from 'docx';
@@ -82,11 +83,12 @@ CRITICAL RULES:
 - The conclusion must summarize learnings and make specific recommendations
 
 Return ONLY a valid JSON object with these exact keys: acknowledgements, dedication, introduction, chapter1_location, chapter1_institution, chapter1_vision_mission, chapter1_organization, chapter1_activities, chapter2_activities, chapter2_problems, chapter2_solutions, conclusion, recommendations. No markdown, no explanation, just the JSON.`;
+      const { data: { session } } = await supabase.auth.getSession();
       const res = await fetch('https://dqxymdocyxzzqvulleob.supabase.co/functions/v1/internship-report', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'Authorization': `Bearer ${session?.access_token}`,
         },
         body: JSON.stringify({ messages, systemPrompt }),
       });

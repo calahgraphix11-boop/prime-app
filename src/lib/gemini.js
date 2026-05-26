@@ -1,3 +1,4 @@
+import { supabase } from "./supabase";
 
 export const MODELS = [
   { id: 'claude-haiku-4-5-20251001', label: 'Haiku' },
@@ -20,11 +21,12 @@ Original Content: ${content}
 
 Provide a well-structured, polished rewrite. Return only the rewritten content.`;
   const messages = [{ role: 'user', content: prompt }];
+  const { data: { session } } = await supabase.auth.getSession();
   const res = await fetch('https://dqxymdocyxzzqvulleob.supabase.co/functions/v1/report-writer', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+      'Authorization': `Bearer ${session?.access_token}`,
     },
     body: JSON.stringify({ messages, systemPrompt: null }),
   });
@@ -40,11 +42,12 @@ const SUPPORT_SYSTEM = "You are Prime's friendly support assistant. You help stu
 
 export async function supportChat(messages) {
   const apiMessages = messages.map((m) => ({ role: m.role === 'user' ? 'user' : 'assistant', content: m.content }));
+  const { data: { session } } = await supabase.auth.getSession();
   const res = await fetch('https://dqxymdocyxzzqvulleob.supabase.co/functions/v1/support-chat', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+      'Authorization': `Bearer ${session?.access_token}`,
     },
     body: JSON.stringify({ messages: apiMessages, systemPrompt: SUPPORT_SYSTEM }),
   });
@@ -95,11 +98,12 @@ export async function chatWithAssistant(messages, model = DEFAULT_MODEL, usernam
     return { role, content: m.content };
   });
 
+  const { data: { session } } = await supabase.auth.getSession();
   const res = await fetch('https://dqxymdocyxzzqvulleob.supabase.co/functions/v1/studypal-chat', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+      'Authorization': `Bearer ${session?.access_token}`,
     },
     body: JSON.stringify({ messages: apiMessages, systemPrompt: system }),
   });
@@ -115,11 +119,12 @@ export async function generateWithFile({ systemPrompt, userPrompt, referenceText
   let msgContent = userPrompt || '';
   if (referenceText) msgContent += `\n\nReference material:\n${referenceText}`;
   const messages = [{ role: 'user', content: msgContent }];
+  const { data: { session } } = await supabase.auth.getSession();
   const res = await fetch('https://dqxymdocyxzzqvulleob.supabase.co/functions/v1/note-summarizer', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+      'Authorization': `Bearer ${session?.access_token}`,
     },
     body: JSON.stringify({ messages, systemPrompt }),
   });
@@ -145,11 +150,12 @@ export async function examCoach({ systemPrompt, userPrompt, referenceText, quest
   const messages = [{ role: 'user', content: msgContent }];
   console.log('[exam-coach] messages:', JSON.stringify(messages, null, 2));
   console.log('[exam-coach] systemPrompt:', systemPrompt);
+  const { data: { session } } = await supabase.auth.getSession();
   const res = await fetch('https://dqxymdocyxzzqvulleob.supabase.co/functions/v1/exam-coach', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+      'Authorization': `Bearer ${session?.access_token}`,
     },
     body: JSON.stringify({ messages, systemPrompt }),
   });
