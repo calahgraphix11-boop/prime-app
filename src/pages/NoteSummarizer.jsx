@@ -46,6 +46,7 @@ export default function NoteSummarizer() {
 
   useEffect(() => {
     if (tab !== "history") return;
+    setExpandedId(null);
     setHistoryLoading(true);
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (!user) { setHistoryLoading(false); return; }
@@ -214,7 +215,7 @@ export default function NoteSummarizer() {
           ) : history.map((item) => {
             const isExpanded = expandedId === item.id;
             const isEditing = editingId === item.id;
-            const displayTitle = item.title || item.subject || "Untitled";
+            const displayTitle = item.title || item.subject || `Summary · ${new Date(item.created_at).toLocaleDateString()}`;
             return (
               <div
                 key={item.id}
