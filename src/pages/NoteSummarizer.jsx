@@ -24,8 +24,8 @@ function randomTitle() {
 }
 
 export default function NoteSummarizer() {
-  const { courses, summaryRemaining, incrementSummary, trialExpired, fileUploadsRemaining, incrementFileUpload, trialActive, planActive } = useApp();
-  const canUploadFiles = planActive && fileUploadsRemaining > 0;
+  const { courses, summaryRemaining, incrementSummary, trialExpired, fileUploadsRemaining, incrementFileUpload, trialActive, planActive, userPlan } = useApp();
+  const canUploadFiles = userPlan === 'basic' || userPlan === 'pro';
 
   const [instructions, setInstructions] = useState("");
   const [subject, setSubject] = useState("");
