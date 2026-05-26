@@ -47,6 +47,7 @@ export default function NoteSummarizer() {
   useEffect(() => {
     if (tab !== "history") return;
     setExpandedId(null);
+    setResult(null);
     setHistoryLoading(true);
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (!user) { setHistoryLoading(false); return; }
