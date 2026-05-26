@@ -3,7 +3,7 @@ import { Sparkles, ChevronRight, Trophy, RotateCcw, Target, Paperclip, X, Zap, C
 import { examCoach } from "../lib/gemini";
 import { useApp } from "../context/AppContext";
 import UpgradeModal from "../components/UpgradeModal";
-import { ACCEPTED_FILE_TYPES, extractTextFromFile } from "../lib/fileUtils";
+import { extractTextFromFile } from "../lib/fileUtils";
 import { supabase } from "../lib/supabase";
 
 const DIFFICULTIES = ["Easy", "Medium", "Hard"];
@@ -144,27 +144,27 @@ export default function ExamPrep() {
       <div className="space-y-5 pt-2">
         {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} />}
         <div>
-          <h1 className="text-2xl font-bold text-white">Exam Coach</h1>
-          <p className="text-sm text-white/50 mt-0.5">Practice smarter, not harder</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Exam Coach</h1>
+          <p className="text-sm text-gray-700 dark:text-gray-300 mt-0.5">Practice smarter, not harder</p>
         </div>
 
         <div className="flex gap-1 p-1 rounded-xl" style={{ background: 'rgba(255,255,255,0.05)' }}>
-          <button onClick={() => setTab("generate")} className={`flex-1 py-1.5 rounded-lg text-sm font-medium transition-all ${tab === "generate" ? "bg-white/10 text-white" : "text-white/40"}`}>Generate</button>
-          <button onClick={() => setTab("history")} className={`flex-1 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-1.5 ${tab === "history" ? "bg-white/10 text-white" : "text-white/40"}`}><Clock size={13} />History</button>
+          <button onClick={() => setTab("generate")} className={`flex-1 py-1.5 rounded-lg text-sm font-medium transition-all ${tab === "generate" ? "bg-white/10 text-gray-900 dark:text-white" : "text-gray-700 dark:text-gray-300"}`}>Generate</button>
+          <button onClick={() => setTab("history")} className={`flex-1 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-1.5 ${tab === "history" ? "bg-white/10 text-gray-900 dark:text-white" : "text-gray-700 dark:text-gray-300"}`}><Clock size={13} />History</button>
         </div>
 
         {tab === "history" ? (
           <div className="glass rounded-2xl p-5">
             {historyLoading ? (
-              <p className="text-sm text-white/40 text-center py-6">Loading…</p>
+              <p className="text-sm text-gray-700 dark:text-gray-300 text-center py-6">Loading…</p>
             ) : history.length === 0 ? (
-              <p className="text-sm text-white/40 text-center py-6">No past sessions yet</p>
+              <p className="text-sm text-gray-700 dark:text-gray-300 text-center py-6">No past sessions yet</p>
             ) : (
               <div className="space-y-2">
                 {history.map((item) => (
                   <button key={item.id} onClick={() => loadHistoryItem(item)} className="w-full text-left px-4 py-3 rounded-xl transition-all btn-ghost">
-                    <div className="text-sm font-medium text-white truncate">{item.topic}</div>
-                    <div className="text-xs text-white/40 mt-0.5 flex items-center gap-1.5">
+                    <div className="text-sm font-medium text-gray-900 dark:text-white truncate">{item.topic}</div>
+                    <div className="text-xs text-gray-700 dark:text-gray-300 mt-0.5 flex items-center gap-1.5">
                       {item.subject && <><span>{item.subject}</span><span>·</span></>}
                       <span>{item.difficulty}</span>
                       <span>·</span>
@@ -180,8 +180,8 @@ export default function ExamPrep() {
             <div className="w-12 h-12 rounded-xl mx-auto mb-3 flex items-center justify-center" style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.25)' }}>
               <Sparkles size={20} style={{ color: '#f87171' }} />
             </div>
-            <h3 className="text-base font-bold text-white mb-1.5">{trialExpired ? 'Free Trial Ended' : 'Daily Limit Reached'}</h3>
-            <p className="text-sm text-white/50 leading-relaxed">{trialExpired ? 'Your 7-day free trial has ended — upgrade to keep practicing.' : "You've used all 5 Exam Coach sessions for today — upgrade for unlimited access."}</p>
+            <h3 className="text-base font-bold text-gray-900 dark:text-white mb-1.5">{trialExpired ? 'Free Trial Ended' : 'Daily Limit Reached'}</h3>
+            <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{trialExpired ? 'Your 7-day free trial has ended — upgrade to keep practicing.' : "You've used all 5 Exam Coach sessions for today — upgrade for unlimited access."}</p>
             <div className="mt-4 px-4 py-1.5 rounded-full text-xs font-semibold inline-block" style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171' }}>
               {trialExpired ? '7-day free trial ended' : '5 / 5 sessions used today'}
             </div>
@@ -192,7 +192,7 @@ export default function ExamPrep() {
         ) : (
         <div className="glass rounded-2xl p-5 space-y-4">
           <div>
-            <label className="text-sm font-medium text-white/75 block mb-1.5">Topic</label>
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1.5">Topic</label>
             <input
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
@@ -204,38 +204,44 @@ export default function ExamPrep() {
           {/* File attachment */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <label className="text-sm font-medium text-white/75">Reference Material</label>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Reference Material</label>
               {canUploadFiles && fileUploadsRemaining > 0 ? (
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-colors"
+                <label
+                  htmlFor="exam-file-input"
+                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-colors cursor-pointer"
                   style={{ background: 'rgba(0,77,46,0.3)', border: '1px solid rgba(0,77,46,0.5)', color: '#34d399' }}
                 >
                   <Paperclip size={12} /> Attach file
-                </button>
+                </label>
               ) : null}
-              <input ref={fileInputRef} type="file" accept={ACCEPTED_FILE_TYPES} onChange={handleFileChange} className="hidden" />
+              <input
+                ref={fileInputRef}
+                id="exam-file-input"
+                type="file"
+                accept=".pdf,.docx,.txt"
+                onChange={handleFileChange}
+                className="sr-only"
+              />
             </div>
             {!canUploadFiles ? (
-              <p className="text-xs text-white/40">Upgrade to access file uploads</p>
+              <p className="text-xs text-gray-700 dark:text-gray-300">Upgrade to access file uploads</p>
             ) : fileUploadsRemaining === 0 ? (
-              <p className="text-xs text-white/40">Daily file upload limit reached</p>
+              <p className="text-xs text-gray-700 dark:text-gray-300">Daily file upload limit reached</p>
             ) : attachedFile ? (
               <div className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs" style={{ background: 'rgba(245,168,0,0.08)', border: '1px solid rgba(245,168,0,0.25)' }}>
                 <Paperclip size={12} style={{ color: '#F5A800', flexShrink: 0 }} />
-                <span className="text-white/70 truncate flex-1">{attachedFile.file.name}</span>
-                <button onClick={() => setAttachedFile(null)} className="flex-shrink-0 text-white/35 hover:text-white/70 transition-colors"><X size={12} /></button>
+                <span className="text-gray-700 dark:text-gray-300 truncate flex-1">{attachedFile.file.name}</span>
+                <button onClick={() => setAttachedFile(null)} className="flex-shrink-0 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"><X size={12} /></button>
               </div>
             ) : (
-              <p className="text-xs text-white/30">Optional — attach notes or a document to generate topic-specific questions</p>
+              <p className="text-xs text-gray-700 dark:text-gray-300">Optional — attach notes or a document to generate topic-specific questions</p>
             )}
             {fileError && <p className="text-xs mt-1" style={{ color: '#f87171' }}>{fileError}</p>}
-            <p className="text-xs text-white/30 mt-1">PDF, DOCX or TXT — max 5MB</p>
+            <p className="text-xs text-gray-700 dark:text-gray-300 mt-1">PDF, DOCX or TXT — max 5MB</p>
           </div>
 
           <div>
-            <label className="text-sm font-medium text-white/75 block mb-1.5">Subject</label>
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1.5">Subject</label>
             <select
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
@@ -258,7 +264,7 @@ export default function ExamPrep() {
           </div>
 
           <div>
-            <label className="text-sm font-medium text-white/75 block mb-2">Question Type</label>
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-2">Question Type</label>
             <div className="flex gap-2">
               {QUESTION_TYPES.map((t) => (
                 <button
@@ -273,7 +279,7 @@ export default function ExamPrep() {
           </div>
 
           <div>
-            <label className="text-sm font-medium text-white/75 block mb-2">Difficulty</label>
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-2">Difficulty</label>
             <div className="flex gap-2">
               {DIFFICULTIES.map((d) => (
                 <button
@@ -288,7 +294,7 @@ export default function ExamPrep() {
           </div>
 
           <div>
-            <label className="text-sm font-medium text-white/75 block mb-2">Number of Questions</label>
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-2">Number of Questions</label>
             <div className="flex gap-2">
               {QUESTION_COUNTS.map((n) => (
                 <button
@@ -314,7 +320,7 @@ export default function ExamPrep() {
             )}
           </button>
           {examRemaining < 999 && (
-            <p className="text-xs text-center text-white/35">{examRemaining} of 5 sessions remaining today</p>
+            <p className="text-xs text-center text-gray-700 dark:text-gray-300">{examRemaining} of 5 sessions remaining today</p>
           )}
         </div>
         )}
@@ -334,12 +340,12 @@ export default function ExamPrep() {
       <div className="space-y-5 pt-2">
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-white">Exam Coach</h1>
-            <p className="text-sm text-white/50 mt-0.5">Practice smarter, not harder</p>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Exam Coach</h1>
+            <p className="text-sm text-gray-700 dark:text-gray-300 mt-0.5">Practice smarter, not harder</p>
           </div>
           <div className="text-right flex-shrink-0">
-            <div className="text-xs text-white/40 mb-0.5">Question</div>
-            <div className="text-sm font-semibold text-white">{currentIndex + 1} / {questions.length}</div>
+            <div className="text-xs text-gray-700 dark:text-gray-300 mb-0.5">Question</div>
+            <div className="text-sm font-semibold text-gray-900 dark:text-white">{currentIndex + 1} / {questions.length}</div>
           </div>
         </div>
 
@@ -352,7 +358,7 @@ export default function ExamPrep() {
         </div>
 
         <div className="glass rounded-2xl p-5 space-y-4">
-          <p className="text-base font-medium text-white leading-relaxed">{q.question}</p>
+          <p className="text-base font-medium text-gray-900 dark:text-white leading-relaxed">{q.question}</p>
 
           {questionType === "Structured" ? (
             <>
@@ -366,7 +372,7 @@ export default function ExamPrep() {
               ) : (
                 <div className="space-y-2">
                   <div className="rounded-xl p-3 text-sm" style={{ background: "rgba(52,211,153,0.08)", border: "1px solid rgba(52,211,153,0.25)" }}>
-                    <p className="text-white/80 leading-relaxed">{q.answer}</p>
+                    <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{q.answer}</p>
                   </div>
                   <div className="text-xs font-medium px-1" style={{ color: "#F5A800" }}>
                     Suggested marks: {q.marks}
@@ -401,8 +407,8 @@ export default function ExamPrep() {
               </div>
               {answered && (
                 <div className="rounded-xl p-3 text-sm" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }}>
-                  <span className="font-semibold text-white/60">Explanation: </span>
-                  <span className="text-white/75">{q.explanation}</span>
+                  <span className="font-semibold text-gray-700 dark:text-gray-300">Explanation: </span>
+                  <span className="text-gray-700 dark:text-gray-300">{q.explanation}</span>
                 </div>
               )}
             </>
@@ -431,8 +437,8 @@ export default function ExamPrep() {
     return (
       <div className="space-y-5 pt-2">
         <div>
-          <h1 className="text-2xl font-bold text-white">Exam Coach</h1>
-          <p className="text-sm text-white/50 mt-0.5">Practice smarter, not harder</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Exam Coach</h1>
+          <p className="text-sm text-gray-700 dark:text-gray-300 mt-0.5">Practice smarter, not harder</p>
         </div>
 
         <div className="glass rounded-2xl p-6 text-center space-y-3">
@@ -440,17 +446,17 @@ export default function ExamPrep() {
             <Trophy size={28} style={{ color: "#F5A800" }} />
           </div>
           <div>
-            <div className="text-2xl font-bold text-white">Session Complete</div>
-            <div className="text-sm text-white/50 mt-0.5">{questions.length} structured question{questions.length !== 1 ? "s" : ""} reviewed</div>
+            <div className="text-2xl font-bold text-gray-900 dark:text-white">Session Complete</div>
+            <div className="text-sm text-gray-700 dark:text-gray-300 mt-0.5">{questions.length} structured question{questions.length !== 1 ? "s" : ""} reviewed</div>
           </div>
         </div>
 
         <div className="glass rounded-2xl p-5 space-y-4">
-          <h3 className="text-sm font-semibold text-white">Answer Sheet</h3>
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Answer Sheet</h3>
           {questions.map((q, i) => (
             <div key={i} className="space-y-1.5 pb-4" style={{ borderBottom: i < questions.length - 1 ? "1px solid rgba(255,255,255,0.08)" : "none" }}>
-              <p className="text-sm font-medium text-white/80">{q.question}</p>
-              <p className="text-xs leading-relaxed text-white/55">{q.answer}</p>
+              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">{q.question}</p>
+              <p className="text-xs leading-relaxed text-gray-700 dark:text-gray-300">{q.answer}</p>
               <p className="text-xs font-medium" style={{ color: "#F5A800" }}>Marks: {q.marks}</p>
             </div>
           ))}
@@ -473,8 +479,8 @@ export default function ExamPrep() {
   return (
     <div className="space-y-5 pt-2">
       <div>
-        <h1 className="text-2xl font-bold text-white">Exam Coach</h1>
-        <p className="text-sm text-white/50 mt-0.5">Practice smarter, not harder</p>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Exam Coach</h1>
+        <p className="text-sm text-gray-700 dark:text-gray-300 mt-0.5">Practice smarter, not harder</p>
       </div>
 
       <div className="glass rounded-2xl p-6 text-center space-y-3">
@@ -482,8 +488,8 @@ export default function ExamPrep() {
           <Trophy size={28} style={{ color: badge.color }} />
         </div>
         <div>
-          <div className="text-4xl font-bold text-white">{pct}%</div>
-          <div className="text-sm text-white/50 mt-0.5">{score} of {questions.length} correct</div>
+          <div className="text-4xl font-bold text-gray-900 dark:text-white">{pct}%</div>
+          <div className="text-sm text-gray-700 dark:text-gray-300 mt-0.5">{score} of {questions.length} correct</div>
         </div>
         <div className="inline-block px-4 py-1.5 rounded-full text-sm font-semibold" style={{ background: badge.bg, border: `1px solid ${badge.border}`, color: badge.color }}>
           {badge.label}
@@ -492,12 +498,12 @@ export default function ExamPrep() {
 
       {wrongAnswers.length > 0 && (
         <div className="glass rounded-2xl p-5 space-y-4">
-          <h3 className="text-sm font-semibold text-white">Review Missed Questions</h3>
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Review Missed Questions</h3>
           {wrongAnswers.map((q, i) => (
             <div key={i} className="space-y-1.5 pb-4" style={{ borderBottom: i < wrongAnswers.length - 1 ? "1px solid rgba(255,255,255,0.08)" : "none" }}>
-              <p className="text-sm text-white/80">{q.question}</p>
+              <p className="text-sm text-gray-700 dark:text-gray-300">{q.question}</p>
               <p className="text-xs font-medium" style={{ color: "#34d399" }}>Correct: {q.correct}</p>
-              <p className="text-xs text-white/45">{q.explanation}</p>
+              <p className="text-xs text-gray-700 dark:text-gray-300">{q.explanation}</p>
             </div>
           ))}
         </div>
