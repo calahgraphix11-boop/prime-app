@@ -1,9 +1,10 @@
-import { useState, useRef } from "react";
-import { Sparkles, List, BookOpen, HelpCircle, Paperclip, X, Zap } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { Sparkles, List, BookOpen, HelpCircle, Paperclip, X, Zap, Clock } from "lucide-react";
 import { generateWithFile } from "../lib/gemini";
 import { useApp } from "../context/AppContext";
 import UpgradeModal from "../components/UpgradeModal";
 import { ACCEPTED_FILE_TYPES, extractTextFromFile } from "../lib/fileUtils";
+import { supabase } from "../lib/supabase";
 
 const SYSTEM_PROMPT =
   "You are an expert study assistant. The user may provide lecture notes as text or as an attached file, and may also provide optional instructions for what they want. If no instructions are given, return a full summary as a JSON object with: keyPoints (array of strings), keyDefinitions (array of objects with term and definition), examQuestions (array of strings). If the user gives specific instructions, follow them and return the result in the same JSON format. Return ONLY valid JSON with no markdown or backticks.";
@@ -21,7 +22,25 @@ export default function NoteSummarizer() {
   const [attachedFile, setAttachedFile] = useState(null);
   const [fileError, setFileError] = useState("");
   const [showUpgrade, setShowUpgrade] = useState(false);
+  const [tab, setTab] = useState("generate");
+  const [history, setHistory] = useState([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
   const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    if (tab !== "history") return;
+    setHistoryLoading(true);
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) { setHistoryLoading(false); return; }
+      supabase.from("summary_history").select("*").eq("user_id", user.id).order("created_at", { ascending: false })
+        .then(({ data }) => { setHistory(data || []); setHistoryLoading(false); });
+    });
+  }, [tab]);
+
+  const loadHistoryItem = (item) => {
+    try { setResult(JSON.parse(item.summary)); } catch { setResult(null); }
+    setTab("generate");
+  };
 
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
@@ -47,8 +66,13 @@ export default function NoteSummarizer() {
         userPrompt: `Subject: ${subjectLabel || "General"}${instructions.trim() ? `\n\nInstructions: ${instructions}` : ''}`,
         referenceText: attachedFile?.referenceText,
       });
-      const jsonStr = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
-      setResult(JSON.parse(jsonStr));
+      const jsonMatch = raw.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) throw new Error('Could not parse response.');
+      const parsed = JSON.parse(jsonMatch[0]);
+      setResult(parsed);
+      supabase.auth.getUser().then(({ data: { user } }) => {
+        if (user) supabase.from("summary_history").insert({ user_id: user.id, subject: subjectLabel || null, instructions: instructions.trim() || null, summary: JSON.stringify(parsed) });
+      });
     } catch {
       setError("Failed to summarize. Please try again.");
     } finally {
@@ -64,7 +88,31 @@ export default function NoteSummarizer() {
         <p className="text-sm text-white/50 mt-0.5">Turn your lecture notes into study gold</p>
       </div>
 
-      <div className="glass rounded-2xl p-5 space-y-4">
+      <div className="flex gap-1 p-1 rounded-xl" style={{ background: 'rgba(255,255,255,0.05)' }}>
+        <button onClick={() => setTab("generate")} className={`flex-1 py-1.5 rounded-lg text-sm font-medium transition-all ${tab === "generate" ? "bg-white/10 text-white" : "text-white/40"}`}>Summarize</button>
+        <button onClick={() => setTab("history")} className={`flex-1 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-1.5 ${tab === "history" ? "bg-white/10 text-white" : "text-white/40"}`}><Clock size={13} />History</button>
+      </div>
+
+      {tab === "history" && (
+        <div className="glass rounded-2xl p-5">
+          {historyLoading ? (
+            <p className="text-sm text-white/40 text-center py-6">Loading…</p>
+          ) : history.length === 0 ? (
+            <p className="text-sm text-white/40 text-center py-6">No past summaries yet</p>
+          ) : (
+            <div className="space-y-2">
+              {history.map((item) => (
+                <button key={item.id} onClick={() => loadHistoryItem(item)} className="w-full text-left px-4 py-3 rounded-xl transition-all btn-ghost">
+                  <div className="text-sm font-medium text-white truncate">{item.subject || "General"}</div>
+                  <div className="text-xs text-white/40 mt-0.5">{new Date(item.created_at).toLocaleDateString()}</div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {tab === "generate" && <div className="glass rounded-2xl p-5 space-y-4">
         {/* Subject selector */}
         <div>
           <label className="text-sm font-medium text-white/75 block mb-1.5">Subject</label>
@@ -169,7 +217,7 @@ export default function NoteSummarizer() {
             )}
           </>
         )}
-      </div>
+      </div>}
 
       {error && <p className="text-sm px-1" style={{ color: "#f87171" }}>{error}</p>}
 

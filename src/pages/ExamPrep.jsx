@@ -1,9 +1,10 @@
-import { useState, useRef } from "react";
-import { Sparkles, ChevronRight, Trophy, RotateCcw, Target, Paperclip, X, Zap } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { Sparkles, ChevronRight, Trophy, RotateCcw, Target, Paperclip, X, Zap, Clock } from "lucide-react";
 import { examCoach } from "../lib/gemini";
 import { useApp } from "../context/AppContext";
 import UpgradeModal from "../components/UpgradeModal";
 import { ACCEPTED_FILE_TYPES, extractTextFromFile } from "../lib/fileUtils";
+import { supabase } from "../lib/supabase";
 
 const SYSTEM_PROMPT =
   "You are an exam preparation assistant. Return ONLY a valid JSON array with no markdown or backticks. Each object must have: question (string), options (array of exactly 4 strings labeled A. B. C. D.), correct (string matching one of the options exactly), explanation (string, one sentence max).";
@@ -34,8 +35,32 @@ export default function ExamPrep() {
   const [attachedFile, setAttachedFile] = useState(null);
   const [fileError, setFileError] = useState("");
   const [showUpgrade, setShowUpgrade] = useState(false);
+  const [tab, setTab] = useState("generate");
+  const [history, setHistory] = useState([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
   const fileInputRef = useRef(null);
   const canUploadFiles = fileUploadsRemaining > 0;
+
+  useEffect(() => {
+    if (tab !== "history") return;
+    setHistoryLoading(true);
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) { setHistoryLoading(false); return; }
+      supabase.from("exam_history").select("*").eq("user_id", user.id).order("created_at", { ascending: false })
+        .then(({ data }) => { setHistory(data || []); setHistoryLoading(false); });
+    });
+  }, [tab]);
+
+  const loadHistoryItem = (item) => {
+    setTopic(item.topic);
+    setSubject(item.subject || "");
+    setDifficulty(item.difficulty);
+    setQuestions(item.questions);
+    setCurrentIndex(0);
+    setAnswers({});
+    setTab("generate");
+    setPhase("quiz");
+  };
 
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
@@ -63,10 +88,14 @@ export default function ExamPrep() {
       const parsed = JSON.parse(jsonMatch[0]);
       incrementExam();
       if (attachedFile && canUploadFiles && fileUploadsRemaining > 0) incrementFileUpload();
-      setQuestions(parsed.slice(0, questionCount));
+      const sliced = parsed.slice(0, questionCount);
+      setQuestions(sliced);
       setCurrentIndex(0);
       setAnswers({});
       setPhase("quiz");
+      supabase.auth.getUser().then(({ data: { user } }) => {
+        if (user) supabase.from("exam_history").insert({ user_id: user.id, topic, subject: subjectLabel || null, difficulty, questions: sliced });
+      });
     } catch {
       setError("Failed to generate questions. Please try again.");
     } finally {
@@ -120,7 +149,34 @@ export default function ExamPrep() {
           <p className="text-sm text-white/50 mt-0.5">Practice smarter, not harder</p>
         </div>
 
-        {examRemaining === 0 ? (
+        <div className="flex gap-1 p-1 rounded-xl" style={{ background: 'rgba(255,255,255,0.05)' }}>
+          <button onClick={() => setTab("generate")} className={`flex-1 py-1.5 rounded-lg text-sm font-medium transition-all ${tab === "generate" ? "bg-white/10 text-white" : "text-white/40"}`}>Generate</button>
+          <button onClick={() => setTab("history")} className={`flex-1 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-1.5 ${tab === "history" ? "bg-white/10 text-white" : "text-white/40"}`}><Clock size={13} />History</button>
+        </div>
+
+        {tab === "history" ? (
+          <div className="glass rounded-2xl p-5">
+            {historyLoading ? (
+              <p className="text-sm text-white/40 text-center py-6">Loading…</p>
+            ) : history.length === 0 ? (
+              <p className="text-sm text-white/40 text-center py-6">No past sessions yet</p>
+            ) : (
+              <div className="space-y-2">
+                {history.map((item) => (
+                  <button key={item.id} onClick={() => loadHistoryItem(item)} className="w-full text-left px-4 py-3 rounded-xl transition-all btn-ghost">
+                    <div className="text-sm font-medium text-white truncate">{item.topic}</div>
+                    <div className="text-xs text-white/40 mt-0.5 flex items-center gap-1.5">
+                      {item.subject && <><span>{item.subject}</span><span>·</span></>}
+                      <span>{item.difficulty}</span>
+                      <span>·</span>
+                      <span>{new Date(item.created_at).toLocaleDateString()}</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : examRemaining === 0 ? (
           <div className="glass rounded-2xl p-6 text-center" style={{ border: '1px solid rgba(239,68,68,0.25)' }}>
             <div className="w-12 h-12 rounded-xl mx-auto mb-3 flex items-center justify-center" style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.25)' }}>
               <Sparkles size={20} style={{ color: '#f87171' }} />
