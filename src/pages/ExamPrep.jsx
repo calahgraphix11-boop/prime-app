@@ -95,16 +95,6 @@ export default function ExamPrep() {
       setAnswers({});
       console.log('[exam-coach] setting phase to quiz');
       setPhase("quiz");
-      supabase.auth.getUser().then(({ data: { user } }) => {
-        if (user) {
-          const payload = { user_id: user.id, topic, subject: subjectLabel || null, difficulty, questions: sliced };
-          console.log('[exam_history] about to save');
-          console.log('[exam_history] saving:', payload);
-          supabase.from("exam_history").insert(payload).then(({ error }) => {
-            console.log('[exam_history] result:', error ? `error: ${error.message}` : 'ok');
-          });
-        }
-      });
     } catch (error) {
       console.log('[exam-coach] catch error:', error);
       setError("Failed to generate questions. Please try again.");
@@ -122,7 +112,20 @@ export default function ExamPrep() {
     if (currentIndex < questions.length - 1) {
       setCurrentIndex((i) => i + 1);
     } else {
+      const correctCount = questions.filter((q, i) => answers[i] === q.correct).length;
+      const score = questionType === "Structured" ? null : Math.round((correctCount / questions.length) * 100);
       setPhase("results");
+      const subjectLabel = subject === "__custom__" ? customSubject : subject;
+      supabase.auth.getUser().then(({ data: { user } }) => {
+        if (user) {
+          const payload = { user_id: user.id, topic, subject: subjectLabel || null, difficulty, questions, score };
+          console.log('[exam_history] about to save');
+          console.log('[exam_history] saving:', payload);
+          supabase.from("exam_history").insert(payload).then(({ error }) => {
+            console.log('[exam_history] result:', error ? `error: ${error.message}` : 'ok');
+          });
+        }
+      });
     }
   };
 
@@ -180,6 +183,7 @@ export default function ExamPrep() {
                       <span>{item.difficulty}</span>
                       <span>·</span>
                       <span>{new Date(item.created_at).toLocaleDateString()}</span>
+                      {item.score != null && <><span>·</span><span className="font-medium" style={{ color: item.score >= 70 ? '#34d399' : item.score >= 50 ? '#F5A800' : '#f87171' }}>{item.score}%</span></>}
                     </div>
                   </button>
                 ))}
