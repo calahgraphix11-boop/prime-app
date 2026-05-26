@@ -93,7 +93,13 @@ export default function ExamPrep() {
       setAnswers({});
       setPhase("quiz");
       supabase.auth.getUser().then(({ data: { user } }) => {
-        if (user) supabase.from("exam_history").insert({ user_id: user.id, topic, subject: subjectLabel || null, difficulty, questions: sliced });
+        if (user) {
+          const payload = { user_id: user.id, topic, subject: subjectLabel || null, difficulty, questions: sliced };
+          console.log('[exam_history] saving:', payload);
+          supabase.from("exam_history").insert(payload).then(({ error }) => {
+            console.log('[exam_history] result:', error ? `error: ${error.message}` : 'ok');
+          });
+        }
       });
     } catch {
       setError("Failed to generate questions. Please try again.");
