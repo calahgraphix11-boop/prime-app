@@ -82,26 +82,31 @@ export default function ExamPrep() {
         referenceText: attachedFile?.referenceText,
         questionType,
       });
+      console.log('[exam-coach] raw response received');
       const jsonMatch = raw.match(/\[[\s\S]*\]/);
       if (!jsonMatch) throw new Error('Could not parse response. Please try again.');
       const parsed = JSON.parse(jsonMatch[0]);
+      console.log('[exam-coach] parsed questions count:', parsed.length);
       incrementExam();
       if (attachedFile && canUploadFiles && fileUploadsRemaining > 0) incrementFileUpload();
       const sliced = parsed.slice(0, questionCount);
       setQuestions(sliced);
       setCurrentIndex(0);
       setAnswers({});
+      console.log('[exam-coach] setting phase to quiz');
       setPhase("quiz");
       supabase.auth.getUser().then(({ data: { user } }) => {
         if (user) {
           const payload = { user_id: user.id, topic, subject: subjectLabel || null, difficulty, questions: sliced };
+          console.log('[exam_history] about to save');
           console.log('[exam_history] saving:', payload);
           supabase.from("exam_history").insert(payload).then(({ error }) => {
             console.log('[exam_history] result:', error ? `error: ${error.message}` : 'ok');
           });
         }
       });
-    } catch {
+    } catch (error) {
+      console.log('[exam-coach] catch error:', error);
       setError("Failed to generate questions. Please try again.");
     } finally {
       setLoading(false);
