@@ -650,10 +650,10 @@
 
     .pricing-grid {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(3, 1fr);
       gap: 28px;
       align-items: center;
-      max-width: 860px;
+      max-width: 1100px;
       margin: 0 auto;
     }
 
@@ -1016,7 +1016,7 @@
       .hero-grid { grid-template-columns: 1fr; gap: 40px; }
       .hero-right { order: 1; }
       .features-grid { grid-template-columns: repeat(2, 1fr); }
-      .pricing-grid { grid-template-columns: 1fr; max-width: 420px; margin: 0 auto; }
+      .pricing-grid { grid-template-columns: 1fr; max-width: 480px; margin: 0 auto; }
       .price-card.popular { transform: none; animation: none; }
     }
 
@@ -1235,8 +1235,27 @@
     <div class="container">
       <div class="pricing-grid">
 
-        <!-- Basic -->
+        <!-- Free -->
         <div class="price-card fade-up" style="--stagger:0" data-aos="fade-up" data-aos-delay="0">
+          <div class="plan-name">Free</div>
+          <div class="plan-price">0<span class="unit"> FCFA/mo</span></div>
+          <div class="plan-period">No credit card needed</div>
+          <div class="plan-divider"></div>
+          <ul class="plan-feats">
+            <li class="plan-feat"><svg class="check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> 10 AI chats per day</li>
+            <li class="plan-feat"><svg class="check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> 5 report rewrites per day</li>
+            <li class="plan-feat"><svg class="check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> 5 note summaries per day</li>
+            <li class="plan-feat"><svg class="check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> 5 exam sessions per day</li>
+            <li class="plan-feat"><svg class="check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> 2 file uploads per day</li>
+            <li class="plan-feat"><svg class="check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Study session timer</li>
+            <li class="plan-feat" style="color:rgba(255,255,255,0.45)"><svg class="check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Ads shown</li>
+            <li class="plan-feat" style="color:rgba(255,255,255,0.45)"><svg class="check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> No leaderboard access</li>
+          </ul>
+          <a href="/login" class="btn-plan btn-plan-dark">Get Started Free</a>
+        </div>
+
+        <!-- Basic -->
+        <div class="price-card fade-up" style="--stagger:2" data-aos="fade-up" data-aos-delay="200">
           <div class="plan-name">Basic</div>
           <div class="plan-price">2,500<span class="unit"> FCFA/mo</span></div>
           <div class="plan-period">Billed monthly</div>
@@ -1244,19 +1263,18 @@
           <ul class="plan-feats">
             <li class="plan-feat"><svg class="check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Unlimited AI chats</li>
             <li class="plan-feat"><svg class="check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> 20 report rewrites per day</li>
-            <li class="plan-feat"><svg class="check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> 10 note summarizations per day</li>
-            <li class="plan-feat"><svg class="check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> 5 Exam Coach sessions per day</li>
+            <li class="plan-feat"><svg class="check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> 10 note summaries per day</li>
+            <li class="plan-feat"><svg class="check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> 5 exam sessions per day</li>
             <li class="plan-feat"><svg class="check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> 5 file uploads per day</li>
-            <li class="plan-feat"><svg class="check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Study session timer</li>
-            <li class="plan-feat"><svg class="check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Basic analytics</li>
+            <li class="plan-feat"><svg class="check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> No ads</li>
             <li class="plan-feat"><svg class="check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Leaderboard access</li>
             <li class="plan-feat"><svg class="check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Standard support</li>
           </ul>
-          <a href="/login" class="btn-plan btn-plan-dark">Subscribe to Basic</a>
+          <a href="/login" class="btn-plan btn-plan-dark">Get Basic</a>
         </div>
 
         <!-- Pro -->
-        <div class="price-card popular fade-up" style="--stagger:1" data-aos="fade-up" data-aos-delay="150">
+        <div class="price-card popular fade-up" style="--stagger:3" data-aos="fade-up" data-aos-delay="300">
           <div class="popular-badge">Popular</div>
           <div class="plan-name">Pro</div>
           <div class="plan-price">5,000<span class="unit"> FCFA/mo</span></div>
@@ -1273,7 +1291,7 @@
             <li class="plan-feat"><svg class="check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Priority support</li>
             <li class="plan-feat"><svg class="check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Early access to new features</li>
           </ul>
-          <a href="/login" class="btn-plan btn-plan-gold">Subscribe to Pro</a>
+          <a href="/login" class="btn-plan btn-plan-gold">Get Pro</a>
         </div>
 
       </div>
