@@ -104,29 +104,27 @@ export default function Layout({ children }) {
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <div className="min-h-screen">
-        <header className="layout-header sticky top-0 z-20 px-4 py-3">
+        <header className="layout-header sticky top-0 z-20 px-4 py-4">
           <div className="flex items-center justify-between">
             <button
               onClick={() => setSidebarOpen(true)}
-              className="layout-icon-btn p-2 rounded-xl transition-colors"
+              className="layout-icon-btn p-2 rounded-lg transition-colors"
             >
-              <Menu size={19} className="text-white" />
+              <Menu size={20} className="text-white" />
             </button>
 
-            {activeSession ? (
+            {activeSession && (
               <div
-                className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium"
-                style={{ background: 'rgba(245,168,0,0.1)', border: '1px solid rgba(245,168,0,0.25)', boxShadow: '0 0 12px rgba(245,168,0,0.1)' }}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs"
+                style={{ background: 'rgba(245,168,0,0.12)', border: '1px solid rgba(245,168,0,0.3)' }}
               >
                 <div
                   className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${running ? 'animate-pulse' : ''}`}
-                  style={{ background: running ? '#F5A800' : 'rgba(255,255,255,0.25)' }}
+                  style={{ background: running ? '#F5A800' : 'rgba(255,255,255,0.3)' }}
                 />
-                <span style={{ fontFamily: "'DM Mono', monospace", color: '#F5A800', letterSpacing: '0.04em' }}>{mins}:{secs}</span>
-                <span className="text-white/45 max-w-[90px] truncate hidden sm:inline">{activeSession.title}</span>
+                <span className="font-mono font-medium" style={{ color: '#F5A800' }}>{mins}:{secs}</span>
+                <span className="text-white/50 max-w-[100px] truncate hidden sm:inline">{activeSession.title}</span>
               </div>
-            ) : (
-              <span style={{ fontFamily: "'Bricolage Grotesque', system-ui", fontWeight: 700, fontSize: '1rem', letterSpacing: '-0.02em', color: 'rgba(255,255,255,0.9)' }}>Prime</span>
             )}
 
             {/* Bell */}
@@ -188,34 +186,24 @@ export default function Layout({ children }) {
       {/* Mobile bottom nav */}
       <nav
         className="md:hidden fixed bottom-0 left-0 right-0 z-30 flex"
-        style={{ background: 'rgba(3, 10, 6, 0.97)', borderTop: '1px solid rgba(255,255,255,0.06)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)', paddingBottom: 'env(safe-area-inset-bottom)' }}
+        style={{ background: 'rgba(10,26,14,0.97)', borderTop: '1px solid rgba(255,255,255,0.07)' }}
       >
         {[
           { to: '/', icon: LayoutDashboard, label: 'Home' },
           { to: '/sessions', icon: Clock, label: 'Study' },
           { to: '/study-groups', icon: Users2, label: 'Groups' },
-          { to: '/leaderboard', icon: Trophy, label: 'Ranks' },
+          { to: '/leaderboard', icon: Trophy, label: 'Progress' },
           { to: '/profile', icon: UserCircle, label: 'Profile' },
         ].map(({ to, icon: Icon, label }) => (
           <NavLink
             key={to}
             to={to}
             end={to === '/'}
-            className="flex flex-col items-center justify-center gap-0.5 pt-2.5 pb-2 flex-1 relative"
-            style={({ isActive }) => ({ color: isActive ? '#F5A800' : 'rgba(255,255,255,0.35)' })}
+            className="flex flex-col items-center justify-center gap-1 py-2 flex-1"
+            style={({ isActive }) => ({ color: isActive ? '#F5A800' : 'rgba(255,255,255,0.4)' })}
           >
-            {({ isActive }) => (
-              <>
-                {isActive && (
-                  <span
-                    className="absolute top-0 left-1/2 -translate-x-1/2 rounded-full"
-                    style={{ width: '28px', height: '2px', background: 'linear-gradient(90deg, #FFBC1F, #F5A800)', boxShadow: '0 0 8px rgba(245,168,0,0.6)' }}
-                  />
-                )}
-                <Icon size={21} strokeWidth={isActive ? 2.2 : 1.8} />
-                <span style={{ fontSize: '10px', fontWeight: isActive ? 600 : 500, letterSpacing: '0.01em' }}>{label}</span>
-              </>
-            )}
+            <Icon size={22} />
+            <span className="text-xs font-medium">{label}</span>
           </NavLink>
         ))}
       </nav>
