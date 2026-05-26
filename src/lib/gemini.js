@@ -131,7 +131,15 @@ export async function generateWithFile({ systemPrompt, userPrompt, referenceText
   return data.content?.[0]?.text ?? '';
 }
 
-export async function examCoach({ systemPrompt, userPrompt, referenceText }) {
+const MC_SYSTEM_PROMPT =
+  "You are an exam preparation assistant. Return ONLY a valid JSON array with no markdown or backticks. Each object must have: question (string), options (array of exactly 4 strings labeled A. B. C. D.), correct (string matching one of the options exactly), explanation (string, one sentence max).";
+
+const STRUCTURED_SYSTEM_PROMPT =
+  "You are an exam preparation assistant. Return ONLY a valid JSON array with no markdown or backticks. Each object must have: question (string), answer (string — a detailed paragraph answer), marks (number — suggested mark allocation).";
+
+export async function examCoach({ systemPrompt, userPrompt, referenceText, questionType }) {
+  if (questionType === "Structured") systemPrompt = STRUCTURED_SYSTEM_PROMPT;
+  else if (!systemPrompt) systemPrompt = MC_SYSTEM_PROMPT;
   let msgContent = userPrompt || '';
   if (referenceText) msgContent += `\n\nReference material:\n${referenceText}`;
   const messages = [{ role: 'user', content: msgContent }];

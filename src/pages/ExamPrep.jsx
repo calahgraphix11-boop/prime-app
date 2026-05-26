@@ -6,11 +6,9 @@ import UpgradeModal from "../components/UpgradeModal";
 import { ACCEPTED_FILE_TYPES, extractTextFromFile } from "../lib/fileUtils";
 import { supabase } from "../lib/supabase";
 
-const SYSTEM_PROMPT =
-  "You are an exam preparation assistant. Return ONLY a valid JSON array with no markdown or backticks. Each object must have: question (string), options (array of exactly 4 strings labeled A. B. C. D.), correct (string matching one of the options exactly), explanation (string, one sentence max).";
-
 const DIFFICULTIES = ["Easy", "Medium", "Hard"];
 const QUESTION_COUNTS = [5, 10, 15];
+const QUESTION_TYPES = ["Multiple Choice", "Structured"];
 
 function getBadge(pct) {
   if (pct >= 90) return { label: "Excellent", color: "#34d399", bg: "rgba(52,211,153,0.12)", border: "rgba(52,211,153,0.3)" };
@@ -25,6 +23,7 @@ export default function ExamPrep() {
   const [topic, setTopic] = useState("");
   const [subject, setSubject] = useState("");
   const [customSubject, setCustomSubject] = useState("");
+  const [questionType, setQuestionType] = useState("Multiple Choice");
   const [difficulty, setDifficulty] = useState("Medium");
   const [questionCount, setQuestionCount] = useState(10);
   const [questions, setQuestions] = useState([]);
@@ -79,9 +78,9 @@ export default function ExamPrep() {
     const subjectLabel = subject === "__custom__" ? customSubject : subject;
     try {
       const raw = await examCoach({
-        systemPrompt: SYSTEM_PROMPT,
         userPrompt: `Topic: ${topic}\nSubject: ${subjectLabel || "General"}\nDifficulty: ${difficulty}\nQuestion count: ${questionCount}`,
         referenceText: attachedFile?.referenceText,
+        questionType,
       });
       const jsonMatch = raw.match(/\[[\s\S]*\]/);
       if (!jsonMatch) throw new Error('Could not parse response. Please try again.');
@@ -259,6 +258,21 @@ export default function ExamPrep() {
           </div>
 
           <div>
+            <label className="text-sm font-medium text-white/75 block mb-2">Question Type</label>
+            <div className="flex gap-2">
+              {QUESTION_TYPES.map((t) => (
+                <button
+                  key={t}
+                  onClick={() => setQuestionType(t)}
+                  className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all ${questionType === t ? "btn-gold" : "btn-ghost"}`}
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
             <label className="text-sm font-medium text-white/75 block mb-2">Difficulty</label>
             <div className="flex gap-2">
               {DIFFICULTIES.map((d) => (
@@ -340,35 +354,58 @@ export default function ExamPrep() {
         <div className="glass rounded-2xl p-5 space-y-4">
           <p className="text-base font-medium text-white leading-relaxed">{q.question}</p>
 
-          <div className="space-y-2">
-            {q.options.map((opt) => {
-              let cls = "w-full text-left px-4 py-3 rounded-xl text-sm font-medium transition-all btn-ghost";
-              let style = {};
-              if (answered) {
-                if (opt === q.correct) {
-                  cls = "w-full text-left px-4 py-3 rounded-xl text-sm font-medium";
-                  style = { background: "rgba(52,211,153,0.18)", border: "1px solid rgba(52,211,153,0.4)", color: "#34d399" };
-                } else if (opt === selected) {
-                  cls = "w-full text-left px-4 py-3 rounded-xl text-sm font-medium";
-                  style = { background: "rgba(239,68,68,0.18)", border: "1px solid rgba(239,68,68,0.4)", color: "#f87171" };
-                } else {
-                  cls = "w-full text-left px-4 py-3 rounded-xl text-sm font-medium";
-                  style = { background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.3)" };
-                }
-              }
-              return (
-                <button key={opt} onClick={() => selectAnswer(opt)} disabled={answered} className={cls} style={style}>
-                  {opt}
+          {questionType === "Structured" ? (
+            <>
+              {!answered ? (
+                <button
+                  onClick={() => setAnswers((prev) => ({ ...prev, [currentIndex]: true }))}
+                  className="w-full py-2.5 rounded-xl text-sm font-medium btn-ghost"
+                >
+                  Reveal Answer
                 </button>
-              );
-            })}
-          </div>
-
-          {answered && (
-            <div className="rounded-xl p-3 text-sm" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }}>
-              <span className="font-semibold text-white/60">Explanation: </span>
-              <span className="text-white/75">{q.explanation}</span>
-            </div>
+              ) : (
+                <div className="space-y-2">
+                  <div className="rounded-xl p-3 text-sm" style={{ background: "rgba(52,211,153,0.08)", border: "1px solid rgba(52,211,153,0.25)" }}>
+                    <p className="text-white/80 leading-relaxed">{q.answer}</p>
+                  </div>
+                  <div className="text-xs font-medium px-1" style={{ color: "#F5A800" }}>
+                    Suggested marks: {q.marks}
+                  </div>
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              <div className="space-y-2">
+                {q.options.map((opt) => {
+                  let cls = "w-full text-left px-4 py-3 rounded-xl text-sm font-medium transition-all btn-ghost";
+                  let style = {};
+                  if (answered) {
+                    if (opt === q.correct) {
+                      cls = "w-full text-left px-4 py-3 rounded-xl text-sm font-medium";
+                      style = { background: "rgba(52,211,153,0.18)", border: "1px solid rgba(52,211,153,0.4)", color: "#34d399" };
+                    } else if (opt === selected) {
+                      cls = "w-full text-left px-4 py-3 rounded-xl text-sm font-medium";
+                      style = { background: "rgba(239,68,68,0.18)", border: "1px solid rgba(239,68,68,0.4)", color: "#f87171" };
+                    } else {
+                      cls = "w-full text-left px-4 py-3 rounded-xl text-sm font-medium";
+                      style = { background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.3)" };
+                    }
+                  }
+                  return (
+                    <button key={opt} onClick={() => selectAnswer(opt)} disabled={answered} className={cls} style={style}>
+                      {opt}
+                    </button>
+                  );
+                })}
+              </div>
+              {answered && (
+                <div className="rounded-xl p-3 text-sm" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }}>
+                  <span className="font-semibold text-white/60">Explanation: </span>
+                  <span className="text-white/75">{q.explanation}</span>
+                </div>
+              )}
+            </>
           )}
 
           {answered && (
@@ -389,6 +426,48 @@ export default function ExamPrep() {
   }
 
   // ── Results ──────────────────────────────────────────────────────────────────
+
+  if (questionType === "Structured") {
+    return (
+      <div className="space-y-5 pt-2">
+        <div>
+          <h1 className="text-2xl font-bold text-white">Exam Coach</h1>
+          <p className="text-sm text-white/50 mt-0.5">Practice smarter, not harder</p>
+        </div>
+
+        <div className="glass rounded-2xl p-6 text-center space-y-3">
+          <div className="w-16 h-16 rounded-2xl mx-auto flex items-center justify-center" style={{ background: "rgba(245,168,0,0.12)", border: "1px solid rgba(245,168,0,0.3)" }}>
+            <Trophy size={28} style={{ color: "#F5A800" }} />
+          </div>
+          <div>
+            <div className="text-2xl font-bold text-white">Session Complete</div>
+            <div className="text-sm text-white/50 mt-0.5">{questions.length} structured question{questions.length !== 1 ? "s" : ""} reviewed</div>
+          </div>
+        </div>
+
+        <div className="glass rounded-2xl p-5 space-y-4">
+          <h3 className="text-sm font-semibold text-white">Answer Sheet</h3>
+          {questions.map((q, i) => (
+            <div key={i} className="space-y-1.5 pb-4" style={{ borderBottom: i < questions.length - 1 ? "1px solid rgba(255,255,255,0.08)" : "none" }}>
+              <p className="text-sm font-medium text-white/80">{q.question}</p>
+              <p className="text-xs leading-relaxed text-white/55">{q.answer}</p>
+              <p className="text-xs font-medium" style={{ color: "#F5A800" }}>Marks: {q.marks}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="flex gap-3">
+          <button onClick={tryAgain} className="flex-1 py-3 rounded-xl text-sm font-semibold btn-ghost flex items-center justify-center gap-2">
+            <RotateCcw size={15} /> Try Again
+          </button>
+          <button onClick={resetToSetup} className="flex-1 py-3 rounded-xl text-sm font-semibold btn-gold flex items-center justify-center gap-2">
+            <Target size={15} /> New Topic
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   const badge = getBadge(pct);
 
   return (
