@@ -1,11 +1,24 @@
 import { useState } from 'react';
-import { X, Zap, Star, Check, Tag } from 'lucide-react';
+import { X, Zap, Star, Shield, Check, Tag } from 'lucide-react';
 import { initiatePayment, PLANS } from '../lib/fapshi';
 import { useAuth } from '../context/AuthContext';
+import { useApp } from '../context/AppContext';
 import { supabase } from '../lib/supabase';
+
+const FREE_FEATURES = [
+  '10 AI chats / day',
+  '5 report rewrites / day',
+  '5 note summaries / day',
+  '5 exam sessions / day',
+  '2 file uploads / day',
+  'Study session timer',
+  'Ads shown',
+  'No leaderboard access',
+];
 
 export default function UpgradeModal({ onClose, defaultPlan }) {
   const { user } = useAuth();
+  const { userPlan } = useApp();
   const [loading, setLoading] = useState(null); // 'basic' | 'pro' | null
   const [error, setError] = useState('');
 
@@ -65,12 +78,71 @@ export default function UpgradeModal({ onClose, defaultPlan }) {
     }
   };
 
+  const currentPlan = userPlan || 'free';
+
+  const tiers = [
+    {
+      key: 'free',
+      label: 'Free',
+      icon: <Shield size={15} style={{ color: '#9ca3af' }} />,
+      price: '0',
+      priceSuffix: 'FCFA/mo',
+      features: FREE_FEATURES,
+      checkColor: '#9ca3af',
+      cardStyle: {
+        background: 'rgba(255,255,255,0.04)',
+        border: currentPlan === 'free' ? '1px solid rgba(156,163,175,0.5)' : '1px solid rgba(255,255,255,0.10)',
+      },
+      cta: currentPlan === 'free' ? 'Current Plan' : null,
+      ctaDisabled: true,
+      badge: null,
+    },
+    {
+      key: 'basic',
+      label: 'Basic',
+      icon: <Star size={15} style={{ color: '#F5A800' }} />,
+      price: null,
+      priceSuffix: 'FCFA/mo',
+      features: PLANS.basic.features,
+      checkColor: '#34d399',
+      cardStyle: {
+        background: 'rgba(255,255,255,0.07)',
+        border: currentPlan === 'basic'
+          ? '1px solid rgba(52,211,153,0.6)'
+          : defaultPlan === 'basic'
+          ? '2px solid #F5A800'
+          : '1px solid rgba(255,255,255,0.14)',
+      },
+      cta: currentPlan === 'basic' ? 'Current Plan' : 'Upgrade to Basic',
+      ctaDisabled: currentPlan === 'basic',
+      badge: null,
+    },
+    {
+      key: 'pro',
+      label: 'Pro',
+      icon: <Zap size={15} style={{ color: '#F5A800' }} />,
+      price: null,
+      priceSuffix: 'FCFA/mo',
+      features: PLANS.pro.features,
+      checkColor: '#F5A800',
+      cardStyle: {
+        background: currentPlan === 'pro' ? 'rgba(245,168,0,0.06)' : 'rgba(245,168,0,0.08)',
+        border: currentPlan === 'pro'
+          ? '1px solid rgba(52,211,153,0.6)'
+          : '2px solid #F5A800',
+      },
+      cta: currentPlan === 'pro' ? 'Current Plan' : 'Upgrade to Pro',
+      ctaDisabled: currentPlan === 'pro',
+      badge: 'Most Popular',
+    },
+  ];
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
       style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
     >
-      <div className="glass-elevated rounded-3xl w-full max-w-xl p-6 relative overflow-y-auto max-h-[90vh] mt-8">
+      <div className="glass-elevated rounded-3xl w-full max-w-3xl p-6 relative overflow-y-auto max-h-[90vh] mt-8">
         <button
           onClick={onClose}
           className="absolute top-4 right-4 p-2 rounded-xl text-white/50 hover:text-white hover:bg-white/10 transition-colors"
@@ -85,104 +157,88 @@ export default function UpgradeModal({ onClose, defaultPlan }) {
           >
             <Zap size={22} style={{ color: '#F5A800' }} />
           </div>
-          <h2 className="text-xl font-bold text-white">Upgrade your plan</h2>
-          <p className="text-sm text-white/50 mt-1">Remove all limits and unlock the full Prime experience</p>
+          <h2 className="text-xl font-bold text-white">Choose your plan</h2>
+          <p className="text-sm text-white/50 mt-1">Unlock the full Prime experience</p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {/* Basic */}
-          <div
-            className="rounded-2xl p-5 flex flex-col"
-            style={{ background: 'rgba(255,255,255,0.07)', border: defaultPlan === 'basic' ? '2px solid #F5A800' : '1px solid rgba(255,255,255,0.14)' }}
-          >
-            <div className="flex items-center gap-2 mb-1">
-              <Star size={15} style={{ color: '#F5A800' }} />
-              <span className="font-semibold text-white text-sm">Basic</span>
-            </div>
-            <div className="mb-4">
-              {coupon ? (
-                <div className="flex items-baseline gap-2">
-                  <span className="text-sm text-white/35 line-through">{PLANS.basic.amount.toLocaleString()}</span>
-                  <span className="text-2xl font-bold text-white">{discounted(PLANS.basic.amount).toLocaleString()}</span>
-                </div>
-              ) : (
-                <span className="text-2xl font-bold text-white">2,500</span>
-              )}
-              <span className="text-sm text-white/50 ml-1">FCFA/mo</span>
-            </div>
-            <ul className="space-y-2 flex-1 mb-5">
-              {PLANS.basic.features.map((f) => (
-                <li key={f} className="flex items-start gap-2 text-sm text-white/70">
-                  <Check size={13} className="mt-0.5 flex-shrink-0" style={{ color: '#34d399' }} />
-                  {f}
-                </li>
-              ))}
-            </ul>
-            <button
-              onClick={() => subscribe('basic')}
-              disabled={!!loading}
-              className="w-full py-2.5 rounded-xl text-sm font-semibold btn-ghost disabled:opacity-50 flex items-center justify-center gap-2"
-            >
-              {loading === 'basic' ? (
-                <>
-                  <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin inline-block" />
-                  Processing…
-                </>
-              ) : (
-                'Subscribe to Basic'
-              )}
-            </button>
-          </div>
-
-          {/* Pro */}
-          <div
-            className="rounded-2xl p-5 flex flex-col relative overflow-hidden"
-            style={{ background: 'rgba(245,168,0,0.08)', border: defaultPlan === 'pro' ? '2px solid #F5A800' : '1px solid rgba(245,168,0,0.35)' }}
-          >
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {tiers.map((tier) => (
             <div
-              className="absolute top-3 right-3 px-2 py-0.5 rounded-full text-xs font-bold"
-              style={{ background: '#F5A800', color: '#1a0c00' }}
+              key={tier.key}
+              className="rounded-2xl p-5 flex flex-col relative overflow-hidden"
+              style={tier.cardStyle}
             >
-              POPULAR
-            </div>
-            <div className="flex items-center gap-2 mb-1">
-              <Zap size={15} style={{ color: '#F5A800' }} />
-              <span className="font-semibold text-white text-sm">Pro</span>
-            </div>
-            <div className="mb-4">
-              {coupon ? (
-                <div className="flex items-baseline gap-2">
-                  <span className="text-sm text-white/35 line-through">{PLANS.pro.amount.toLocaleString()}</span>
-                  <span className="text-2xl font-bold text-white">{discounted(PLANS.pro.amount).toLocaleString()}</span>
+              {tier.badge && (
+                <div
+                  className="absolute top-3 right-3 px-2 py-0.5 rounded-full text-xs font-bold"
+                  style={{ background: '#F5A800', color: '#1a0c00' }}
+                >
+                  {tier.badge}
+                </div>
+              )}
+
+              <div className="flex items-center gap-2 mb-1">
+                {tier.icon}
+                <span className="font-semibold text-white text-sm">{tier.label}</span>
+              </div>
+
+              <div className="mb-4">
+                {tier.key === 'free' ? (
+                  <span className="text-2xl font-bold text-white">{tier.price}</span>
+                ) : coupon ? (
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-sm text-white/35 line-through">
+                      {PLANS[tier.key].amount.toLocaleString()}
+                    </span>
+                    <span className="text-2xl font-bold text-white">
+                      {discounted(PLANS[tier.key].amount).toLocaleString()}
+                    </span>
+                  </div>
+                ) : (
+                  <span className="text-2xl font-bold text-white">
+                    {PLANS[tier.key].amount.toLocaleString()}
+                  </span>
+                )}
+                <span className="text-sm text-white/50 ml-1">{tier.priceSuffix}</span>
+              </div>
+
+              <ul className="space-y-2 flex-1 mb-5">
+                {tier.features.map((f) => (
+                  <li key={f} className="flex items-start gap-2 text-sm text-white/70">
+                    <Check size={13} className="mt-0.5 flex-shrink-0" style={{ color: tier.checkColor }} />
+                    {f}
+                  </li>
+                ))}
+              </ul>
+
+              {tier.ctaDisabled ? (
+                <div
+                  className="w-full py-2.5 rounded-xl text-sm font-semibold text-center"
+                  style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.35)', border: '1px solid rgba(255,255,255,0.1)' }}
+                >
+                  {tier.cta}
                 </div>
               ) : (
-                <span className="text-2xl font-bold text-white">5,000</span>
+                <button
+                  onClick={() => subscribe(tier.key)}
+                  disabled={!!loading}
+                  className={`w-full py-2.5 rounded-xl text-sm font-semibold disabled:opacity-50 flex items-center justify-center gap-2 ${tier.key === 'pro' ? 'btn-gold' : 'btn-ghost'}`}
+                >
+                  {loading === tier.key ? (
+                    <>
+                      <span
+                        className="w-3.5 h-3.5 border-2 rounded-full animate-spin inline-block"
+                        style={tier.key === 'pro'
+                          ? { borderColor: 'rgba(120,60,0,0.3)', borderTopColor: 'rgba(120,60,0,0.9)' }
+                          : { borderColor: 'rgba(255,255,255,0.2)', borderTopColor: 'rgba(255,255,255,0.9)' }}
+                      />
+                      Processing…
+                    </>
+                  ) : tier.cta}
+                </button>
               )}
-              <span className="text-sm text-white/50 ml-1">FCFA/mo</span>
             </div>
-            <ul className="space-y-2 flex-1 mb-5">
-              {PLANS.pro.features.map((f) => (
-                <li key={f} className="flex items-start gap-2 text-sm text-white/70">
-                  <Check size={13} className="mt-0.5 flex-shrink-0" style={{ color: '#F5A800' }} />
-                  {f}
-                </li>
-              ))}
-            </ul>
-            <button
-              onClick={() => subscribe('pro')}
-              disabled={!!loading}
-              className="w-full py-2.5 rounded-xl text-sm font-semibold btn-gold disabled:opacity-50 flex items-center justify-center gap-2"
-            >
-              {loading === 'pro' ? (
-                <>
-                  <span className="w-3.5 h-3.5 border-2 border-amber-900/30 border-t-amber-900 rounded-full animate-spin inline-block" />
-                  Processing…
-                </>
-              ) : (
-                'Subscribe to Pro'
-              )}
-            </button>
-          </div>
+          ))}
         </div>
 
         {/* Coupon */}
