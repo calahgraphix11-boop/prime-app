@@ -5,7 +5,6 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 import { AppProvider } from "./context/AppContext";
 import Layout from "./components/Layout";
 import Dashboard from "./pages/Dashboard";
-import LandingPage from "./pages/LandingPage";
 import StudySessions from "./pages/StudySessions";
 import AIReportWriter from "./pages/AIReportWriter";
 import AIChatbot from "./pages/AIChatbot";
@@ -64,7 +63,10 @@ function HomeRoute() {
       </div>
     );
   }
-  if (!user) return <LandingPage />;
+  if (!user) {
+    window.location.replace('/');
+    return null;
+  }
   return <Layout><Dashboard /></Layout>;
 }
 
