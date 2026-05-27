@@ -7,13 +7,13 @@ import { supabase } from '../lib/supabase';
 
 const FREE_FEATURES = [
   '10 AI chats / day',
-  '5 report rewrites / day',
+  '3 exam sessions / day',
   '5 note summaries / day',
-  '5 exam sessions / day',
   '2 file uploads / day',
   'Study session timer',
   'Ads shown',
-  'No leaderboard access',
+  'No AI Report Writer',
+  'No Internship Report',
 ];
 
 export default function UpgradeModal({ onClose, defaultPlan }) {
