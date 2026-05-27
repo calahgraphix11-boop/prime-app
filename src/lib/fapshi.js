@@ -20,6 +20,8 @@
  *   for update to authenticated using (true) with check (true);
  */
 
+import { supabase } from './supabase';
+
 const API_USER = import.meta.env.VITE_FAPSHI_API_USER;
 const API_KEY = import.meta.env.VITE_FAPSHI_API_KEY;
 const BASE = 'https://live.fapshi.com';
@@ -60,11 +62,12 @@ export const PLANS = {
 export async function initiatePayment({ amount, email, userId, plan, coupon }) {
   const externalId = `${userId}_${plan}_${Date.now()}`;
   const redirectUrl = `https://primestudyapp.com/payment-success?plan=${plan}${coupon ? `&coupon=${encodeURIComponent(coupon)}` : ''}`;
+  const { data: { session } } = await supabase.auth.getSession();
   const res = await fetch('https://dqxymdocyxzzqvulleob.supabase.co/functions/v1/fapshi-payment', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+      'Authorization': `Bearer ${session?.access_token}`,
     },
     body: JSON.stringify({ amount, email, redirectUrl, userId, plan }),
   });
