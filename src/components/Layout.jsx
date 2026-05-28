@@ -199,11 +199,31 @@ export default function Layout({ children }) {
             key={to}
             to={to}
             end={to === '/'}
-            className="flex flex-col items-center justify-center gap-1 py-2 flex-1"
-            style={({ isActive }) => ({ color: isActive ? '#F5A800' : 'rgba(255,255,255,0.4)' })}
+            className="flex flex-col items-center justify-center py-2 flex-1"
           >
-            <Icon size={22} />
-            <span className="text-xs font-medium">{label}</span>
+            {({ isActive }) => (
+              <div
+                className="flex flex-col items-center gap-1"
+                style={isActive ? {
+                  color: '#F5A800',
+                  background: 'rgba(245,168,0,0.15)',
+                  borderRadius: '999px',
+                  paddingTop: '6px',
+                  paddingBottom: '6px',
+                  paddingLeft: '18px',
+                  paddingRight: '18px',
+                } : {
+                  color: 'rgba(255,255,255,0.4)',
+                  paddingTop: '6px',
+                  paddingBottom: '6px',
+                  paddingLeft: '18px',
+                  paddingRight: '18px',
+                }}
+              >
+                <Icon size={22} />
+                <span className="text-xs font-medium">{label}</span>
+              </div>
+            )}
           </NavLink>
         ))}
       </nav>
