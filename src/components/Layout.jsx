@@ -176,7 +176,7 @@ export default function Layout({ children }) {
           </div>
         </header>
 
-        <main className="px-4 pb-20 max-w-2xl mx-auto pt-2">
+        <main className="px-4 pb-32 max-w-2xl mx-auto pt-2">
           {children}
         </main>
       </div>
@@ -185,8 +185,17 @@ export default function Layout({ children }) {
 
       {/* Mobile bottom nav */}
       <nav
-        className="md:hidden fixed bottom-0 left-0 right-0 z-30 flex"
-        style={{ background: 'rgba(10,26,14,0.97)', borderTop: '1px solid rgba(255,255,255,0.07)' }}
+        className="md:hidden fixed z-30 flex"
+        style={{
+          background: 'rgba(10,26,14,0.97)',
+          borderRadius: '24px',
+          border: '1px solid rgba(255,255,255,0.07)',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.5), 0 2px 8px rgba(0,0,0,0.3)',
+          backdropFilter: 'blur(16px)',
+          left: '16px',
+          right: '16px',
+          bottom: '16px',
+        }}
       >
         {[
           { to: '/', icon: LayoutDashboard, label: 'Home' },
