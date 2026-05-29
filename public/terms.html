@@ -1,253 +1,369 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Terms of Service — Prime</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; font-size: 16px; }
-    body {
-      font-family: 'Inter', system-ui, sans-serif;
-      background: #001812;
-      color: #e8f5ee;
-      overflow-x: hidden;
-      line-height: 1.6;
-    }
 
     :root {
-      --bg:           #001812;
-      --g-deep:       #004d2e;
-      --g-mid:        #006b40;
-      --g-light:      #00a86b;
-      --gold:         #F5A800;
-      --gold-dim:     #c98800;
-      --gold-pale:    rgba(245,168,0,0.12);
-      --t-primary:    #ffffff;
-      --t-secondary:  #a8c4b0;
-      --t-muted:      #5c7a67;
-      --gl1: rgba(255,255,255,0.05);
-      --gl2: rgba(255,255,255,0.09);
-      --gl3: rgba(255,255,255,0.15);
-      --gb:  rgba(255,255,255,0.11);
-      --gb2: rgba(255,255,255,0.2);
-      --sh-sm: 0 4px 16px rgba(0,0,0,0.18);
-      --sh-md: 0 8px 32px rgba(0,0,0,0.22);
-      --sh-lg: 0 16px 48px rgba(0,0,0,0.28);
-      --sh-gold: 0 8px 32px rgba(245,168,0,0.22);
-      --r-sm: 0.5rem; --r-md: 0.75rem; --r-lg: 1rem; --r-xl: 1.5rem; --r-full: 9999px;
-      --max: 1200px; --cp: 24px;
+      --bg: #060e07;
+      --surface: #0a1a0e;
+      --border: rgba(245,168,0,0.12);
+      --gold: #F5A800;
+      --gold-dim: #C9943A;
+      --text: #e8ead0;
+      --text-muted: rgba(232,234,208,0.5);
     }
 
-    /* ── BACKGROUND ── */
-    .bg {
-      position: fixed; inset: 0; z-index: 0;
-      background: radial-gradient(ellipse 80% 60% at 10% 10%, rgba(0,77,46,0.55) 0%, transparent 60%),
-                  radial-gradient(ellipse 60% 50% at 90% 80%, rgba(245,168,0,0.14) 0%, transparent 55%),
-                  radial-gradient(ellipse 70% 70% at 50% 50%, rgba(0,40,25,0.7) 0%, transparent 70%),
-                  #001812;
-    }
-    .orb { position: absolute; border-radius: 50%; filter: blur(90px); pointer-events: none; }
-    .orb1 { width: 700px; height: 700px; background: radial-gradient(circle, rgba(0,77,46,0.7) 0%, transparent 65%); top: -200px; left: -180px; animation: f1 22s ease-in-out infinite; }
-    .orb2 { width: 500px; height: 500px; background: radial-gradient(circle, rgba(245,168,0,0.22) 0%, transparent 65%); bottom: 5%; right: -100px; animation: f2 28s ease-in-out infinite; }
-    .orb3 { width: 400px; height: 400px; background: radial-gradient(circle, rgba(0,60,36,0.5) 0%, transparent 65%); top: 40%; left: 30%; animation: f3 34s ease-in-out infinite; }
-    @keyframes f1 { 0%,100%{transform:translate(0,0)} 40%{transform:translate(60px,80px)} 70%{transform:translate(-30px,40px)} }
-    @keyframes f2 { 0%,100%{transform:translate(0,0)} 35%{transform:translate(-70px,-50px)} 70%{transform:translate(40px,-80px)} }
-    @keyframes f3 { 0%,100%{transform:translate(-50%,-50%)} 50%{transform:translate(-48%,-52%)} }
+    html { scroll-behavior: smooth; }
 
-    /* ── WRAPPER ── */
-    .pw { position: relative; z-index: 1; }
-    .c  { max-width: var(--max); margin: 0 auto; padding: 0 var(--cp); }
-
-    /* ── NAV ── */
-    .nav {
-      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-      background: rgba(0,18,12,0.82);
-      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-      border-bottom: 1px solid var(--gb);
-      box-shadow: var(--sh-sm);
-    }
-    .nav-in {
-      max-width: var(--max); margin: 0 auto; padding: 0 var(--cp);
-      display: flex; align-items: center; justify-content: space-between; height: 72px;
-    }
-    .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
-    .logo-mark {
-      width: 36px; height: 36px; border-radius: var(--r-md);
-      background: linear-gradient(135deg, var(--gold), var(--gold-dim));
-      display: flex; align-items: center; justify-content: center;
-      font-weight: 900; font-size: 17px; color: #001812;
-      box-shadow: 0 4px 14px rgba(245,168,0,0.32);
-    }
-    .logo-text { font-size: 20px; font-weight: 700; color: var(--t-primary); letter-spacing: -0.02em; }
-    .back-link {
-      display: inline-flex; align-items: center; gap: 7px;
-      font-size: 14px; font-weight: 500; color: var(--t-secondary);
-      text-decoration: none; transition: color 0.2s;
-    }
-    .back-link:hover { color: var(--t-primary); }
-
-    /* ── CHIP ── */
-    .chip {
-      display: inline-flex; align-items: center; gap: 7px;
-      padding: 5px 14px; border-radius: var(--r-full);
-      background: var(--gold-pale); border: 1px solid rgba(245,168,0,0.22);
-      font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
-      text-transform: uppercase; color: var(--gold); margin-bottom: 20px;
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 16px;
+      line-height: 1.75;
+      min-height: 100vh;
     }
 
-    /* ── POLICY PAGE ── */
-    .policy-page { padding: 120px 0 80px; }
-    .policy-card {
-      max-width: 800px; margin: 0 auto;
-      background: var(--gl2);
-      backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
-      border: 1px solid var(--gb);
-      border-radius: 20px;
-      padding: 56px 52px;
-      box-shadow: var(--sh-md), inset 0 1px 0 rgba(255,255,255,0.06);
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 40px;
+      background: rgba(6,14,7,0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
     }
-    .policy-title {
-      font-size: 36px; font-weight: 800; letter-spacing: -0.03em;
-      color: var(--t-primary); margin-bottom: 6px; line-height: 1.15;
-    }
-    .policy-date {
-      font-size: 13px; color: var(--t-muted); margin-bottom: 36px;
-      padding-bottom: 28px; border-bottom: 1px solid var(--gb);
-    }
-    .policy-items { display: flex; flex-direction: column; gap: 0; }
-    .policy-item {
-      display: grid; grid-template-columns: 36px 1fr; gap: 16px;
-      padding: 20px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
-    }
-    .policy-item:last-child { border-bottom: none; padding-bottom: 0; }
-    .policy-num {
-      width: 28px; height: 28px; border-radius: 50%;
-      background: var(--gold-pale); border: 1px solid rgba(245,168,0,0.2);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 11px; font-weight: 700; color: var(--gold);
-      flex-shrink: 0; margin-top: 1px;
-    }
-    .policy-item-body h4 {
-      font-size: 14px; font-weight: 600; color: var(--t-primary);
-      margin-bottom: 5px; letter-spacing: -0.01em;
-    }
-    .policy-item-body p { font-size: 14px; color: var(--t-secondary); line-height: 1.7; }
 
-    /* ── FOOTER ── */
-    .footer { border-top: 1px solid rgba(255,255,255,0.07); padding: 36px var(--cp); background: rgba(0,12,8,0.6); backdrop-filter: blur(20px); }
-    .footer-in { max-width: var(--max); margin: 0 auto; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 18px; }
-    .foot-brand { display: flex; align-items: center; gap: 9px; }
-    .foot-links { display: flex; gap: 22px; list-style: none; }
-    .foot-links a { font-size: 13px; color: var(--t-muted); text-decoration: none; transition: color 0.2s; }
-    .foot-links a:hover { color: var(--t-secondary); }
-    .foot-copy { font-size: 13px; color: var(--t-muted); }
+    .nav-logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 20px;
+      color: var(--gold);
+      text-decoration: none;
+      letter-spacing: -0.02em;
+    }
 
-    @media(max-width:768px){
-      .policy-card { padding: 36px 24px; }
-      .footer-in { flex-direction: column; text-align: center; }
+    .nav-cta {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--bg);
+      background: var(--gold);
+      padding: 8px 20px;
+      border-radius: 100px;
+      text-decoration: none;
+      transition: opacity 150ms ease-out;
+    }
+    .nav-cta:hover { opacity: 0.85; }
+
+    .hero {
+      padding: 80px 40px 56px;
+      max-width: 760px;
+      margin: 0 auto;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--gold-dim);
+      background: rgba(245,168,0,0.08);
+      border: 1px solid rgba(245,168,0,0.15);
+      padding: 5px 12px;
+      border-radius: 100px;
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(32px, 5vw, 48px);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      color: var(--text);
+      margin-bottom: 16px;
+    }
+
+    .meta {
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    .content {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 56px 40px 100px;
+    }
+
+    section {
+      margin-bottom: 56px;
+      opacity: 0;
+      transform: translateY(12px);
+      animation: fadeUp 400ms cubic-bezier(0.23,1,0.32,1) forwards;
+    }
+
+    section:nth-child(1) { animation-delay: 60ms; }
+    section:nth-child(2) { animation-delay: 120ms; }
+    section:nth-child(3) { animation-delay: 180ms; }
+    section:nth-child(4) { animation-delay: 240ms; }
+    section:nth-child(5) { animation-delay: 300ms; }
+    section:nth-child(6) { animation-delay: 360ms; }
+    section:nth-child(7) { animation-delay: 420ms; }
+    section:nth-child(8) { animation-delay: 480ms; }
+    section:nth-child(9) { animation-delay: 540ms; }
+
+    @keyframes fadeUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h2 {
+      font-family: 'Syne', sans-serif;
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: var(--gold);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    h2::before {
+      content: '';
+      display: inline-block;
+      width: 3px;
+      height: 18px;
+      background: var(--gold);
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    p {
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      font-size: 15px;
+    }
+
+    p:last-child { margin-bottom: 0; }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 12px 0 0;
+    }
+
+    ul li {
+      font-size: 15px;
+      color: var(--text-muted);
+      padding: 6px 0 6px 20px;
+      position: relative;
+    }
+
+    ul li::before {
+      content: '—';
+      position: absolute;
+      left: 0;
+      color: var(--gold-dim);
+      font-size: 13px;
+    }
+
+    a {
+      color: var(--gold);
+      text-decoration: none;
+      border-bottom: 1px solid rgba(245,168,0,0.3);
+      transition: border-color 150ms ease-out;
+    }
+    a:hover { border-color: var(--gold); }
+
+    .contact-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px 28px;
+      margin-top: 16px;
+    }
+
+    .contact-card p { margin-bottom: 6px; }
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 32px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+      max-width: 760px;
+      margin: 0 auto;
+    }
+
+    .footer-logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 16px;
+      color: var(--gold);
+      text-decoration: none;
+      border: none;
+    }
+    .footer-logo:hover { border: none; }
+
+    .footer-links { display: flex; gap: 24px; }
+
+    .footer-links a {
+      font-size: 13px;
+      color: var(--text-muted);
+      border-bottom: none;
+    }
+    .footer-links a:hover { color: var(--text); border-bottom: none; }
+
+    @media (max-width: 600px) {
+      nav { padding: 16px 20px; }
+      .hero { padding: 56px 20px 40px; }
+      .content { padding: 40px 20px 80px; }
+      footer { padding: 28px 20px; }
     }
   </style>
 </head>
 <body>
 
-<div class="bg">
-  <div class="orb orb1"></div>
-  <div class="orb orb2"></div>
-  <div class="orb orb3"></div>
-</div>
-
-<div class="pw">
-
-  <nav class="nav">
-    <div class="nav-in">
-      <a href="index.html" class="logo">
-        <div class="logo-mark">P</div>
-        <span class="logo-text">Prime</span>
-      </a>
-      <a href="/signup" class="back-link">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        Back to home
-      </a>
-    </div>
+  <nav>
+    <a href="/" class="nav-logo">Prime</a>
+    <a href="/login" class="nav-cta">Get Started</a>
   </nav>
 
-  <div class="policy-page">
-    <div class="c">
-      <div class="policy-card">
-        <div class="chip">Legal</div>
-        <h1 class="policy-title">Terms of Service</h1>
-        <p class="policy-date">Effective Date: May 12, 2026 &nbsp;·&nbsp; Primeflow Solutions &nbsp;·&nbsp; primelow070@gmail.com</p>
-        <div class="policy-items">
-          <div class="policy-item">
-            <div class="policy-num">1</div>
-            <div class="policy-item-body"><h4>Acceptance</h4><p>By using Prime you agree to these Terms of Service. If you do not agree, please do not use the service.</p></div>
-          </div>
-          <div class="policy-item">
-            <div class="policy-num">2</div>
-            <div class="policy-item-body"><h4>Eligibility</h4><p>Prime is available to students aged 13 and above. By creating an account you confirm that you meet this age requirement.</p></div>
-          </div>
-          <div class="policy-item">
-            <div class="policy-num">3</div>
-            <div class="policy-item-body"><h4>Your Account</h4><p>You are responsible for keeping your login credentials secure. Provide accurate information at signup. One account per person. Primeflow Solutions may suspend accounts that violate these terms.</p></div>
-          </div>
-          <div class="policy-item">
-            <div class="policy-num">4</div>
-            <div class="policy-item-body"><h4>Acceptable Use</h4><p>Do not use Prime for illegal purposes. Do not submit harmful or inappropriate content to AI features. Do not reverse engineer or copy the app. Do not share your account. Do not use Prime to violate academic integrity policies.</p></div>
-          </div>
-          <div class="policy-item">
-            <div class="policy-num">5</div>
-            <div class="policy-item-body"><h4>AI Features</h4><p>AI-generated content is for assistance only. You are responsible for reviewing all content before academic submission. AI responses may occasionally be inaccurate. Primeflow Solutions is not liable for academic consequences arising from AI-generated content.</p></div>
-          </div>
-          <div class="policy-item">
-            <div class="policy-num">6</div>
-            <div class="policy-item-body"><h4>Payments</h4><p>Paid plans are billed monthly with auto-renewal. Refunds are considered within 7 days of payment — contact primelow070@gmail.com. Pricing may change with 14 days notice to active subscribers.</p></div>
-          </div>
-          <div class="policy-item">
-            <div class="policy-num">7</div>
-            <div class="policy-item-body"><h4>Intellectual Property</h4><p>Prime and all its content is owned by Primeflow Solutions. You retain ownership of content you create. You grant Primeflow Solutions a limited licence to process your content solely to provide the service.</p></div>
-          </div>
-          <div class="policy-item">
-            <div class="policy-num">8</div>
-            <div class="policy-item-body"><h4>Limitation of Liability</h4><p>Prime is provided as-is. Primeflow Solutions is not liable for indirect or consequential damages arising from use of the service.</p></div>
-          </div>
-          <div class="policy-item">
-            <div class="policy-num">9</div>
-            <div class="policy-item-body"><h4>Termination</h4><p>Primeflow Solutions may terminate accounts for violation of these terms at its sole discretion.</p></div>
-          </div>
-          <div class="policy-item">
-            <div class="policy-num">10</div>
-            <div class="policy-item-body"><h4>Governing Law</h4><p>These terms are governed by the laws of Cameroon.</p></div>
-          </div>
-          <div class="policy-item">
-            <div class="policy-num">11</div>
-            <div class="policy-item-body"><h4>Contact</h4><p>Primeflow Solutions &nbsp;·&nbsp; primelow070@gmail.com</p></div>
-          </div>
-        </div>
-      </div>
-    </div>
+  <div class="hero">
+    <div class="badge">Legal</div>
+    <h1>Terms of Service</h1>
+    <p class="meta">Last updated: May 29, 2026 &nbsp;·&nbsp; Primeflow Solutions</p>
   </div>
 
-  <footer class="footer">
-    <div class="footer-in">
-      <div class="foot-brand">
-        <div class="logo-mark" style="width:28px;height:28px;font-size:13px;">P</div>
-        <span style="font-size:16px;font-weight:700;color:var(--t-primary)">Prime</span>
-        <span style="font-size:13px;color:var(--t-muted);margin-left:2px">· Study Smart</span>
-      </div>
-      <ul class="foot-links">
-        <li><a href="privacy.html" target="_blank">Privacy Policy</a></li>
-        <li><a href="terms.html" target="_blank">Terms of Service</a></li>
-        <li><a href="mailto:primelow070@gmail.com">Contact</a></li>
+  <div class="content">
+
+    <section>
+      <h2>Acceptance of Terms</h2>
+      <p>By creating an account or using Prime, you agree to these Terms of Service. If you do not agree, do not use the app. These terms apply to all users of Prime, including free and paid plan users.</p>
+    </section>
+
+    <section>
+      <h2>About Prime</h2>
+      <p>Prime is an AI-powered study application built by Primeflow Solutions for university students in Cameroon and francophone West Africa. The app provides tools including AI chat, exam preparation, academic report writing, note summarization, study timers, and social study features.</p>
+    </section>
+
+    <section>
+      <h2>Eligibility</h2>
+      <p>You must be at least 13 years old to use Prime. By using the app, you confirm that the information you provide is accurate and that you have the right to enter into these terms.</p>
+    </section>
+
+    <section>
+      <h2>User Accounts</h2>
+      <p>You are responsible for maintaining the security of your account and password. Primeflow Solutions is not liable for any loss resulting from unauthorized access to your account.</p>
+      <ul>
+        <li>Do not share your account credentials with others</li>
+        <li>Notify us immediately if you suspect unauthorized access</li>
+        <li>One account per person — creating multiple accounts to bypass plan limits is prohibited</li>
       </ul>
-      <div class="foot-copy">© 2025 Prime. All rights reserved.</div>
+    </section>
+
+    <section>
+      <h2>Acceptable Use</h2>
+      <p>You agree to use Prime only for lawful purposes. You may not:</p>
+      <ul>
+        <li>Use Prime to generate content that violates academic integrity policies at your institution</li>
+        <li>Attempt to reverse-engineer, scrape, or extract data from the app</li>
+        <li>Use automated tools or bots to access Prime</li>
+        <li>Share, resell, or redistribute Prime content or AI-generated outputs for commercial purposes</li>
+        <li>Upload or transmit malicious content, spam, or harmful files</li>
+        <li>Attempt to circumvent plan limits or payment systems</li>
+        <li>Harass other users in Study Groups or public features</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>AI-Generated Content</h2>
+      <p>Prime uses artificial intelligence (powered by Anthropic's Claude) to generate study content, exam questions, report drafts, and summaries. This content is provided as study assistance only.</p>
+      <ul>
+        <li>AI responses may be inaccurate — always verify important information from authoritative sources</li>
+        <li>Primeflow Solutions is not responsible for academic outcomes based on AI-generated content</li>
+        <li>Submitting AI-generated work as your own without disclosure may violate your institution's academic integrity policy — that is your responsibility, not ours</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Subscriptions & Payments</h2>
+      <p>Prime offers a free plan and paid plans (Basic at 2,500 FCFA/month, Pro at 5,000 FCFA/month). Payments are processed via Fapshi using MTN Mobile Money or Orange Money.</p>
+      <ul>
+        <li>Subscriptions are billed monthly and renew automatically</li>
+        <li>New users receive a 1-day free trial of the Pro plan — no payment required</li>
+        <li>You may cancel your subscription at any time from your account settings</li>
+        <li>Cancellations take effect at the end of the current billing period — no partial refunds</li>
+        <li>Primeflow Solutions reserves the right to change pricing with reasonable notice</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Intellectual Property</h2>
+      <p>All content, design, code, branding, and features of Prime are the property of Primeflow Solutions. You may not copy, reproduce, or distribute any part of the app without written permission.</p>
+      <p>Content you create (notes, study session data, group messages) remains yours. By using Prime, you grant Primeflow Solutions a limited license to store and process this content solely to provide the service.</p>
+    </section>
+
+    <section>
+      <h2>Termination</h2>
+      <p>We reserve the right to suspend or terminate your account at any time if you violate these terms. You may delete your account at any time from the app settings. Upon deletion, your data will be permanently removed within 30 days.</p>
+    </section>
+
+    <section>
+      <h2>Limitation of Liability</h2>
+      <p>Prime is provided "as is" without warranties of any kind. Primeflow Solutions is not liable for any indirect, incidental, or consequential damages arising from your use of the app, including academic results, data loss, or service interruptions.</p>
+      <p>Our total liability to you for any claim arising from these terms shall not exceed the amount you paid to us in the three months prior to the claim.</p>
+    </section>
+
+    <section>
+      <h2>Changes to Terms</h2>
+      <p>We may update these Terms of Service from time to time. We will notify you of significant changes via email or in-app notification. Continued use of Prime after changes constitutes acceptance of the updated terms.</p>
+    </section>
+
+    <section>
+      <h2>Governing Law</h2>
+      <p>These terms are governed by the laws of Cameroon. Any disputes will be resolved in the courts of Cameroon.</p>
+    </section>
+
+    <section>
+      <h2>Contact Us</h2>
+      <p>Questions about these Terms of Service:</p>
+      <div class="contact-card">
+        <p><strong style="color:var(--text)">Primeflow Solutions</strong></p>
+        <p>Bamenda, North-West Region, Cameroon</p>
+        <p>Email: <a href="mailto:primeflow070@gmail.com">primeflow070@gmail.com</a></p>
+        <p>WhatsApp: <a href="https://wa.me/237681987493" target="_blank">+237 681 987 493</a></p>
+        <p>Website: <a href="https://primestudyapp.com">primestudyapp.com</a></p>
+      </div>
+    </section>
+
+  </div>
+
+  <footer>
+    <a href="/" class="footer-logo">Prime</a>
+    <div class="footer-links">
+      <a href="/privacy.html">Privacy</a>
+      <a href="/terms.html">Terms</a>
+      <a href="/login">Sign In</a>
     </div>
   </footer>
-
-</div>
 
 </body>
 </html>
