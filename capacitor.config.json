@@ -4,6 +4,12 @@
   "webDir": "dist",
   "server": {
     "url": "https://primestudyapp.com/login",
-    "cleartext": false
+    "cleartext": false,
+    "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": false,
+    "captureInput": true,
+    "webContentsDebuggingEnabled": false
   }
 }
