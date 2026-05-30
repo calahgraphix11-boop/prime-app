@@ -1,5 +1,9 @@
 {
   "appId": "com.primeflow.prime",
   "appName": "Prime",
-  "webDir": "dist"
+  "webDir": "dist",
+  "server": {
+    "url": "https://primestudyapp.com",
+    "cleartext": false
+  }
 }
