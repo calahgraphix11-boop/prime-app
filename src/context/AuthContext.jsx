@@ -15,19 +15,6 @@ export function AuthProvider({ children }) {
       .eq('id', userId)
       .maybeSingle();
 
-    // New user (Google OAuth or email-confirmed): no trial set yet — initialize to basic
-    if (data && !data.trial_start_date && (data.plan === 'free' || !data.plan)) {
-      const now = new Date().toISOString();
-      const { data: updated } = await supabase
-        .from('profiles')
-        .update({ plan: 'basic', trial_start_date: now })
-        .eq('id', userId)
-        .select()
-        .single();
-      setProfile(updated || data);
-      return;
-    }
-
     setProfile(data || null);
   }, []);
 
@@ -117,15 +104,16 @@ export function AuthProvider({ children }) {
 
   const trialStartDate = profile?.trial_start_date ? new Date(profile.trial_start_date) : null;
   const daysSinceTrial = trialStartDate ? (Date.now() - trialStartDate.getTime()) / 86400000 : null;
-  const trialActive = daysSinceTrial !== null && daysSinceTrial <= 1;
+  const trialActive = daysSinceTrial !== null && daysSinceTrial < 1;
   const trialExpired = daysSinceTrial !== null && daysSinceTrial > 1;
 
   const userPlan = profile?.plan || 'basic';
   const planExpiry = profile?.plan_expiry ? new Date(profile.plan_expiry) : null;
-  const planActive = userPlan !== 'free' && planExpiry !== null && planExpiry > new Date();
+  const planActive = (userPlan === 'basic' || userPlan === 'pro') && planExpiry !== null && planExpiry > new Date();
+  const hasAccess = trialActive || planActive;
 
   return (
-    <AuthContext.Provider value={{ user, loading, profile, signIn, signUp, signInWithGoogle, signOut, updateProfile, uploadAvatar, trialActive, trialExpired, userPlan, planActive }}>
+    <AuthContext.Provider value={{ user, loading, profile, signIn, signUp, signInWithGoogle, signOut, updateProfile, uploadAvatar, trialActive, trialExpired, userPlan, planActive, hasAccess }}>
       {children}
     </AuthContext.Provider>
   );

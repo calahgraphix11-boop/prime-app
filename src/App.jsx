@@ -23,6 +23,7 @@ import Upgrade from "./pages/Upgrade";
 import StudyGroups from "./pages/StudyGroups";
 import JoinGroup from "./pages/JoinGroup";
 import InternshipReport from "./pages/InternshipReport";
+import UpgradeModal from "./components/UpgradeModal";
 
 class ErrorBoundary extends Component {
   state = { error: null };
@@ -51,6 +52,14 @@ function ProtectedRoute({ children }) {
     );
   }
   if (!user) return <Navigate to="/login" replace />;
+  return children;
+}
+
+// Blocks access to all app content for authenticated users with no active plan or trial.
+function AccessGate({ children }) {
+  const { user, loading, hasAccess } = useAuth();
+  if (loading || !user) return children;
+  if (!hasAccess) return <UpgradeModal onClose={() => {}} />;
   return children;
 }
 
@@ -116,7 +125,9 @@ export default function App() {
         <BrowserRouter>
           <AuthProvider>
             <AppProvider>
-              <AppRoutes />
+              <AccessGate>
+                <AppRoutes />
+              </AccessGate>
             </AppProvider>
           </AuthProvider>
         </BrowserRouter>
