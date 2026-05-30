@@ -3,7 +3,7 @@
   "appName": "Prime",
   "webDir": "dist",
   "server": {
-    "url": "https://primestudyapp.com",
+    "url": "https://primestudyapp.com/login",
     "cleartext": false
   }
 }
