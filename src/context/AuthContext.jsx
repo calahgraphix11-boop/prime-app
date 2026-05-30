@@ -15,6 +15,24 @@ export function AuthProvider({ children }) {
       .eq('id', userId)
       .maybeSingle();
 
+    if (data && !data.trial_start_date && (data.plan === 'free' || !data.plan)) {
+      const now = new Date().toISOString();
+      const { data: updated } = await supabase
+        .from('profiles')
+        .update({ plan: 'basic', trial_start_date: now })
+        .eq('id', userId)
+        .select()
+        .single();
+      await supabase.from('notifications').insert({
+        user_id: userId,
+        message: 'Your account has been upgraded to a 24-hour free trial of Basic. Upgrade before it expires to keep access to all features.',
+        read: false,
+        created_at: now,
+      });
+      setProfile(updated || data);
+      return;
+    }
+
     setProfile(data || null);
   }, []);
 
