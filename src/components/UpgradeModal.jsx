@@ -1,20 +1,10 @@
 import { useState } from 'react';
-import { X, Zap, Star, Shield, Check, Tag } from 'lucide-react';
+import { X, Zap, Star, Check, Tag } from 'lucide-react';
 import { initiatePayment, PLANS } from '../lib/fapshi';
 import { useAuth } from '../context/AuthContext';
 import { useApp } from '../context/AppContext';
 import { supabase } from '../lib/supabase';
 
-const FREE_FEATURES = [
-  '10 AI chats / day',
-  '3 exam sessions / day',
-  '5 note summaries / day',
-  '2 file uploads / day',
-  'Study session timer',
-  'Ads shown',
-  'No AI Report Writer',
-  'No Internship Report',
-];
 
 export default function UpgradeModal({ onClose, defaultPlan }) {
   const { user } = useAuth();
@@ -80,62 +70,46 @@ export default function UpgradeModal({ onClose, defaultPlan }) {
 
   const currentPlan = userPlan || 'free';
 
-  const tiers = [
-    {
-      key: 'free',
-      label: 'Free',
-      icon: <Shield size={15} style={{ color: '#9ca3af' }} />,
-      price: '0',
-      priceSuffix: 'FCFA/mo',
-      features: FREE_FEATURES,
-      checkColor: '#9ca3af',
-      cardStyle: {
-        background: 'rgba(255,255,255,0.04)',
-        border: currentPlan === 'free' ? '1px solid rgba(156,163,175,0.5)' : '1px solid rgba(255,255,255,0.10)',
-      },
-      cta: currentPlan === 'free' ? 'Current Plan' : null,
-      ctaDisabled: true,
-      badge: null,
-    },
+  if (currentPlan === 'pro') return null;
+
+  const allTiers = [
     {
       key: 'basic',
       label: 'Basic',
       icon: <Star size={15} style={{ color: '#F5A800' }} />,
-      price: null,
       priceSuffix: 'FCFA/mo',
       features: PLANS.basic.features,
       checkColor: '#34d399',
       cardStyle: {
         background: 'rgba(255,255,255,0.07)',
-        border: currentPlan === 'basic'
-          ? '1px solid rgba(52,211,153,0.6)'
-          : defaultPlan === 'basic'
+        border: defaultPlan === 'basic'
           ? '2px solid #F5A800'
           : '1px solid rgba(255,255,255,0.14)',
       },
-      cta: currentPlan === 'basic' ? 'Current Plan' : 'Upgrade to Basic',
-      ctaDisabled: currentPlan === 'basic',
+      cta: 'Upgrade to Basic',
+      ctaDisabled: false,
       badge: null,
     },
     {
       key: 'pro',
       label: 'Pro',
       icon: <Zap size={15} style={{ color: '#F5A800' }} />,
-      price: null,
       priceSuffix: 'FCFA/mo',
       features: PLANS.pro.features,
       checkColor: '#F5A800',
       cardStyle: {
-        background: currentPlan === 'pro' ? 'rgba(245,168,0,0.06)' : 'rgba(245,168,0,0.08)',
-        border: currentPlan === 'pro'
-          ? '1px solid rgba(52,211,153,0.6)'
-          : '2px solid #F5A800',
+        background: 'rgba(245,168,0,0.08)',
+        border: '2px solid #F5A800',
       },
-      cta: currentPlan === 'pro' ? 'Current Plan' : 'Upgrade to Pro',
-      ctaDisabled: currentPlan === 'pro',
+      cta: 'Upgrade to Pro',
+      ctaDisabled: false,
       badge: 'Most Popular',
     },
   ];
+
+  const tiers = currentPlan === 'basic'
+    ? allTiers.filter(t => t.key === 'pro')
+    : allTiers;
 
   return (
     <div
@@ -161,7 +135,7 @@ export default function UpgradeModal({ onClose, defaultPlan }) {
           <p className="text-sm text-white/50 mt-1">Unlock the full Prime experience</p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className={`grid grid-cols-1 gap-4 ${tiers.length === 1 ? 'sm:max-w-xs sm:mx-auto' : 'sm:grid-cols-2'}`}>
           {tiers.map((tier) => (
             <div
               key={tier.key}
@@ -183,9 +157,7 @@ export default function UpgradeModal({ onClose, defaultPlan }) {
               </div>
 
               <div className="mb-4">
-                {tier.key === 'free' ? (
-                  <span className="text-2xl font-bold text-white">{tier.price}</span>
-                ) : coupon ? (
+                {coupon ? (
                   <div className="flex items-baseline gap-2">
                     <span className="text-sm text-white/35 line-through">
                       {PLANS[tier.key].amount.toLocaleString()}
@@ -200,6 +172,12 @@ export default function UpgradeModal({ onClose, defaultPlan }) {
                   </span>
                 )}
                 <span className="text-sm text-white/50 ml-1">{tier.priceSuffix}</span>
+                <div
+                  className="inline-block mt-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold"
+                  style={{ background: 'rgba(245,168,0,0.15)', border: '1px solid rgba(245,168,0,0.35)', color: '#F5A800' }}
+                >
+                  24-hour free trial
+                </div>
               </div>
 
               <ul className="space-y-2 flex-1 mb-5">
