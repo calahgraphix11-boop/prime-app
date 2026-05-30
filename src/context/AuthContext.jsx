@@ -14,6 +14,20 @@ export function AuthProvider({ children }) {
       .select('*')
       .eq('id', userId)
       .maybeSingle();
+
+    // New user (Google OAuth or email-confirmed): no trial set yet — initialize to basic
+    if (data && !data.trial_start_date && (data.plan === 'free' || !data.plan)) {
+      const now = new Date().toISOString();
+      const { data: updated } = await supabase
+        .from('profiles')
+        .update({ plan: 'basic', trial_start_date: now })
+        .eq('id', userId)
+        .select()
+        .single();
+      setProfile(updated || data);
+      return;
+    }
+
     setProfile(data || null);
   }, []);
 
@@ -47,6 +61,20 @@ export function AuthProvider({ children }) {
         data: { full_name: fullName, email_confirm: true },
       },
     });
+
+    // Set basic plan + trial start for new users.
+    // When email confirmation is required data.session is null, so the upsert
+    // runs without an authenticated session and may be blocked by RLS — in that
+    // case loadProfile handles initialization on first login instead.
+    if (!error && data.user) {
+      await supabase
+        .from('profiles')
+        .upsert(
+          { id: data.user.id, plan: 'basic', trial_start_date: new Date().toISOString() },
+          { onConflict: 'id' }
+        );
+    }
+
     return { error, needsEmailConfirmation: !error && !data.session };
   };
 
@@ -92,7 +120,7 @@ export function AuthProvider({ children }) {
   const trialActive = daysSinceTrial !== null && daysSinceTrial <= 1;
   const trialExpired = daysSinceTrial !== null && daysSinceTrial > 1;
 
-  const userPlan = profile?.plan || 'free';
+  const userPlan = profile?.plan || 'basic';
   const planExpiry = profile?.plan_expiry ? new Date(profile.plan_expiry) : null;
   const planActive = userPlan !== 'free' && planExpiry !== null && planExpiry > new Date();
 
