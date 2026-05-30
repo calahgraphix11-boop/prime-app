@@ -13,6 +13,11 @@
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
         <item name="android:background">@null</item>
+        <!-- Force dark mode for native UI elements -->
+        <item name="android:forceDarkAllowed">true</item>
+        <!-- Fullscreen immersive: hide status bar and nav bar -->
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
     </style>
 
 
