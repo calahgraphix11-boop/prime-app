@@ -650,10 +650,10 @@
 
     .pricing-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(2, 1fr);
       gap: 28px;
       align-items: center;
-      max-width: 1100px;
+      max-width: 780px;
       margin: 0 auto;
     }
 
@@ -1235,30 +1235,12 @@
     <div class="container">
       <div class="pricing-grid">
 
-        <!-- Free -->
-        <div class="price-card fade-up" style="--stagger:0" data-aos="fade-up" data-aos-delay="0">
-          <div class="plan-name">Free</div>
-          <div class="plan-price">0<span class="unit"> FCFA/mo</span></div>
-          <div class="plan-period">No credit card needed</div>
-          <div class="plan-divider"></div>
-          <ul class="plan-feats">
-            <li class="plan-feat"><svg class="check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> 10 AI chats per day</li>
-            <li class="plan-feat"><svg class="check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> 3 exam sessions per day</li>
-            <li class="plan-feat"><svg class="check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> 5 note summaries per day</li>
-            <li class="plan-feat"><svg class="check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> 2 file uploads per day</li>
-            <li class="plan-feat"><svg class="check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Study session timer</li>
-            <li class="plan-feat" style="color:rgba(255,255,255,0.45)"><svg class="check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Ads shown</li>
-            <li class="plan-feat" style="color:rgba(255,255,255,0.45)"><svg class="check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> No AI Report Writer</li>
-            <li class="plan-feat" style="color:rgba(255,255,255,0.45)"><svg class="check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> No Internship Report</li>
-          </ul>
-          <a href="/login" class="btn-plan btn-plan-dark">Get Started Free</a>
-        </div>
-
         <!-- Basic -->
-        <div class="price-card fade-up" style="--stagger:2" data-aos="fade-up" data-aos-delay="200">
+        <div class="price-card fade-up" style="--stagger:0" data-aos="fade-up" data-aos-delay="0">
           <div class="plan-name">Basic</div>
           <div class="plan-price">2,500<span class="unit"> FCFA/mo</span></div>
           <div class="plan-period">Billed monthly</div>
+          <div style="display:inline-block;margin-bottom:18px;padding:4px 12px;background:rgba(212,144,10,0.15);border:1px solid rgba(212,144,10,0.35);border-radius:100px;font-size:12px;font-weight:600;color:#D4900A;letter-spacing:0.03em;">24-hour free trial</div>
           <div class="plan-divider"></div>
           <ul class="plan-feats">
             <li class="plan-feat"><svg class="check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Unlimited AI chats</li>
@@ -1274,11 +1256,12 @@
         </div>
 
         <!-- Pro -->
-        <div class="price-card popular fade-up" style="--stagger:3" data-aos="fade-up" data-aos-delay="300">
+        <div class="price-card popular fade-up" style="--stagger:1" data-aos="fade-up" data-aos-delay="100">
           <div class="popular-badge">Popular</div>
           <div class="plan-name">Pro</div>
           <div class="plan-price">5,000<span class="unit"> FCFA/mo</span></div>
           <div class="plan-period">Billed monthly</div>
+          <div style="display:inline-block;margin-bottom:18px;padding:4px 12px;background:rgba(212,144,10,0.15);border:1px solid rgba(212,144,10,0.35);border-radius:100px;font-size:12px;font-weight:600;color:#D4900A;letter-spacing:0.03em;">24-hour free trial</div>
           <div class="plan-divider"></div>
           <ul class="plan-feats">
             <li class="plan-feat"><svg class="check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Unlimited AI chats</li>
@@ -1381,7 +1364,7 @@
       <div class="cta-card fade-up" data-aos="zoom-in">
         <h2 class="cta-h2">Your best grades <span style="color:#D4900A">start</span> here.</h2>
         <p class="cta-sub">Join thousands of students using Prime to study smarter every day.</p>
-        <a href="/login" class="btn-gold-lg">Start for Free →</a>
+        <a href="/login" class="btn-gold-lg">Start Free Trial →</a>
       </div>
     </div>
   </section>
