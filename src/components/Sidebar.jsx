@@ -11,10 +11,10 @@ import UpgradeModal from './UpgradeModal';
 
 export default function Sidebar({ open, onClose }) {
   const { darkMode, setDarkMode, toggleLang, t, activeSession, remaining, running } = useApp();
-  const { user, profile, signOut, userPlan, trialExpired } = useAuth();
+  const { user, profile, signOut, userPlan, trialActive, trialExpired, planActive } = useAuth();
   const [supportOpen, setSupportOpen] = useState(false);
   const [upgradeOpen, setUpgradeOpen] = useState(false);
-  const showUpgrade = userPlan === 'free' || trialExpired;
+  const showUpgrade = trialExpired || (!trialActive && !planActive);
 
   const displayName = profile?.username || profile?.full_name || user?.email || '';
   const initials = (profile?.full_name || user?.email || '?').charAt(0).toUpperCase();
@@ -62,11 +62,14 @@ export default function Sidebar({ open, onClose }) {
               {profile?.username && (
                 <p className="text-xs text-white/35 truncate leading-tight">{user?.email}</p>
               )}
-              {userPlan === 'pro' && (
-                <span className="inline-block mt-1 px-2 py-0.5 rounded-full text-xs font-semibold" style={{ background: '#F5A800', color: '#111' }}>Pro</span>
+              {trialActive && (
+                <span className="inline-block mt-1 px-2 py-0.5 rounded-full text-xs font-semibold" style={{ border: '1px solid #F5A800', color: '#F5A800' }}>Trial</span>
               )}
-              {userPlan === 'basic' && (
+              {!trialActive && planActive && userPlan === 'basic' && (
                 <span className="inline-block mt-1 px-2 py-0.5 rounded-full text-xs font-semibold" style={{ border: '1px solid #F5A800', color: '#F5A800' }}>Basic</span>
+              )}
+              {!trialActive && planActive && userPlan === 'pro' && (
+                <span className="inline-block mt-1 px-2 py-0.5 rounded-full text-xs font-semibold" style={{ background: '#F5A800', color: '#111' }}>Pro</span>
               )}
             </div>
           </NavLink>
