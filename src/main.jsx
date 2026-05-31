@@ -1,10 +1,9 @@
-import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
+import ReactDOM from "react-dom/client";
 import "./index.css";
 import App from "./App.jsx";
 
-createRoot(document.getElementById("root")).render(
-  <StrictMode>
-    <App />
-  </StrictMode>
-);
+try {
+  ReactDOM.createRoot(document.getElementById('root')).render(<App />)
+} catch (e) {
+  document.getElementById('root').innerHTML = '<pre style="color:red;padding:20px;font-size:12px;">' + e.message + '\n' + e.stack + '</pre>'
+}
