@@ -72,10 +72,7 @@ function HomeRoute() {
       </div>
     );
   }
-  if (!user) {
-    window.location.replace('/');
-    return null;
-  }
+  if (!user) return <Navigate to="/login" replace />;
   return <Layout><Dashboard /></Layout>;
 }
 
