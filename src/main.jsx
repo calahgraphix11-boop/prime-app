@@ -1,9 +1,6 @@
-import ReactDOM from "react-dom/client";
-import "./index.css";
-import App from "./App.jsx";
+import React from 'react'
+import ReactDOM from 'react-dom/client'
 
-try {
-  ReactDOM.createRoot(document.getElementById('root')).render(<App />)
-} catch (e) {
-  document.getElementById('root').innerHTML = '<pre style="color:red;padding:20px;font-size:12px;">' + e.message + '\n' + e.stack + '</pre>'
-}
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <h1 style={{color: 'white', padding: '20px'}}>Prime is loading...</h1>
+)
