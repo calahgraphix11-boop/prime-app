@@ -1,5 +1,5 @@
 import { Component, useEffect } from "react";
-import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import { HashRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { ThemeProvider } from "./context/ThemeContext";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { AppProvider } from "./context/AppContext";
@@ -122,7 +122,7 @@ export default function App() {
   return (
     <ThemeProvider>
       <ErrorBoundary>
-        <BrowserRouter>
+        <HashRouter>
           <AuthProvider>
             <AppProvider>
               <AccessGate>
@@ -130,7 +130,7 @@ export default function App() {
               </AccessGate>
             </AppProvider>
           </AuthProvider>
-        </BrowserRouter>
+        </HashRouter>
       </ErrorBoundary>
     </ThemeProvider>
   );
