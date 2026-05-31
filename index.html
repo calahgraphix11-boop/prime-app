@@ -3,6 +3,23 @@
   <head>
     <meta charset="UTF-8" />
     <script>
+window.onerror = function(msg, src, line, col, err) {
+  document.body = document.createElement('body');
+  var pre = document.createElement('pre');
+  pre.style = 'color:red;background:#000;padding:20px;font-size:11px;white-space:pre-wrap;';
+  pre.textContent = msg + '\n' + (err ? err.stack : '');
+  document.body.appendChild(pre);
+  return true;
+}
+window.onunhandledrejection = function(e) {
+  document.body = document.createElement('body');
+  var pre = document.createElement('pre');
+  pre.style = 'color:orange;background:#000;padding:20px;font-size:11px;white-space:pre-wrap;';
+  pre.textContent = 'Unhandled promise:\n' + e.reason;
+  document.body.appendChild(pre);
+}
+</script>
+    <script>
       (function () {
         var t = localStorage.getItem('prime-theme');
         if (!t) { var old = localStorage.getItem('prime_dark'); if (old !== null) t = old === 'true' ? 'dark' : 'light'; }
