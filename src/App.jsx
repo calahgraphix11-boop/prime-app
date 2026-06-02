@@ -43,7 +43,8 @@ class ErrorBoundary extends Component {
 }
 
 function ProtectedRoute({ children }) {
-  const { user, loading } = useAuth();
+  const { user, loading, hasAccess } = useAuth();
+  const navigate = useNavigate();
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: '#001a10' }}>
@@ -52,15 +53,15 @@ function ProtectedRoute({ children }) {
     );
   }
   if (!user) return <Navigate to="/login" replace />;
+  // No active plan or trial — show the upgrade modal over the locked route.
+  // The expired-trial banner (rendered in AuthContext) remains visible underneath.
+  if (!hasAccess) return <UpgradeModal onClose={() => navigate('/')} />;
   return children;
 }
 
-// Blocks access to all app content for authenticated users with no active plan or trial.
-// Never shows the modal while the trial is active or the trial banner is visible.
+// The fullscreen gate is no longer needed: the expired-trial banner (AuthContext)
+// notifies the user, and ProtectedRoute shows the modal on locked-feature access.
 function AccessGate({ children }) {
-  const { user, loading, hasAccess, trialActive, showTrialBanner } = useAuth();
-  if (loading || !user) return children;
-  if (!hasAccess && !trialActive && !showTrialBanner) return <UpgradeModal onClose={() => {}} />;
   return children;
 }
 

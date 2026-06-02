@@ -10,6 +10,7 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState(null);
   const [showTrialBanner, setShowTrialBanner] = useState(false);
+  const [showExpiredBanner, setShowExpiredBanner] = useState(false);
   // Prevent double-loading when both getSession and onAuthStateChange fire for the same user.
   const loadingForRef = useRef(null);
 
@@ -176,22 +177,46 @@ export function AuthProvider({ children }) {
   // freshly signed-up user is never flashed the upgrade modal.
   const hasAccess = trialActive || planActive || (user !== null && profile === null);
 
+  // Show the expired banner as soon as we know the trial has ended and no plan is active.
+  // Only set to true here; the dismiss button sets it back to false.
+  useEffect(() => {
+    if (trialExpired && !planActive) setShowExpiredBanner(true);
+  }, [trialExpired, planActive]);
+
+  const bannerBase = {
+    position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)',
+    zIndex: 9999, display: 'flex', alignItems: 'center', gap: 12,
+    borderRadius: 12, padding: '12px 16px 12px 20px',
+    boxShadow: '0 4px 32px rgba(0,0,0,0.6)',
+    maxWidth: 480, width: 'calc(100vw - 48px)',
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, profile, signIn, signUp, signInWithGoogle, signOut, updateProfile, uploadAvatar, trialActive, trialExpired, userPlan, planActive, hasAccess, showTrialBanner }}>
+    <AuthContext.Provider value={{ user, loading, profile, signIn, signUp, signInWithGoogle, signOut, updateProfile, uploadAvatar, trialActive, trialExpired, userPlan, planActive, hasAccess, showTrialBanner, showExpiredBanner }}>
       {children}
+
+      {/* Trial-start banner — shown for 5 s after signup */}
       {showTrialBanner && (
-        <div style={{
-          position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)',
-          zIndex: 9999, display: 'flex', alignItems: 'center', gap: 12,
-          background: '#0d2b1a', border: '1px solid #F5A800', borderRadius: 12,
-          padding: '12px 16px 12px 20px', boxShadow: '0 4px 32px rgba(0,0,0,0.6)',
-          maxWidth: 480, width: 'calc(100vw - 48px)',
-        }}>
+        <div style={{ ...bannerBase, background: '#0d2b1a', border: '1px solid #F5A800' }}>
           <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.9)', lineHeight: 1.45, flex: 1 }}>
             Your 24-hour free trial of Prime Basic has started. Upgrade before it expires to keep access.
           </span>
           <button
             onClick={() => setShowTrialBanner(false)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.45)', fontSize: 20, lineHeight: 1, padding: '0 0 0 4px', flexShrink: 0 }}
+            aria-label="Dismiss"
+          >×</button>
+        </div>
+      )}
+
+      {/* Expired-trial banner — shown after trial ends, only when start banner is not visible */}
+      {showExpiredBanner && !showTrialBanner && (
+        <div style={{ ...bannerBase, background: '#2a0d0d', border: '1px solid rgba(239,68,68,0.6)' }}>
+          <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.9)', lineHeight: 1.45, flex: 1 }}>
+            Your free trial has ended. Upgrade to Basic or Pro to keep access to all features.
+          </span>
+          <button
+            onClick={() => setShowExpiredBanner(false)}
             style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.45)', fontSize: 20, lineHeight: 1, padding: '0 0 0 4px', flexShrink: 0 }}
             aria-label="Dismiss"
           >×</button>
