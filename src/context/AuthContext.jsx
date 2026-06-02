@@ -164,14 +164,17 @@ export function AuthProvider({ children }) {
   };
 
   const trialStartDate = profile?.trial_start_date ? new Date(profile.trial_start_date) : null;
-  const daysSinceTrial = trialStartDate ? (Date.now() - trialStartDate.getTime()) / 86400000 : null;
-  const trialActive = daysSinceTrial !== null && daysSinceTrial < 1;
-  const trialExpired = daysSinceTrial !== null && daysSinceTrial > 1;
+  const msSinceTrial = trialStartDate ? Date.now() - trialStartDate.getTime() : null;
+  const trialActive = msSinceTrial !== null && msSinceTrial < 24 * 60 * 60 * 1000;
+  const trialExpired = msSinceTrial !== null && msSinceTrial >= 24 * 60 * 60 * 1000;
 
   const userPlan = profile?.plan || 'basic';
   const planExpiry = profile?.plan_expiry ? new Date(profile.plan_expiry) : null;
   const planActive = (userPlan === 'basic' || userPlan === 'pro') && planExpiry !== null && planExpiry > new Date();
-  const hasAccess = trialActive || planActive;
+  // Grant access when the 24-hour trial is running, regardless of plan_expiry.
+  // Also default to true while the profile row is still being fetched so a
+  // freshly signed-up user is never flashed the upgrade modal.
+  const hasAccess = trialActive || planActive || (user !== null && profile === null);
 
   return (
     <AuthContext.Provider value={{ user, loading, profile, signIn, signUp, signInWithGoogle, signOut, updateProfile, uploadAvatar, trialActive, trialExpired, userPlan, planActive, hasAccess }}>
