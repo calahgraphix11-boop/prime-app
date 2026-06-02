@@ -19,9 +19,16 @@ export function AuthProvider({ children }) {
     return () => clearTimeout(timer);
   }, []);
 
-  const loadProfile = useCallback(async (userId) => {
+  // supaUser is the Supabase auth user object (session.user); provides email + display name
+  // for the welcome email without additional DB lookups.
+  const loadProfile = useCallback(async (userId, supaUser = null) => {
     if (loadingForRef.current === userId) return;
     loadingForRef.current = userId;
+
+    const getFirstName = (u) => {
+      const display = u?.user_metadata?.full_name ?? u?.user_metadata?.name ?? '';
+      return display.trim().split(' ')[0] || u?.email?.split('@')[0] || 'there';
+    };
 
     const { data } = await supabase
       .from('profiles')
@@ -40,6 +47,9 @@ export function AuthProvider({ children }) {
       if (!insertError) {
         setProfile(newProfile);
         triggerTrialNotification();
+        supabase.functions.invoke('send-welcome-email', {
+          body: { userId, email: supaUser?.email ?? '', firstName: getFirstName(supaUser) },
+        }).catch(e => console.error('Welcome email failed:', e));
       }
       loadingForRef.current = null;
       return;
@@ -61,6 +71,9 @@ export function AuthProvider({ children }) {
       });
       setProfile(updated || data);
       triggerTrialNotification();
+      supabase.functions.invoke('send-welcome-email', {
+        body: { userId, email: supaUser?.email ?? '', firstName: getFirstName(supaUser) },
+      }).catch(e => console.error('Welcome email failed:', e));
       loadingForRef.current = null;
       return;
     }
@@ -70,6 +83,9 @@ export function AuthProvider({ children }) {
     if (sessionStorage.getItem(TRIAL_NOTIF_KEY) === userId) {
       sessionStorage.removeItem(TRIAL_NOTIF_KEY);
       triggerTrialNotification();
+      supabase.functions.invoke('send-welcome-email', {
+        body: { userId, email: supaUser?.email ?? '', firstName: getFirstName(supaUser) },
+      }).catch(e => console.error('Welcome email failed:', e));
     }
 
     setProfile(data);
@@ -79,12 +95,12 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       setUser(session?.user ?? null);
-      if (session?.user) await loadProfile(session.user.id);
+      if (session?.user) await loadProfile(session.user.id, session.user);
       setLoading(false);
     });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
       setUser(session?.user ?? null);
-      if (session?.user) loadProfile(session.user.id);
+      if (session?.user) loadProfile(session.user.id, session.user);
       else { setProfile(null); loadingForRef.current = null; }
     });
     return () => subscription.unsubscribe();
@@ -117,6 +133,10 @@ export function AuthProvider({ children }) {
         // Immediate login (no email confirmation) — gate on profile insert.
         if (profileError) return { error: profileError, needsEmailConfirmation: false };
         triggerTrialNotification();
+        const firstName = fullName?.trim().split(' ')[0] || email.split('@')[0];
+        supabase.functions.invoke('send-welcome-email', {
+          body: { userId: data.user.id, email, firstName },
+        }).catch(e => console.error('Welcome email failed:', e));
       } else {
         // Email confirmation required — RLS may block the upsert; loadProfile will
         // retry on first login. Store flag so it knows to show the notification.
