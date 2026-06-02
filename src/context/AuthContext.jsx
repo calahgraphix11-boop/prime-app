@@ -177,7 +177,7 @@ export function AuthProvider({ children }) {
   const hasAccess = trialActive || planActive || (user !== null && profile === null);
 
   return (
-    <AuthContext.Provider value={{ user, loading, profile, signIn, signUp, signInWithGoogle, signOut, updateProfile, uploadAvatar, trialActive, trialExpired, userPlan, planActive, hasAccess }}>
+    <AuthContext.Provider value={{ user, loading, profile, signIn, signUp, signInWithGoogle, signOut, updateProfile, uploadAvatar, trialActive, trialExpired, userPlan, planActive, hasAccess, showTrialBanner }}>
       {children}
       {showTrialBanner && (
         <div style={{

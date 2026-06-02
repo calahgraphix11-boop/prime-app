@@ -56,10 +56,11 @@ function ProtectedRoute({ children }) {
 }
 
 // Blocks access to all app content for authenticated users with no active plan or trial.
+// Never shows the modal while the trial is active or the trial banner is visible.
 function AccessGate({ children }) {
-  const { user, loading, hasAccess } = useAuth();
+  const { user, loading, hasAccess, trialActive, showTrialBanner } = useAuth();
   if (loading || !user) return children;
-  if (!hasAccess) return <UpgradeModal onClose={() => {}} />;
+  if (!hasAccess && !trialActive && !showTrialBanner) return <UpgradeModal onClose={() => {}} />;
   return children;
 }
 
