@@ -1,21 +1,50 @@
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 
 const AuthContext = createContext(null);
+
+const TRIAL_NOTIF_KEY = 'showTrialNotification';
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState(null);
+  const [showTrialBanner, setShowTrialBanner] = useState(false);
+  // Prevent double-loading when both getSession and onAuthStateChange fire for the same user.
+  const loadingForRef = useRef(null);
+
+  const triggerTrialNotification = useCallback(() => {
+    const timer = setTimeout(() => setShowTrialBanner(true), 5000);
+    return () => clearTimeout(timer);
+  }, []);
 
   const loadProfile = useCallback(async (userId) => {
+    if (loadingForRef.current === userId) return;
+    loadingForRef.current = userId;
+
     const { data } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', userId)
       .maybeSingle();
 
-    if (data && !data.trial_start_date && (data.plan === 'free' || !data.plan)) {
+    if (!data) {
+      // Brand-new user (e.g. Google OAuth) — no profile row yet.
+      const now = new Date().toISOString();
+      const { data: newProfile, error: insertError } = await supabase
+        .from('profiles')
+        .upsert({ id: userId, plan: 'basic', trial_start_date: now }, { onConflict: 'id' })
+        .select()
+        .single();
+      if (!insertError) {
+        setProfile(newProfile);
+        triggerTrialNotification();
+      }
+      loadingForRef.current = null;
+      return;
+    }
+
+    if (!data.trial_start_date && (data.plan === 'free' || !data.plan)) {
       const now = new Date().toISOString();
       const { data: updated } = await supabase
         .from('profiles')
@@ -30,22 +59,32 @@ export function AuthProvider({ children }) {
         created_at: now,
       });
       setProfile(updated || data);
+      triggerTrialNotification();
+      loadingForRef.current = null;
       return;
     }
 
-    setProfile(data || null);
-  }, []);
+    // Email-confirmation flow: signUp stored this flag after the profile was inserted
+    // pre-session; we pick it up here on first post-verification login.
+    if (sessionStorage.getItem(TRIAL_NOTIF_KEY) === userId) {
+      sessionStorage.removeItem(TRIAL_NOTIF_KEY);
+      triggerTrialNotification();
+    }
+
+    setProfile(data);
+    loadingForRef.current = null;
+  }, [triggerTrialNotification]);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setUser(session?.user ?? null);
-      if (session?.user) loadProfile(session.user.id);
+      if (session?.user) await loadProfile(session.user.id);
       setLoading(false);
     });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
       setUser(session?.user ?? null);
       if (session?.user) loadProfile(session.user.id);
-      else setProfile(null);
+      else { setProfile(null); loadingForRef.current = null; }
     });
     return () => subscription.unsubscribe();
   }, [loadProfile]);
@@ -67,17 +106,21 @@ export function AuthProvider({ children }) {
       },
     });
 
-    // Set basic plan + trial start for new users.
-    // When email confirmation is required data.session is null, so the upsert
-    // runs without an authenticated session and may be blocked by RLS — in that
-    // case loadProfile handles initialization on first login instead.
     if (!error && data.user) {
-      await supabase
+      const now = new Date().toISOString();
+      const { error: profileError } = await supabase
         .from('profiles')
-        .upsert(
-          { id: data.user.id, plan: 'basic', trial_start_date: new Date().toISOString() },
-          { onConflict: 'id' }
-        );
+        .upsert({ id: data.user.id, plan: 'basic', trial_start_date: now }, { onConflict: 'id' });
+
+      if (data.session) {
+        // Immediate login (no email confirmation) — gate on profile insert.
+        if (profileError) return { error: profileError, needsEmailConfirmation: false };
+        triggerTrialNotification();
+      } else {
+        // Email confirmation required — RLS may block the upsert; loadProfile will
+        // retry on first login. Store flag so it knows to show the notification.
+        if (!profileError) sessionStorage.setItem(TRIAL_NOTIF_KEY, data.user.id);
+      }
     }
 
     return { error, needsEmailConfirmation: !error && !data.session };
@@ -133,6 +176,24 @@ export function AuthProvider({ children }) {
   return (
     <AuthContext.Provider value={{ user, loading, profile, signIn, signUp, signInWithGoogle, signOut, updateProfile, uploadAvatar, trialActive, trialExpired, userPlan, planActive, hasAccess }}>
       {children}
+      {showTrialBanner && (
+        <div style={{
+          position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)',
+          zIndex: 9999, display: 'flex', alignItems: 'center', gap: 12,
+          background: '#0d2b1a', border: '1px solid #F5A800', borderRadius: 12,
+          padding: '12px 16px 12px 20px', boxShadow: '0 4px 32px rgba(0,0,0,0.6)',
+          maxWidth: 480, width: 'calc(100vw - 48px)',
+        }}>
+          <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.9)', lineHeight: 1.45, flex: 1 }}>
+            Your 24-hour free trial of Prime Basic has started. Upgrade before it expires to keep access.
+          </span>
+          <button
+            onClick={() => setShowTrialBanner(false)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.45)', fontSize: 20, lineHeight: 1, padding: '0 0 0 4px', flexShrink: 0 }}
+            aria-label="Dismiss"
+          >×</button>
+        </div>
+      )}
     </AuthContext.Provider>
   );
 }
