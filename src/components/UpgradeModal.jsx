@@ -30,7 +30,7 @@ export default function UpgradeModal({ onClose, defaultPlan }) {
     const now = new Date().toISOString();
     const { data } = await supabase
       .from('coupons')
-      .select('id, code, discount_percent, max_uses, times_used')
+      .select('id, code, discount_percent, max_uses, times_used, plan')
       .eq('code', code)
       .eq('is_active', true)
       .or(`expires_at.is.null,expires_at.gt.${now}`)
@@ -46,6 +46,11 @@ export default function UpgradeModal({ onClose, defaultPlan }) {
   };
 
   const subscribe = async (planKey) => {
+    if (coupon?.plan && coupon.plan !== planKey) {
+      const planLabel = coupon.plan.charAt(0).toUpperCase() + coupon.plan.slice(1);
+      setCouponError(`This code is only valid for the ${planLabel} plan.`);
+      return;
+    }
     setError('');
     setLoading(planKey);
     try {
