@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Delete Your Account — Prime</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #060e07;
+      --surface: #0a1a0e;
+      --border: rgba(245,168,0,0.12);
+      --gold: #F5A800;
+      --gold-dim: #C9943A;
+      --text: #e8ead0;
+      --text-muted: rgba(232,234,208,0.5);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 16px;
+      line-height: 1.75;
+      min-height: 100vh;
+    }
+
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 40px;
+      background: rgba(6,14,7,0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 20px;
+      color: var(--gold);
+      text-decoration: none;
+      letter-spacing: -0.02em;
+    }
+
+    .nav-cta {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--bg);
+      background: var(--gold);
+      padding: 8px 20px;
+      border-radius: 100px;
+      text-decoration: none;
+      transition: opacity 150ms ease-out;
+    }
+    .nav-cta:hover { opacity: 0.85; }
+
+    .hero {
+      padding: 80px 40px 56px;
+      max-width: 760px;
+      margin: 0 auto;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--gold-dim);
+      background: rgba(245,168,0,0.08);
+      border: 1px solid rgba(245,168,0,0.15);
+      padding: 5px 12px;
+      border-radius: 100px;
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(32px, 5vw, 48px);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      color: var(--text);
+      margin-bottom: 16px;
+    }
+
+    .meta {
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    .content {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 56px 40px 100px;
+    }
+
+    section {
+      margin-bottom: 48px;
+      opacity: 0;
+      transform: translateY(12px);
+      animation: fadeUp 400ms cubic-bezier(0.23,1,0.32,1) forwards;
+    }
+
+    section:nth-child(1) { animation-delay: 60ms; }
+    section:nth-child(2) { animation-delay: 120ms; }
+    section:nth-child(3) { animation-delay: 180ms; }
+    section:nth-child(4) { animation-delay: 240ms; }
+    section:nth-child(5) { animation-delay: 300ms; }
+
+    @keyframes fadeUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h2 {
+      font-family: 'Syne', sans-serif;
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: var(--gold);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    h2::before {
+      content: '';
+      display: inline-block;
+      width: 3px;
+      height: 18px;
+      background: var(--gold);
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    p {
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      font-size: 15px;
+    }
+
+    p:last-child { margin-bottom: 0; }
+
+    ol {
+      margin: 12px 0 0 20px;
+      color: var(--text-muted);
+    }
+
+    ol li {
+      font-size: 15px;
+      padding: 4px 0;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 12px 0 0;
+    }
+
+    ul li {
+      font-size: 15px;
+      color: var(--text-muted);
+      padding: 6px 0 6px 20px;
+      position: relative;
+    }
+
+    ul li::before {
+      content: '—';
+      position: absolute;
+      left: 0;
+      color: var(--gold-dim);
+      font-size: 13px;
+    }
+
+    a {
+      color: var(--gold);
+      text-decoration: none;
+      border-bottom: 1px solid rgba(245,168,0,0.3);
+      transition: border-color 150ms ease-out;
+    }
+    a:hover { border-color: var(--gold); }
+
+    .contact-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px 28px;
+      margin-top: 16px;
+    }
+
+    .contact-card p { margin-bottom: 6px; }
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 32px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+      max-width: 760px;
+      margin: 0 auto;
+    }
+
+    .footer-logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 16px;
+      color: var(--gold);
+      text-decoration: none;
+      border: none;
+    }
+    .footer-logo:hover { border: none; }
+
+    .footer-links { display: flex; gap: 24px; }
+
+    .footer-links a {
+      font-size: 13px;
+      color: var(--text-muted);
+      border-bottom: none;
+    }
+    .footer-links a:hover { color: var(--text); border-bottom: none; }
+
+    @media (max-width: 600px) {
+      nav { padding: 16px 20px; }
+      .hero { padding: 56px 20px 40px; }
+      .content { padding: 40px 20px 80px; }
+      footer { padding: 28px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a href="/" class="nav-logo">Prime</a>
+    <a href="/login" class="nav-cta">Get Started</a>
+  </nav>
+
+  <div class="hero">
+    <div class="badge">Account</div>
+    <h1>Delete Your Account</h1>
+    <p class="meta">Primeflow Solutions &nbsp;·&nbsp; primestudyapp.com</p>
+  </div>
+
+  <div class="content">
+
+    <section>
+      <h2>How to delete your account</h2>
+      <p>You can request deletion of your Prime account and all associated data at any time. There are two ways to do this:</p>
+      <ol>
+        <li>Open the Prime app, go to your Profile, tap Settings, and select "Delete Account." Confirm the action when prompted.</li>
+        <li>Or send a deletion request by email or WhatsApp using the contact details below. Include the email address linked to your Prime account.</li>
+      </ol>
+    </section>
+
+    <section>
+      <h2>What data gets deleted</h2>
+      <p>When you delete your account, the following data is permanently removed:</p>
+      <ul>
+        <li>Your profile (name, email, photo)</li>
+        <li>Study sessions, streaks, and analytics</li>
+        <li>StudyPal chat history</li>
+        <li>Exam Coach results and history</li>
+        <li>Note summaries</li>
+        <li>Study group memberships and messages you posted</li>
+        <li>Friends and leaderboard data</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Data retention</h2>
+      <p>Your personal data is permanently deleted within 30 days of your request. Anonymized usage statistics that cannot be linked back to you may be retained for analytics purposes.</p>
+      <p>Payment transaction records may be retained where required by law or for accounting purposes, but these are not linked to an active account after deletion.</p>
+    </section>
+
+    <section>
+      <h2>Contact us to delete your account</h2>
+      <div class="contact-card">
+        <p><strong style="color:var(--text)">Primeflow Solutions</strong></p>
+        <p>Email: <a href="mailto:primeflow070@gmail.com">primeflow070@gmail.com</a></p>
+        <p>WhatsApp: <a href="https://wa.me/237681987493" target="_blank">+237 681 987 493</a></p>
+      </div>
+    </section>
+
+  </div>
+
+  <footer>
+    <a href="/" class="footer-logo">Prime</a>
+    <div class="footer-links">
+      <a href="/privacy.html">Privacy</a>
+      <a href="/terms.html">Terms</a>
+      <a href="/delete-account.html">Delete Account</a>
+    </div>
+  </footer>
+
+</body>
+</html>
