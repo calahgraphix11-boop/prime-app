@@ -7,7 +7,7 @@ import { supabase } from '../lib/supabase';
 
 
 export default function UpgradeModal({ onClose, defaultPlan }) {
-  const { user } = useAuth();
+  const { user, updateProfile } = useAuth();
   const { userPlan } = useApp();
   const [loading, setLoading] = useState(null); // 'basic' | 'pro' | null
   const [error, setError] = useState('');
@@ -16,6 +16,7 @@ export default function UpgradeModal({ onClose, defaultPlan }) {
   const [couponChecking, setCouponChecking] = useState(false);
   const [coupon, setCoupon] = useState(null);
   const [couponError, setCouponError] = useState('');
+  const [freeSuccess, setFreeSuccess] = useState(false);
 
   const discounted = (base) =>
     coupon ? Math.round(base * (1 - coupon.discount_percent / 100)) : base;
@@ -50,6 +51,29 @@ export default function UpgradeModal({ onClose, defaultPlan }) {
     try {
       const plan = PLANS[planKey];
       const finalAmount = discounted(plan.amount);
+
+      if (finalAmount === 0) {
+        const expiry = new Date();
+        expiry.setDate(expiry.getDate() + 14);
+        await updateProfile({ plan: planKey, plan_expiry: expiry.toISOString() });
+        if (coupon) {
+          const { data: couponRow } = await supabase
+            .from('coupons')
+            .select('id, times_used')
+            .eq('code', coupon.code)
+            .maybeSingle();
+          if (couponRow) {
+            await supabase
+              .from('coupons')
+              .update({ times_used: couponRow.times_used + 1 })
+              .eq('id', couponRow.id);
+          }
+        }
+        setFreeSuccess(true);
+        setLoading(null);
+        return;
+      }
+
       const data = await initiatePayment({
         amount: finalAmount,
         email: user.email,
@@ -67,6 +91,29 @@ export default function UpgradeModal({ onClose, defaultPlan }) {
       setLoading(null);
     }
   };
+
+  if (freeSuccess) {
+    return (
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
+      >
+        <div className="glass-elevated rounded-3xl w-full max-w-sm p-8 text-center">
+          <div
+            className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center"
+            style={{ background: 'rgba(52,211,153,0.15)', border: '1px solid rgba(52,211,153,0.3)' }}
+          >
+            <Check size={26} style={{ color: '#34d399' }} />
+          </div>
+          <h2 className="text-xl font-bold text-white mb-2">Plan activated!</h2>
+          <p className="text-sm text-white/50 mb-6">Your plan is active for 14 days. Enjoy Prime.</p>
+          <button onClick={onClose} className="w-full py-2.5 rounded-xl text-sm font-semibold btn-gold">
+            Get started
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const currentPlan = userPlan || 'free';
 
