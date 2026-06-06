@@ -42,20 +42,46 @@ export default function ResetPassword() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setStatus((s) => (s === "checking" ? "invalid" : s));
-    }, 5000);
+    let cancelled = false;
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY") {
-        clearTimeout(timer);
-        setStatus("ready");
+    async function init() {
+      // Primary path: tokens were stashed in sessionStorage by main.jsx interceptor
+      const blob = sessionStorage.getItem("recovery_tokens");
+      if (blob) {
+        const params = new URLSearchParams(blob);
+        const access_token = params.get("access_token");
+        const refresh_token = params.get("refresh_token");
+        if (access_token && refresh_token) {
+          sessionStorage.removeItem("recovery_tokens");
+          await supabase.auth.setSession({ access_token, refresh_token });
+          if (!cancelled) setStatus("ready");
+          return;
+        }
       }
-    });
 
+      // Fallback: wait for Supabase to emit PASSWORD_RECOVERY (standard flow)
+      const timer = setTimeout(() => {
+        if (!cancelled) setStatus((s) => (s === "checking" ? "invalid" : s));
+      }, 5000);
+
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+        if (event === "PASSWORD_RECOVERY") {
+          clearTimeout(timer);
+          if (!cancelled) setStatus("ready");
+        }
+      });
+
+      return () => {
+        cancelled = true;
+        clearTimeout(timer);
+        subscription.unsubscribe();
+      };
+    }
+
+    const cleanup = init();
     return () => {
-      clearTimeout(timer);
-      subscription.unsubscribe();
+      cancelled = true;
+      cleanup.then?.((fn) => fn?.());
     };
   }, []);
 
