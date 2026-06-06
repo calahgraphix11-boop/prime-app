@@ -6,19 +6,25 @@ import "./index.css";
 // The encoded %23 means the router never matches /reset-password because it
 // sees the whole thing as one unrecognised hash segment.
 (function interceptRecoveryLink() {
-  const href = window.location.href;
-  if (href.includes("access_token") && href.includes("type=recovery")) {
-    let blob;
-    if (href.includes("%23")) {
-      blob = decodeURIComponent(href.split("%23")[1]);
-    } else {
-      const parts = href.split("#");
-      blob = parts[2] || "";
-    }
-    if (blob) {
-      sessionStorage.setItem("recovery_tokens", blob);
-      window.history.replaceState(null, "", "/#/reset-password");
-    }
+  // Use hash only — works identically on www and non-www.
+  // hash = "#/reset-password%23access_token=...&type=recovery"
+  const hash = window.location.hash;
+  if (!hash.includes("access_token")) return;
+
+  let blob = "";
+  if (hash.includes("%23")) {
+    // Supabase encoded the second # as %23 inside the fragment.
+    const raw = hash.slice(hash.indexOf("%23") + 3);
+    try { blob = decodeURIComponent(raw); } catch (_) { blob = raw; }
+  } else {
+    // Two literal # characters: browser decoded %23 → #.
+    const second = hash.indexOf("#", 1);
+    if (second !== -1) blob = hash.slice(second + 1);
+  }
+
+  if (blob && blob.includes("type=recovery")) {
+    sessionStorage.setItem("recovery_tokens", blob);
+    window.history.replaceState(null, "", "/#/reset-password");
   }
 })();
 
