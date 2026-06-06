@@ -85,6 +85,7 @@ function AppRoutes() {
 
   useEffect(() => {
     if (user) {
+      console.log("GUARD: hash=" + window.location.hash + " tokens=" + sessionStorage.getItem("recovery_tokens"));
       if (
         window.location.hash.startsWith("#/reset-password") ||
         sessionStorage.getItem("recovery_tokens") !== null
@@ -92,6 +93,7 @@ function AppRoutes() {
       const pendingPlan = sessionStorage.getItem("pendingUpgradePlan");
       if (pendingPlan) {
         sessionStorage.removeItem("pendingUpgradePlan");
+        console.log("GUARD: redirecting");
         navigate(`/upgrade?plan=${pendingPlan}`, { replace: true });
       }
     }

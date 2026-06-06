@@ -8,8 +8,9 @@ import "./index.css";
 (function interceptRecoveryLink() {
   // Use hash only — works identically on www and non-www.
   // hash = "#/reset-password%23access_token=...&type=recovery"
+  console.log("IIFE: hash =" + window.location.hash);
   const hash = window.location.hash;
-  if (!hash.includes("access_token")) return;
+  if (!hash.includes("access_token")) { console.log("IIFE: no token"); return; }
 
   let blob = "";
   if (hash.includes("%23")) {
@@ -24,6 +25,7 @@ import "./index.css";
 
   if (blob && blob.includes("type=recovery")) {
     sessionStorage.setItem("recovery_tokens", blob);
+    console.log("IIFE: token stored");
     window.history.replaceState(null, "", "/#/reset-password");
   }
 })();
