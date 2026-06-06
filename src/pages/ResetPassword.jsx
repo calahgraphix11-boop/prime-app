@@ -52,7 +52,6 @@ export default function ResetPassword() {
         const access_token = params.get("access_token");
         const refresh_token = params.get("refresh_token");
         if (access_token && refresh_token) {
-          sessionStorage.removeItem("recovery_tokens");
           await supabase.auth.setSession({ access_token, refresh_token });
           if (!cancelled) setStatus("ready");
           return;
@@ -102,6 +101,7 @@ export default function ResetPassword() {
     if (err) {
       setError(err.message || "Failed to update password. The link may have expired.");
     } else {
+      sessionStorage.removeItem("recovery_tokens");
       navigate("/login?reset=success");
     }
   };

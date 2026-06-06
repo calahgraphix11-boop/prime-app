@@ -85,6 +85,10 @@ function AppRoutes() {
 
   useEffect(() => {
     if (user) {
+      if (
+        window.location.hash.startsWith("#/reset-password") ||
+        sessionStorage.getItem("recovery_tokens") !== null
+      ) return;
       const pendingPlan = sessionStorage.getItem("pendingUpgradePlan");
       if (pendingPlan) {
         sessionStorage.removeItem("pendingUpgradePlan");
