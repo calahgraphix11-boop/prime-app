@@ -23,6 +23,7 @@ import Upgrade from "./pages/Upgrade";
 import StudyGroups from "./pages/StudyGroups";
 import JoinGroup from "./pages/JoinGroup";
 import InternshipReport from "./pages/InternshipReport";
+import ResetPassword from "./pages/ResetPassword";
 import UpgradeModal from "./components/UpgradeModal";
 
 class ErrorBoundary extends Component {
@@ -97,6 +98,7 @@ function AppRoutes() {
 <Route path="/login" element={user ? <Navigate to="/" replace /> : <Login />} />
       <Route path="/signup" element={user ? <Navigate to="/" replace /> : <Signup />} />
       <Route path="/verify-email" element={user ? <Navigate to="/" replace /> : <VerifyEmail />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/" element={<HomeRoute />} />
       <Route path="/sessions" element={<ProtectedRoute><Layout><StudySessions /></Layout></ProtectedRoute>} />
       <Route path="/report" element={<ProtectedRoute><Layout><AIReportWriter /></Layout></ProtectedRoute>} />

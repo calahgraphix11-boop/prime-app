@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useApp } from "../context/AppContext";
+import { supabase } from "../lib/supabase";
 
 const DARK = {
   bg: "#0a1a0e",
@@ -36,6 +37,29 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const resetSuccess = new URLSearchParams(location.search).get("reset") === "success";
+
+  const [forgotMode, setForgotMode] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotSent, setForgotSent] = useState(false);
+  const [forgotError, setForgotError] = useState("");
+
+  const handleForgot = async (e) => {
+    e.preventDefault();
+    setForgotError("");
+    setForgotLoading(true);
+    const { error: err } = await supabase.auth.resetPasswordForEmail(forgotEmail.trim(), {
+      redirectTo: "https://primestudyapp.com/#/reset-password",
+    });
+    setForgotLoading(false);
+    if (err) {
+      setForgotError(err.message || "Something went wrong. Please try again.");
+    } else {
+      setForgotSent(true);
+    }
+  };
 
   const handleGoogle = async () => {
     if (plan) sessionStorage.setItem("pendingUpgradePlan", plan);
@@ -106,6 +130,157 @@ export default function Login() {
             padding: "1.75rem",
           }}
         >
+          {resetSuccess && (
+            <div
+              style={{
+                marginBottom: 16,
+                fontSize: "0.875rem",
+                color: "#6ee7b7",
+                background: "rgba(52,211,153,0.12)",
+                border: "1px solid rgba(52,211,153,0.25)",
+                borderRadius: 8,
+                padding: "0.5rem 0.75rem",
+              }}
+            >
+              Password updated — you can now sign in with your new password.
+            </div>
+          )}
+
+          {forgotMode ? (
+            <>
+              <h2
+                style={{
+                  fontFamily: "Inter, sans-serif",
+                  fontWeight: 600,
+                  fontSize: "1.5rem",
+                  color: "#ffffff",
+                  marginBottom: 8,
+                  marginTop: 0,
+                }}
+              >
+                Reset password
+              </h2>
+              <p style={{ fontSize: "0.875rem", color: DARK.labelText, marginTop: 0, marginBottom: 20 }}>
+                Enter your email and we'll send you a reset link.
+              </p>
+
+              {forgotSent ? (
+                <div
+                  style={{
+                    fontSize: "0.875rem",
+                    color: "#6ee7b7",
+                    background: "rgba(52,211,153,0.12)",
+                    border: "1px solid rgba(52,211,153,0.25)",
+                    borderRadius: 8,
+                    padding: "0.75rem 1rem",
+                    marginBottom: 16,
+                  }}
+                >
+                  Check your email for a reset link.
+                </div>
+              ) : (
+                <form onSubmit={handleForgot} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                  <div>
+                    <label style={{ fontSize: "0.875rem", fontWeight: 500, color: DARK.labelText }}>
+                      Email
+                    </label>
+                    <input
+                      type="email"
+                      value={forgotEmail}
+                      onChange={(e) => setForgotEmail(e.target.value)}
+                      required
+                      placeholder="you@example.com"
+                      style={{
+                        display: "block",
+                        width: "100%",
+                        marginTop: 6,
+                        padding: "0.75rem 1rem",
+                        fontSize: "0.875rem",
+                        background: DARK.inputBg,
+                        border: `1px solid ${DARK.inputBorder}`,
+                        borderRadius: 12,
+                        color: DARK.inputText,
+                        outline: "none",
+                        boxSizing: "border-box",
+                        fontFamily: "inherit",
+                        transition: "border-color 0.2s, box-shadow 0.2s",
+                      }}
+                      onFocus={(e) => {
+                        e.target.style.borderColor = DARK.gold;
+                        e.target.style.boxShadow = `0 0 0 3px rgba(212,144,10,0.18)`;
+                      }}
+                      onBlur={(e) => {
+                        e.target.style.borderColor = DARK.inputBorder;
+                        e.target.style.boxShadow = "none";
+                      }}
+                    />
+                  </div>
+
+                  {forgotError && (
+                    <p
+                      style={{
+                        fontSize: "0.875rem",
+                        color: "#fca5a5",
+                        background: "rgba(239,68,68,0.18)",
+                        border: "1px solid rgba(239,68,68,0.3)",
+                        borderRadius: 8,
+                        padding: "0.5rem 0.75rem",
+                        margin: 0,
+                      }}
+                    >
+                      {forgotError}
+                    </p>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={forgotLoading}
+                    style={{
+                      width: "100%",
+                      padding: "0.75rem",
+                      borderRadius: 999,
+                      fontSize: "0.875rem",
+                      fontWeight: 600,
+                      marginTop: 4,
+                      background: DARK.gold,
+                      color: "#000",
+                      border: "none",
+                      cursor: forgotLoading ? "not-allowed" : "pointer",
+                      opacity: forgotLoading ? 0.4 : 1,
+                      transition: "opacity 0.15s, transform 0.1s ease-out",
+                      fontFamily: "inherit",
+                    }}
+                    onMouseDown={(e) => { e.currentTarget.style.transform = "scale(0.97)"; }}
+                    onMouseUp={(e) => { e.currentTarget.style.transform = "scale(1)"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; }}
+                  >
+                    {forgotLoading ? "Sending…" : "Send reset link"}
+                  </button>
+                </form>
+              )}
+
+              <button
+                type="button"
+                onClick={() => { setForgotMode(false); setForgotSent(false); setForgotError(""); }}
+                style={{
+                  marginTop: 16,
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  fontSize: "0.875rem",
+                  color: DARK.gold,
+                  fontFamily: "inherit",
+                  padding: 0,
+                  display: "block",
+                  width: "100%",
+                  textAlign: "center",
+                }}
+              >
+                ← Back to sign in
+              </button>
+            </>
+          ) : (
+          <>
           <h2
             style={{
               fontFamily: "Inter, sans-serif",
@@ -210,6 +385,24 @@ export default function Login() {
               </div>
             </div>
 
+            <div style={{ textAlign: "right", marginTop: -8 }}>
+              <button
+                type="button"
+                onClick={() => { setForgotMode(true); setError(""); }}
+                style={{
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  fontSize: "0.8125rem",
+                  color: DARK.gold,
+                  fontFamily: "inherit",
+                  padding: 0,
+                }}
+              >
+                Forgot password?
+              </button>
+            </div>
+
             {error && (
               <p
                 style={{
@@ -306,6 +499,8 @@ export default function Login() {
               {t.signup}
             </Link>
           </p>
+          </>
+          )}
         </div>
       </div>
     </div>
