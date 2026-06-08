@@ -6,27 +6,32 @@ import { useApp } from '../context/AppContext';
 import { supabase } from '../lib/supabase';
 
 
+const EMPTY_COUPON_STATE = { code: '', checking: false, coupon: null, error: '' };
+
 export default function UpgradeModal({ onClose, defaultPlan }) {
   const { user, updateProfile } = useAuth();
   const { userPlan } = useApp();
   const [loading, setLoading] = useState(null); // 'basic' | 'pro' | null
   const [error, setError] = useState('');
 
-  const [couponCode, setCouponCode] = useState('');
-  const [couponChecking, setCouponChecking] = useState(false);
-  const [coupon, setCoupon] = useState(null);
-  const [couponError, setCouponError] = useState('');
+  const [couponStates, setCouponStates] = useState({
+    basic: { ...EMPTY_COUPON_STATE },
+    pro:   { ...EMPTY_COUPON_STATE },
+  });
   const [freeSuccess, setFreeSuccess] = useState(false);
 
-  const discounted = (base) =>
-    coupon ? Math.round(base * (1 - coupon.discount_percent / 100)) : base;
+  const updateCoupon = (planKey, patch) =>
+    setCouponStates(prev => ({ ...prev, [planKey]: { ...prev[planKey], ...patch } }));
 
-  const applyCoupon = async () => {
-    const code = couponCode.trim().toUpperCase();
+  const discounted = (base, planKey) => {
+    const c = couponStates[planKey]?.coupon;
+    return c ? Math.round(base * (1 - c.discount_percent / 100)) : base;
+  };
+
+  const applyCoupon = async (planKey) => {
+    const code = couponStates[planKey].code.trim().toUpperCase();
     if (!code) return;
-    setCouponChecking(true);
-    setCouponError('');
-    setCoupon(null);
+    updateCoupon(planKey, { checking: true, error: '', coupon: null });
     const now = new Date().toISOString();
     const { data } = await supabase
       .from('coupons')
@@ -36,26 +41,24 @@ export default function UpgradeModal({ onClose, defaultPlan }) {
       .or(`expires_at.is.null,expires_at.gt.${now}`)
       .maybeSingle();
     if (!data) {
-      setCouponError('Invalid or expired coupon code.');
+      updateCoupon(planKey, { checking: false, error: 'Invalid or expired coupon code.' });
     } else if (data.times_used >= data.max_uses) {
-      setCouponError('This coupon has reached its usage limit.');
+      updateCoupon(planKey, { checking: false, error: 'This coupon has reached its usage limit.' });
+    } else if (data.plan && data.plan !== planKey) {
+      const planLabel = planKey.charAt(0).toUpperCase() + planKey.slice(1);
+      updateCoupon(planKey, { checking: false, error: `This code isn't valid for ${planLabel}.` });
     } else {
-      setCoupon(data);
+      updateCoupon(planKey, { checking: false, coupon: data });
     }
-    setCouponChecking(false);
   };
 
   const subscribe = async (planKey) => {
-    if (coupon?.plan && coupon.plan !== planKey) {
-      const planLabel = coupon.plan.charAt(0).toUpperCase() + coupon.plan.slice(1);
-      setCouponError(`This code is only valid for the ${planLabel} plan.`);
-      return;
-    }
     setError('');
     setLoading(planKey);
+    const coupon = couponStates[planKey].coupon;
     try {
       const plan = PLANS[planKey];
-      const finalAmount = discounted(plan.amount);
+      const finalAmount = discounted(plan.amount, planKey);
 
       if (finalAmount === 0) {
         const expiry = new Date();
@@ -209,13 +212,13 @@ export default function UpgradeModal({ onClose, defaultPlan }) {
               </div>
 
               <div className="mb-4">
-                {coupon ? (
+                {couponStates[tier.key].coupon ? (
                   <div className="flex items-baseline gap-2">
                     <span className="text-sm text-white/35 line-through">
                       {PLANS[tier.key].amount.toLocaleString()}
                     </span>
                     <span className="text-2xl font-bold text-white">
-                      {discounted(PLANS[tier.key].amount).toLocaleString()}
+                      {discounted(PLANS[tier.key].amount, tier.key).toLocaleString()}
                     </span>
                   </div>
                 ) : (
@@ -267,57 +270,55 @@ export default function UpgradeModal({ onClose, defaultPlan }) {
                   ) : tier.cta}
                 </button>
               )}
+
+              {/* Per-card coupon input */}
+              <div className="mt-3 pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <Tag size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30 pointer-events-none" />
+                    <input
+                      value={couponStates[tier.key].code}
+                      onChange={(e) => {
+                        updateCoupon(tier.key, { code: e.target.value.toUpperCase(), coupon: null, error: '' });
+                      }}
+                      onKeyDown={(e) => { if (e.key === 'Enter') applyCoupon(tier.key); }}
+                      placeholder="Coupon code"
+                      className="w-full pl-8 pr-3 py-2 rounded-xl glass-input text-sm font-mono tracking-wider"
+                      disabled={!!loading}
+                    />
+                  </div>
+                  <button
+                    onClick={() => applyCoupon(tier.key)}
+                    disabled={couponStates[tier.key].checking || !couponStates[tier.key].code.trim() || !!loading}
+                    className="px-3 py-2 rounded-xl text-sm font-semibold btn-ghost disabled:opacity-40 flex items-center gap-1.5"
+                  >
+                    {couponStates[tier.key].checking ? (
+                      <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin inline-block" />
+                    ) : 'Apply'}
+                  </button>
+                </div>
+
+                {couponStates[tier.key].coupon && (
+                  <div
+                    className="mt-2 flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs"
+                    style={{ background: 'rgba(52,211,153,0.1)', border: '1px solid rgba(52,211,153,0.25)', color: '#34d399' }}
+                  >
+                    <Check size={12} />
+                    <span><strong>{couponStates[tier.key].coupon.discount_percent}% off</strong> applied</span>
+                  </div>
+                )}
+
+                {couponStates[tier.key].error && (
+                  <p
+                    className="mt-2 text-xs px-3 py-1.5 rounded-xl"
+                    style={{ background: 'rgba(239,68,68,0.1)', color: '#f87171' }}
+                  >
+                    {couponStates[tier.key].error}
+                  </p>
+                )}
+              </div>
             </div>
           ))}
-        </div>
-
-        {/* Coupon */}
-        <div className="mt-5 pt-4" style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}>
-          <div className="flex gap-2">
-            <div className="relative flex-1">
-              <Tag size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30 pointer-events-none" />
-              <input
-                value={couponCode}
-                onChange={(e) => {
-                  setCouponCode(e.target.value.toUpperCase());
-                  setCoupon(null);
-                  setCouponError('');
-                }}
-                onKeyDown={(e) => { if (e.key === 'Enter') applyCoupon(); }}
-                placeholder="Coupon code"
-                className="w-full pl-8 pr-3 py-2.5 rounded-xl glass-input text-sm font-mono tracking-wider"
-                disabled={!!loading}
-              />
-            </div>
-            <button
-              onClick={applyCoupon}
-              disabled={couponChecking || !couponCode.trim() || !!loading}
-              className="px-4 py-2.5 rounded-xl text-sm font-semibold btn-ghost disabled:opacity-40 flex items-center gap-1.5"
-            >
-              {couponChecking ? (
-                <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin inline-block" />
-              ) : 'Apply'}
-            </button>
-          </div>
-
-          {coupon && (
-            <div
-              className="mt-2.5 flex items-center gap-2 px-3 py-2 rounded-xl text-sm"
-              style={{ background: 'rgba(52,211,153,0.1)', border: '1px solid rgba(52,211,153,0.25)', color: '#34d399' }}
-            >
-              <Check size={13} />
-              <span><strong>{coupon.discount_percent}% off</strong> applied — prices updated above</span>
-            </div>
-          )}
-
-          {couponError && (
-            <p
-              className="mt-2.5 text-sm px-3 py-2 rounded-xl"
-              style={{ background: 'rgba(239,68,68,0.1)', color: '#f87171' }}
-            >
-              {couponError}
-            </p>
-          )}
         </div>
 
         {error && (
