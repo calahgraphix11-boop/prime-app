@@ -227,12 +227,14 @@ export default function UpgradeModal({ onClose, defaultPlan }) {
                   </span>
                 )}
                 <span className="text-sm text-white/50 ml-1">{tier.priceSuffix}</span>
-                <div
-                  className="inline-block mt-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold"
-                  style={{ background: 'rgba(245,168,0,0.15)', border: '1px solid rgba(245,168,0,0.35)', color: '#F5A800' }}
-                >
-                  24-hour free trial
-                </div>
+                {currentPlan === 'free' && (
+                  <div
+                    className="inline-block mt-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold"
+                    style={{ background: 'rgba(245,168,0,0.15)', border: '1px solid rgba(245,168,0,0.35)', color: '#F5A800' }}
+                  >
+                    24-hour free trial
+                  </div>
+                )}
               </div>
 
               <ul className="space-y-2 flex-1 mb-5">
