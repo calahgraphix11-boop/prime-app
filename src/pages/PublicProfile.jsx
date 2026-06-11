@@ -22,7 +22,7 @@ export default function PublicProfile() {
     const load = async () => {
       setLoading(true);
 
-      const [{ data: prof }, { data: logs }, { count: fc }, { data: rel }] = await Promise.all([
+      const [{ data: prof }, { data: totalMinutes }, { count: fc }, { data: rel }] = await Promise.all([
         supabase
           .from('profiles')
           .select('id, username, full_name, avatar_url, active_status_visible, is_active, streak')
@@ -30,9 +30,7 @@ export default function PublicProfile() {
           .maybeSingle(),
 
         supabase
-          .from('study_sessions_log')
-          .select('duration_minutes')
-          .eq('user_id', userId),
+          .rpc('get_user_total_study_minutes', { target_user_id: userId }),
 
         supabase
           .from('friendships')
@@ -51,9 +49,7 @@ export default function PublicProfile() {
       ]);
 
       setProfile(prof);
-      setTotalHours(
-        Math.round(((logs || []).reduce((s, r) => s + (r.duration_minutes || 0), 0) / 60) * 10) / 10
-      );
+      setTotalHours(Math.round(((totalMinutes || 0) / 60) * 10) / 10);
       setFriendsCount(fc || 0);
 
       if (rel) {
