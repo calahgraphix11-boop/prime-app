@@ -22,7 +22,7 @@ export default function PublicProfile() {
     const load = async () => {
       setLoading(true);
 
-      const [{ data: prof }, { data: totalMinutes }, { count: fc }, { data: rel }] = await Promise.all([
+      const [{ data: prof }, { data: totalMinutes }, { data: fc }, { data: rel }] = await Promise.all([
         supabase
           .from('profiles')
           .select('id, username, full_name, avatar_url, active_status_visible, is_active, streak')
@@ -33,10 +33,7 @@ export default function PublicProfile() {
           .rpc('get_user_total_study_minutes', { target_user_id: userId }),
 
         supabase
-          .from('friendships')
-          .select('id', { count: 'exact', head: true })
-          .or(`requester_id.eq.${userId},receiver_id.eq.${userId}`)
-          .eq('status', 'accepted'),
+          .rpc('get_user_friends_count', { target_user_id: userId }),
 
         supabase
           .from('friendships')
