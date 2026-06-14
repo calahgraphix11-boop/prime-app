@@ -77,11 +77,12 @@ export default function NoteSummarizer() {
 
   const handleSummarize = async () => {
     if ((!instructions.trim() && !attachedFile) || summaryRemaining <= 0) return;
-    incrementSummary();
-    if (attachedFile && canUploadFiles && fileUploadsRemaining > 0) incrementFileUpload();
     setLoading(true);
     setError("");
     setResult(null);
+    const gate = await incrementSummary();
+    if (!gate.allowed) { setLoading(false); return; }
+    if (attachedFile && canUploadFiles && fileUploadsRemaining > 0) await incrementFileUpload();
     const subjectLabel = subject === "__custom__" ? customSubject : subject;
     try {
       const raw = await generateWithFile({
@@ -346,7 +347,7 @@ export default function NoteSummarizer() {
           {!canUploadFiles ? (
             <p className="text-xs text-gray-700 dark:text-gray-300">Upgrade to access file uploads</p>
           ) : fileUploadsRemaining === 0 ? (
-            <p className="text-xs text-gray-700 dark:text-gray-300">Daily file upload limit reached</p>
+            <p className="text-xs text-gray-700 dark:text-gray-300">{planActive ? 'Monthly file upload limit reached' : 'Daily file upload limit reached'}</p>
           ) : attachedFile ? (
             <div className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs" style={{ background: 'rgba(245,168,0,0.08)', border: '1px solid rgba(245,168,0,0.25)' }}>
               <Paperclip size={12} style={{ color: '#F5A800', flexShrink: 0 }} />
@@ -365,10 +366,10 @@ export default function NoteSummarizer() {
             <div className="w-12 h-12 rounded-xl mx-auto mb-3 flex items-center justify-center" style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.25)' }}>
               <Sparkles size={20} style={{ color: '#f87171' }} />
             </div>
-            <h3 className="text-base font-bold text-gray-900 dark:text-white mb-1.5">{trialExpired ? 'Free Trial Ended' : 'Daily Limit Reached'}</h3>
-            <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{trialExpired ? 'Your 7-day free trial has ended — upgrade to Pro or Basic to keep summarizing notes.' : "You've used all 5 summaries for today — upgrade for unlimited access."}</p>
+            <h3 className="text-base font-bold text-gray-900 dark:text-white mb-1.5">{trialExpired ? 'Free Trial Ended' : planActive ? 'Monthly Limit Reached' : 'Daily Limit Reached'}</h3>
+            <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{trialExpired ? 'Your 7-day free trial has ended — upgrade to Pro or Basic to keep summarizing notes.' : planActive ? `You've used all 30 note summaries for this month — resets ${new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}.` : "You've used all 5 summaries for today — upgrade for unlimited access."}</p>
             <div className="mt-4 px-4 py-1.5 rounded-full text-xs font-semibold inline-block" style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171' }}>
-              {trialExpired ? '7-day free trial ended' : '5 / 5 summaries used today'}
+              {trialExpired ? '7-day free trial ended' : planActive ? '30 / 30 summaries used this month' : '5 / 5 summaries used today'}
             </div>
             <button
               onClick={() => setShowUpgrade(true)}
@@ -391,7 +392,7 @@ export default function NoteSummarizer() {
               )}
             </button>
             {summaryRemaining < 999 && (
-              <p className="text-xs text-center text-gray-700 dark:text-gray-300">{summaryRemaining} of 5 summaries remaining today</p>
+              <p className="text-xs text-center text-gray-700 dark:text-gray-300">{summaryRemaining} of {planActive ? 30 : 5} summaries remaining {planActive ? 'this month' : 'today'}</p>
             )}
           </>
         )}

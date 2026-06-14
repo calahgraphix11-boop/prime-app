@@ -14,6 +14,11 @@ export const EXAM_LIMIT = 5;
 export const FILE_UPLOAD_LIMIT_TRIAL = 2;
 export const FILE_UPLOAD_LIMIT_BASIC = 5;
 
+export const MONTHLY_CAPS = {
+  basic: { report_rewrites: 30, note_summaries: 30, exam_prep_count: 60, file_uploads: 10 },
+  pro:   { report_rewrites: 150, note_summaries: 150, exam_prep_count: null, file_uploads: null },
+};
+
 /*
  * SQL — run once in Supabase SQL Editor:
  * ALTER TABLE daily_usage ADD COLUMN IF NOT EXISTS exam_prep_count integer DEFAULT 0;
@@ -64,6 +69,7 @@ export function AppProvider({ children }) {
   const [courses, setCourses] = useState([]);
   const [weeklyGoalMinutes, setWeeklyGoalMinutesState] = useState(300);
   const [dailyUsage, setDailyUsage] = useState({ chat_messages: 0, report_rewrites: 0, note_summaries: 0, exam_prep_count: 0, file_uploads: 0 });
+  const [monthlyUsage, setMonthlyUsage] = useState({ report_rewrites: 0, note_summaries: 0, exam_prep_count: 0, file_uploads: 0 });
   const [dataLoading, setDataLoading] = useState(false);
 
   // ── Global timer state ────────────────────────────────────
@@ -87,6 +93,7 @@ export function AppProvider({ children }) {
       setCourses([]);
       setWeeklyGoalMinutesState(300);
       setDailyUsage({ chat_messages: 0, report_rewrites: 0, note_summaries: 0, exam_prep_count: 0, file_uploads: 0 });
+      setMonthlyUsage({ report_rewrites: 0, note_summaries: 0, exam_prep_count: 0, file_uploads: 0 });
       clearInterval(intervalRef.current);
       setActiveSession(null);
       setRunning(false);
@@ -107,13 +114,19 @@ export function AppProvider({ children }) {
       supabase.from('courses').select('*').eq('user_id', user.id).order('created_at'),
       supabase.from('user_settings').select('*').eq('user_id', user.id).maybeSingle(),
       supabase.from('daily_usage').select('*').eq('user_id', user.id).eq('date', today()).maybeSingle(),
-    ]).then(([{ data: s }, { data: r }, { data: c }, { data: cData }, { data: settings }, { data: usage }]) => {
+      supabase.from('daily_usage').select('report_rewrites, note_summaries, exam_prep_count, file_uploads').eq('user_id', user.id).gte('date', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]),
+    ]).then(([{ data: s }, { data: r }, { data: c }, { data: cData }, { data: settings }, { data: usage }, { data: monthRows }]) => {
       setSessions(s || []);
       setReports(r || []);
       setChatSessions(c || []);
       setWeeklyGoalMinutesState(settings?.weekly_goal_minutes || 300);
       setDailyUsage({ chat_messages: usage?.chat_messages || 0, report_rewrites: usage?.report_rewrites || 0, note_summaries: usage?.note_summaries || 0, exam_prep_count: usage?.exam_prep_count || 0, file_uploads: usage?.file_uploads || 0 });
-
+      setMonthlyUsage((monthRows || []).reduce((acc, row) => ({
+        report_rewrites: acc.report_rewrites + (row.report_rewrites || 0),
+        note_summaries:  acc.note_summaries  + (row.note_summaries  || 0),
+        exam_prep_count: acc.exam_prep_count + (row.exam_prep_count || 0),
+        file_uploads:    acc.file_uploads    + (row.file_uploads    || 0),
+      }), { report_rewrites: 0, note_summaries: 0, exam_prep_count: 0, file_uploads: 0 }));
       setCourses(cData || []);
     }).finally(() => setDataLoading(false));
   }, [user?.id]);
@@ -429,19 +442,34 @@ export function AppProvider({ children }) {
     }
   };
 
+  const checkAndIncrementUsage = async (action) => {
+    const { data, error } = await supabase.rpc('check_and_increment_monthly_usage', { p_action: action });
+    if (error) throw error;
+    if (data.allowed) {
+      setDailyUsage((prev)  => ({ ...prev, [action]: (prev[action]  || 0) + 1 }));
+      setMonthlyUsage((prev) => ({ ...prev, [action]: (prev[action] || 0) + 1 }));
+    }
+    return data;
+  };
+
   // Point values per the scoring spec
-  const incrementChat = () => { incrementUsage('chat_messages'); addLeaderboardPoints(5); };
-  const incrementRewrite = () => { incrementUsage('report_rewrites'); addLeaderboardPoints(10); };
-  const incrementSummary = () => { incrementUsage('note_summaries'); addLeaderboardPoints(10); };
-  const incrementExam = () => { incrementUsage('exam_prep_count'); addLeaderboardPoints(15); };
-  const incrementFileUpload = () => incrementUsage('file_uploads');
-  const chatRemaining = (trialActive || planActive) ? 999 : Math.max(0, CHAT_LIMIT - dailyUsage.chat_messages);
-  const rewriteRemaining = (trialActive || planActive) ? 999 : Math.max(0, REPORT_LIMIT - dailyUsage.report_rewrites);
-  const summaryRemaining = (trialActive || planActive) ? 999 : Math.max(0, NOTE_LIMIT - dailyUsage.note_summaries);
-  const examRemaining = (trialActive || planActive) ? 999 : Math.max(0, EXAM_LIMIT - dailyUsage.exam_prep_count);
-  const fileUploadsRemaining = planActive
-    ? (userPlan === 'pro' ? 999 : Math.max(0, FILE_UPLOAD_LIMIT_BASIC - dailyUsage.file_uploads))
-    : Math.max(0, FILE_UPLOAD_LIMIT_TRIAL - dailyUsage.file_uploads);
+  const incrementChat       = () => { incrementUsage('chat_messages'); addLeaderboardPoints(5); };
+  const incrementRewrite    = async () => { const r = await checkAndIncrementUsage('report_rewrites'); if (r.allowed) addLeaderboardPoints(10); return r; };
+  const incrementSummary    = async () => { const r = await checkAndIncrementUsage('note_summaries');  if (r.allowed) addLeaderboardPoints(10); return r; };
+  const incrementExam       = async () => { const r = await checkAndIncrementUsage('exam_prep_count'); if (r.allowed) addLeaderboardPoints(15); return r; };
+  const incrementFileUpload = async () => checkAndIncrementUsage('file_uploads');
+  const _monthlyRemaining = (action) => {
+    if (trialActive) return 999;
+    if (!planActive) return Math.max(0, 5 - (dailyUsage[action] || 0));
+    const cap = MONTHLY_CAPS[userPlan]?.[action];
+    if (!cap) return 999;
+    return Math.max(0, cap - (monthlyUsage[action] || 0));
+  };
+  const chatRemaining        = (trialActive || planActive) ? 999 : Math.max(0, CHAT_LIMIT - dailyUsage.chat_messages);
+  const rewriteRemaining     = _monthlyRemaining('report_rewrites');
+  const summaryRemaining     = _monthlyRemaining('note_summaries');
+  const examRemaining        = _monthlyRemaining('exam_prep_count');
+  const fileUploadsRemaining = _monthlyRemaining('file_uploads');
 
   // ── Computed ──────────────────────────────────────────────
   const todayMinutes = sessions
@@ -514,6 +542,7 @@ export function AppProvider({ children }) {
       dataLoading,
       chatRemaining, rewriteRemaining, summaryRemaining, examRemaining, incrementChat, incrementRewrite, incrementSummary, incrementExam,
       fileUploadsRemaining, incrementFileUpload,
+      monthlyUsage,
       addLeaderboardPoints,
       trialActive, trialExpired, planActive, userPlan,
       todayMinutes, weekMinutes, monthMinutes,
