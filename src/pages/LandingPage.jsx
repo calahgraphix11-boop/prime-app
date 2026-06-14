@@ -132,19 +132,29 @@ function Hero({ navigate }) {
       </div>
 
       <div style={{
-        display: "flex", gap: "4rem", flexWrap: "wrap", justifyContent: "center",
+        display: "flex", flexDirection: "column", alignItems: "center", gap: "1.25rem",
         animation: "fadeUp 0.6s ease 0.55s both"
       }}>
-        {[
-          { num: "50K+", label: "Students" },
-          { num: "4.9/5", label: "Rating" },
-          { num: "2M+", label: "Sessions" },
-        ].map(({ num, label }) => (
-          <div key={label} style={{ textAlign: "center" }}>
-            <div style={{ fontFamily: F, fontWeight: 800, fontSize: "1.8rem", color: "#fff", letterSpacing: "-0.02em" }}>{num}</div>
-            <div style={{ fontFamily: F, fontSize: 13, color: "rgba(255,255,255,0.4)", marginTop: 4, textTransform: "uppercase", letterSpacing: 1 }}>{label}</div>
-          </div>
-        ))}
+        <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", justifyContent: "center" }}>
+          {[
+            { icon: "🇨🇲", label: "Built for Cameroonian students" },
+            { icon: "🌱", label: "New — join early" },
+            { icon: "🗣️", label: "Bilingual: English & French" },
+            { icon: "📱", label: "Pay with MTN MoMo & Orange Money" },
+          ].map(({ icon, label }) => (
+            <div key={label} style={{
+              display: "flex", alignItems: "center", gap: 8,
+              background: "#1a2e1a", border: "1px solid #2a4a2a",
+              borderRadius: 20, padding: "7px 14px"
+            }}>
+              <span style={{ fontSize: 15 }}>{icon}</span>
+              <span style={{ fontFamily: F, fontSize: 13, color: "rgba(255,255,255,0.65)" }}>{label}</span>
+            </div>
+          ))}
+        </div>
+        <p style={{ fontFamily: F, fontSize: 12, color: "rgba(255,255,255,0.3)", margin: 0 }}>
+          Built in Cameroon, for students in Cameroon and francophone West Africa.
+        </p>
       </div>
     </section>
   );
@@ -343,6 +353,57 @@ function Features() {
             </div>
           </div>
         ))}
+      </div>
+    </section>
+  );
+}
+
+function Comparison() {
+  const [ref, visible] = useInView();
+  const rows = [
+    { feature: "Price",                                    chatgpt: "~12,000 FCFA/mo",        prime: "from 2,500 FCFA/mo" },
+    { feature: "Pay with MoMo / Orange Money",             chatgpt: "No (needs foreign card)", prime: "Yes" },
+    { feature: "Knows your curriculum (GCE, uni syllabi)", chatgpt: "No",                      prime: "Yes" },
+    { feature: "Past-paper exam coaching",                 chatgpt: "No",                      prime: "Yes" },
+    { feature: "Study timer, streaks, leaderboard",        chatgpt: "No",                      prime: "Yes" },
+    { feature: "Tracks your weak topics",                  chatgpt: "No",                      prime: "Yes" },
+    { feature: "Works offline",                            chatgpt: "No",                      prime: "Yes (Pro)" },
+  ];
+  return (
+    <section ref={ref} style={{ padding: "112px 2rem", background: "rgba(0,0,0,0.15)" }}>
+      <div style={{ maxWidth: 860, margin: "0 auto" }}>
+        <div style={{ textAlign: "center", marginBottom: "3rem" }}>
+          <div style={{ fontSize: 11, color: GOLD, letterSpacing: 3, textTransform: "uppercase", fontFamily: F, fontWeight: 700, marginBottom: 12 }}>VS CHATGPT</div>
+          <h2 style={{ fontFamily: F, fontWeight: 800, fontSize: "clamp(1.8rem, 3.5vw, 2.6rem)", color: "#fff", margin: "0 0 1.25rem", letterSpacing: "-0.025em" }}>
+            Why Prime beats ChatGPT for Cameroonian students
+          </h2>
+          <p style={{ fontFamily: F, fontSize: 15, color: "rgba(255,255,255,0.45)", margin: 0, lineHeight: 1.6 }}>
+            ChatGPT is built for everyone. Prime is built for you — your syllabus, your exams, your money.
+          </p>
+        </div>
+        <div style={{
+          background: CARD_BG, border: `1px solid ${CARD_BORDER}`,
+          borderRadius: 20, overflow: "hidden",
+          opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(24px)",
+          transition: "opacity 0.6s ease, transform 0.6s ease"
+        }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", borderBottom: `1px solid ${CARD_BORDER}` }}>
+            <div style={{ padding: "1rem 1.5rem" }} />
+            <div style={{ padding: "1rem 1.5rem", fontFamily: F, fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: 1, borderLeft: `1px solid ${CARD_BORDER}`, textAlign: "center" }}>ChatGPT Plus</div>
+            <div style={{ padding: "1rem 1.5rem", fontFamily: F, fontSize: 12, fontWeight: 700, color: GOLD, textTransform: "uppercase", letterSpacing: 1, borderLeft: `1px solid ${CARD_BORDER}`, textAlign: "center" }}>Prime</div>
+          </div>
+          {rows.map((row, i) => (
+            <div key={i} style={{
+              display: "grid", gridTemplateColumns: "1fr 1fr 1fr",
+              borderBottom: i < rows.length - 1 ? `1px solid ${CARD_BORDER}` : "none",
+              background: i % 2 === 1 ? "rgba(255,255,255,0.02)" : "transparent"
+            }}>
+              <div style={{ padding: "0.9rem 1.5rem", fontFamily: F, fontSize: 13, color: "rgba(255,255,255,0.65)", lineHeight: 1.45 }}>{row.feature}</div>
+              <div style={{ padding: "0.9rem 1.5rem", fontFamily: F, fontSize: 13, color: "rgba(255,255,255,0.35)", borderLeft: `1px solid ${CARD_BORDER}`, textAlign: "center", lineHeight: 1.45 }}>{row.chatgpt}</div>
+              <div style={{ padding: "0.9rem 1.5rem", fontFamily: F, fontSize: 13, color: GOLD, fontWeight: 600, borderLeft: `1px solid ${CARD_BORDER}`, textAlign: "center", lineHeight: 1.45 }}>{row.prime}</div>
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   );
@@ -569,6 +630,7 @@ export default function LandingPage() {
       <Problem />
       <Solution />
       <Features />
+      <Comparison />
       <Pricing navigate={navigate} />
       <FAQ />
       <FinalCTA navigate={navigate} />
