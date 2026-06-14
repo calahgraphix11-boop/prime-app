@@ -67,8 +67,12 @@ export default function NoteSummarizer() {
     if (!file) return;
     if (file.size > 5 * 1024 * 1024) { setFileError("File too large. Please attach a file under 5MB."); if (fileInputRef.current) fileInputRef.current.value = ""; return; }
     setFileError("");
-    const referenceText = await extractTextFromFile(file);
-    setAttachedFile({ file, referenceText });
+    try {
+      const referenceText = await extractTextFromFile(file);
+      setAttachedFile({ file, referenceText });
+    } catch {
+      setFileError("Could not read file. Please try a different file.");
+    }
   };
 
   const handleSummarize = async () => {

@@ -28,8 +28,12 @@ export default function AIChatbot() {
     if (!file) return;
     if (file.size > MAX_FILE_SIZE) { setFileError("File exceeds 5 MB limit."); return; }
     setFileError("");
-    const base64 = await readFileAsBase64(file);
-    setAttachedFile({ file, base64, mediaType: getMediaType(file.name) });
+    try {
+      const base64 = await readFileAsBase64(file);
+      setAttachedFile({ file, base64, mediaType: getMediaType(file.name) });
+    } catch {
+      setFileError("Could not read file. Please try a different file.");
+    }
   };
 
   useEffect(() => {
