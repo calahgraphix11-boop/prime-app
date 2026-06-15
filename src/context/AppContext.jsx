@@ -7,13 +7,6 @@ import fr from '../i18n/fr';
 
 const AppContext = createContext(null);
 
-export const CHAT_LIMIT = 10;
-export const REPORT_LIMIT = 5;
-export const NOTE_LIMIT = 5;
-export const EXAM_LIMIT = 5;
-export const FILE_UPLOAD_LIMIT_TRIAL = 2;
-export const FILE_UPLOAD_LIMIT_BASIC = 5;
-
 export const MONTHLY_CAPS = {
   basic: { report_rewrites: 30, note_summaries: 30, exam_prep_count: 60, file_uploads: 10 },
   pro:   { report_rewrites: 150, note_summaries: 150, exam_prep_count: null, file_uploads: null },
@@ -460,12 +453,12 @@ export function AppProvider({ children }) {
   const incrementFileUpload = async () => checkAndIncrementUsage('file_uploads');
   const _monthlyRemaining = (action) => {
     if (trialActive) return 999;
-    if (!planActive) return Math.max(0, 5 - (dailyUsage[action] || 0));
+    if (!planActive) return 0;
     const cap = MONTHLY_CAPS[userPlan]?.[action];
     if (!cap) return 999;
     return Math.max(0, cap - (monthlyUsage[action] || 0));
   };
-  const chatRemaining        = (trialActive || planActive) ? 999 : Math.max(0, CHAT_LIMIT - dailyUsage.chat_messages);
+  const chatRemaining        = (trialActive || planActive) ? 999 : 0;
   const rewriteRemaining     = _monthlyRemaining('report_rewrites');
   const summaryRemaining     = _monthlyRemaining('note_summaries');
   const examRemaining        = _monthlyRemaining('exam_prep_count');

@@ -118,10 +118,10 @@ export default function AIReportWriter() {
             <div className="w-12 h-12 rounded-xl mx-auto mb-3 flex items-center justify-center" style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.25)' }}>
               <Sparkles size={20} style={{ color: '#f87171' }} />
             </div>
-            <h3 className="text-base font-bold text-white mb-1.5">{trialExpired ? 'Free Trial Ended' : planActive ? 'Monthly Limit Reached' : 'Daily Limit Reached'}</h3>
-            <p className="text-sm text-white/50 leading-relaxed">{trialExpired ? 'Your 7-day free trial has ended — upgrade to Pro or Basic to keep rewriting reports.' : planActive ? `You've used all 30 report rewrites for this month — resets ${new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}.` : "You've reached your daily limit — upgrade to Basic or Pro for more."}</p>
+            <h3 className="text-base font-bold text-white mb-1.5">{trialExpired ? 'Free Trial Ended' : planActive ? 'Monthly Limit Reached' : 'Upgrade Required'}</h3>
+            <p className="text-sm text-white/50 leading-relaxed">{trialExpired ? 'Your 24-hour free trial has ended — upgrade to Basic or Pro to keep rewriting reports.' : planActive ? `You've used all 30 report rewrites for this month — resets ${new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}.` : 'You need an active plan to use this feature.'}</p>
             <div className="mt-4 px-4 py-1.5 rounded-full text-xs font-semibold inline-block" style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171' }}>
-              {trialExpired ? '7-day free trial ended' : planActive ? '30 / 30 rewrites used this month' : '5 / 5 rewrites used today'}
+              {trialExpired ? '24-hour trial ended' : planActive ? '30 / 30 rewrites used this month' : 'No active plan'}
             </div>
             <button
               onClick={() => setShowUpgrade(true)}
