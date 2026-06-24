@@ -441,6 +441,11 @@ export function AppProvider({ children }) {
     if (data.allowed) {
       setDailyUsage((prev)  => ({ ...prev, [action]: (prev[action]  || 0) + 1 }));
       setMonthlyUsage((prev) => ({ ...prev, [action]: (prev[action] || 0) + 1 }));
+    } else {
+      // Saturate local state so the client-side remaining drops to 0 and block UI appears.
+      // Works for both cap hit ({ reset }) and paywall ({ reason: 'paywall' }) responses.
+      const cap = MONTHLY_CAPS[userPlan]?.[action];
+      if (cap) setMonthlyUsage((prev) => ({ ...prev, [action]: cap }));
     }
     return data;
   };
