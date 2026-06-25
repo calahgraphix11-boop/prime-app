@@ -24,7 +24,11 @@ export function readFileAsBase64(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(reader.result.split(',')[1]);
-    reader.onerror = reject;
+    reader.onerror = (event) => {
+      const domErr = event?.target?.error;
+      console.error('[readFileAsBase64] FileReader error:', domErr?.name, domErr?.message, domErr?.code, event);
+      reject(domErr || event);
+    };
     reader.readAsDataURL(file);
   });
 }
@@ -50,9 +54,23 @@ export async function prepareFileForAI(file) {
   }
 
   if (ext === 'docx') {
-    const arrayBuffer = await file.arrayBuffer();
-    const { value } = await mammoth.extractRawText({ arrayBuffer });
-    return { type: 'text', text: truncateTo3000Words(value) };
+    console.log('[prepareFileForAI] DOCX: calling file.arrayBuffer(), size:', file.size);
+    let arrayBuffer;
+    try {
+      arrayBuffer = await file.arrayBuffer();
+      console.log('[prepareFileForAI] DOCX: arrayBuffer ok, byteLength:', arrayBuffer.byteLength);
+    } catch (err) {
+      console.error('[prepareFileForAI] DOCX: file.arrayBuffer() threw:', err?.name, err?.message, err);
+      throw err;
+    }
+    try {
+      const { value } = await mammoth.extractRawText({ arrayBuffer });
+      console.log('[prepareFileForAI] DOCX: mammoth ok, text length:', value?.length);
+      return { type: 'text', text: truncateTo3000Words(value) };
+    } catch (err) {
+      console.error('[prepareFileForAI] DOCX: mammoth.extractRawText threw:', err?.name, err?.message, err);
+      throw err;
+    }
   }
 
   if (ext === 'txt') {
