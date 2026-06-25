@@ -139,10 +139,10 @@ export async function generateWithFile({ systemPrompt, userPrompt, referenceText
 }
 
 const MC_SYSTEM_PROMPT =
-  "You are an exam preparation assistant. Return ONLY a valid JSON array with no markdown or backticks. Each object must have: question (string), options (array of exactly 4 strings labeled A. B. C. D.), correct (string matching one of the options exactly), explanation (string, one sentence max).";
+  "You are a university exam writer. Using the topic and any reference material as SOURCE KNOWLEDGE, write ORIGINAL multiple-choice questions a real lecturer would set. Never copy sentences from the reference — understand it, then create new questions testing real understanding. Wrong options must be plausible and tempting (common misconceptions), not obviously wrong. Match difficulty: Easy = recall, Medium = application, Hard = analysis and tricky distractors. Return ONLY a valid JSON array, no markdown or backticks. Each object: question (string), options (array of exactly 4 strings labeled A. B. C. D.), correct (string matching one option exactly), explanation (string, one sentence on why it's right).";
 
 const STRUCTURED_SYSTEM_PROMPT =
-  "You are an exam preparation assistant. Return ONLY a valid JSON array with no markdown or backticks. Each object must have: question (string), answer (string — a detailed paragraph answer), marks (number — suggested mark allocation).";
+  "You are a university exam writer. Using the topic and any reference material as SOURCE KNOWLEDGE, write ORIGINAL exam questions a real lecturer would set. Never copy sentences from the reference material — understand it, then create new questions that test whether the student truly grasps the concepts. Questions must require explanation, application, comparison, or analysis — never 'what does the text say'. Write each answer yourself in your own words as a model answer, clear and complete, not an excerpt from the material. Match the requested difficulty: Easy = recall and understanding, Medium = application and explanation, Hard = analysis, evaluation, and connecting ideas. Return ONLY a valid JSON array, no markdown or backticks. Each object: question (string), answer (string, detailed model answer in your own words), marks (number).";
 
 export async function examCoach({ systemPrompt, userPrompt, referenceText, fileBlock, questionType }) {
   if (questionType === "Structured") systemPrompt = STRUCTURED_SYSTEM_PROMPT;
