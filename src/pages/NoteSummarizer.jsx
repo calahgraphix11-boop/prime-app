@@ -6,7 +6,7 @@ import { Sparkles, List, BookOpen, HelpCircle, Paperclip, X, Zap, Clock, Pencil,
 import { generateWithFile } from "../lib/gemini";
 import { useApp } from "../context/AppContext";
 import UpgradeModal from "../components/UpgradeModal";
-import { ACCEPTED_FILE_TYPES, extractTextFromFile } from "../lib/fileUtils";
+import { ACCEPTED_FILE_TYPES, prepareFileForAI } from "../lib/fileUtils";
 import { supabase } from "../lib/supabase";
 
 const SYSTEM_PROMPT =
@@ -68,8 +68,8 @@ export default function NoteSummarizer() {
     if (file.size > 5 * 1024 * 1024) { setFileError("File too large. Please attach a file under 5MB."); if (fileInputRef.current) fileInputRef.current.value = ""; return; }
     setFileError("");
     try {
-      const referenceText = await extractTextFromFile(file);
-      setAttachedFile({ file, referenceText });
+      const prepared = await prepareFileForAI(file);
+      setAttachedFile(prepared.type === 'block' ? { file, fileBlock: prepared.block } : { file, referenceText: prepared.text });
     } catch {
       setFileError("Could not read file. Please try a different file.");
     }
@@ -89,6 +89,7 @@ export default function NoteSummarizer() {
         systemPrompt: SYSTEM_PROMPT,
         userPrompt: `Subject: ${subjectLabel || "General"}${instructions.trim() ? `\n\nInstructions: ${instructions}` : ''}`,
         referenceText: attachedFile?.referenceText,
+        fileBlock: attachedFile?.fileBlock,
       });
       const jsonMatch = raw.match(/\{[\s\S]*\}/);
       if (!jsonMatch) throw new Error('Could not parse response.');
@@ -355,10 +356,10 @@ export default function NoteSummarizer() {
               <button onClick={() => setAttachedFile(null)} className="flex-shrink-0 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"><X size={12} /></button>
             </div>
           ) : (
-            <p className="text-xs text-gray-700 dark:text-gray-300">PDF, image, or text file — used alongside or instead of typed notes</p>
+            <p className="text-xs text-gray-700 dark:text-gray-300">PDF & images preserve diagrams and charts · Word docs are read as text only (diagrams not included)</p>
           )}
           {fileError && <p className="text-xs mt-1" style={{ color: '#f87171' }}>{fileError}</p>}
-          <p className="text-xs text-gray-700 dark:text-gray-300 mt-1">PDF, DOCX or TXT — max 5MB</p>
+          <p className="text-xs text-gray-700 dark:text-gray-300 mt-1">PDF · PNG · JPG · WEBP · DOCX · TXT — max 5MB</p>
         </div>
 
         {summaryRemaining === 0 ? (

@@ -115,10 +115,12 @@ export async function chatWithAssistant(messages, model = DEFAULT_MODEL, usernam
   return data.content?.[0]?.text ?? '';
 }
 
-export async function generateWithFile({ systemPrompt, userPrompt, referenceText }) {
-  let msgContent = userPrompt || '';
-  if (referenceText) msgContent += `\n\nReference material:\n${referenceText}`;
-  const messages = [{ role: 'user', content: msgContent }];
+export async function generateWithFile({ systemPrompt, userPrompt, referenceText, fileBlock }) {
+  const text = referenceText
+    ? `${userPrompt || ''}\n\nReference material:\n${referenceText}`
+    : (userPrompt || '');
+  const content = fileBlock ? [{ type: 'text', text }, fileBlock] : text;
+  const messages = [{ role: 'user', content }];
   const { data: { session } } = await supabase.auth.getSession();
   const res = await fetch('https://dqxymdocyxzzqvulleob.supabase.co/functions/v1/note-summarizer', {
     method: 'POST',
@@ -142,12 +144,14 @@ const MC_SYSTEM_PROMPT =
 const STRUCTURED_SYSTEM_PROMPT =
   "You are an exam preparation assistant. Return ONLY a valid JSON array with no markdown or backticks. Each object must have: question (string), answer (string — a detailed paragraph answer), marks (number — suggested mark allocation).";
 
-export async function examCoach({ systemPrompt, userPrompt, referenceText, questionType }) {
+export async function examCoach({ systemPrompt, userPrompt, referenceText, fileBlock, questionType }) {
   if (questionType === "Structured") systemPrompt = STRUCTURED_SYSTEM_PROMPT;
   else if (!systemPrompt) systemPrompt = MC_SYSTEM_PROMPT;
-  let msgContent = userPrompt || '';
-  if (referenceText) msgContent += `\n\nReference material:\n${referenceText}`;
-  const messages = [{ role: 'user', content: msgContent }];
+  const text = referenceText
+    ? `${userPrompt || ''}\n\nReference material:\n${referenceText}`
+    : (userPrompt || '');
+  const content = fileBlock ? [{ type: 'text', text }, fileBlock] : text;
+  const messages = [{ role: 'user', content }];
   console.log('[exam-coach] messages:', JSON.stringify(messages, null, 2));
   console.log('[exam-coach] systemPrompt:', systemPrompt);
   const { data: { session } } = await supabase.auth.getSession();
