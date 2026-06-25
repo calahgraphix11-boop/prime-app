@@ -90,9 +90,15 @@ export default function ExamPrep() {
         questionType,
       });
       console.log('[exam-coach] raw response received');
-      const jsonMatch = raw.match(/\[[\s\S]*\]/);
-      if (!jsonMatch) throw new Error('Could not parse response. Please try again.');
-      const parsed = JSON.parse(jsonMatch[0]);
+      const start = raw.indexOf('[');
+      const end = raw.lastIndexOf(']');
+      if (start === -1 || end === -1 || end <= start) throw new Error('PARSE_FAIL');
+      let parsed;
+      try {
+        parsed = JSON.parse(raw.slice(start, end + 1));
+      } catch {
+        throw new Error('PARSE_FAIL');
+      }
       console.log('[exam-coach] parsed questions count:', parsed.length);
       const sliced = parsed.slice(0, questionCount);
       setQuestions(sliced);
@@ -100,9 +106,13 @@ export default function ExamPrep() {
       setAnswers({});
       console.log('[exam-coach] setting phase to quiz');
       setPhase("quiz");
-    } catch (error) {
-      console.log('[exam-coach] catch error:', error);
-      setError("Failed to generate questions. Please try again.");
+    } catch (err) {
+      console.log('[exam-coach] catch error:', err);
+      if (err.message === 'PARSE_FAIL') {
+        setError("That was a lot of questions — try fewer or a lower difficulty.");
+      } else {
+        setError("Failed to generate questions. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
