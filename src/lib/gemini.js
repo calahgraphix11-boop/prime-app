@@ -171,6 +171,6 @@ export async function examCoach({ systemPrompt, userPrompt, referenceText, fileB
     throw new Error(err.error || 'Exam Coach request failed');
   }
   const data = JSON.parse(bodyText);
-  const text = data.content?.[0]?.text ?? '';
-  return text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '').trim();
+  const responseText = data.content?.[0]?.text ?? '';
+  return responseText.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '').trim();
 }
