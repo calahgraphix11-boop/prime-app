@@ -2,7 +2,7 @@
 // ALTER TABLE summary_history ADD COLUMN IF NOT EXISTS title text;
 
 import { useState, useRef, useEffect } from "react";
-import { Sparkles, List, BookOpen, HelpCircle, Paperclip, X, Zap, Clock, Pencil, Trash2, ChevronDown, ChevronUp, Check } from "lucide-react";
+import { Sparkles, List, BookOpen, HelpCircle, Paperclip, X, Zap, Clock, Pencil, Trash2, ChevronDown, ChevronUp, Check, Download } from "lucide-react";
 import { generateWithFile } from "../lib/gemini";
 import { useApp } from "../context/AppContext";
 import UpgradeModal from "../components/UpgradeModal";
@@ -144,6 +144,134 @@ export default function NoteSummarizer() {
     await supabase.from("summary_history").delete().eq("id", id);
     setHistory((prev) => prev.filter((h) => h.id !== id));
     if (expandedId === id) setExpandedId(null);
+  };
+
+  const downloadSummaryPDF = async () => {
+    if (!result) return;
+    const { jsPDF } = await import('jspdf');
+
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const PW = 210, PH = 297, MX = 20, MB = 22, CW = 170;
+    const EMERALD = [0, 77, 46], GOLD = [245, 168, 0], DARK = [26, 26, 26], LGREY = [200, 200, 200], FGREY = [130, 130, 130];
+    // at 10pt with lineHeightFactor 1.6: 10 * 1.6 * 0.352778 ≈ 5.64mm per line
+    const LH = 5.7;
+
+    let y = 0;
+
+    const drawHeader = (first) => {
+      if (first) {
+        doc.setFillColor(...EMERALD);
+        doc.rect(0, 0, PW, 22, 'F');
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(15);
+        doc.setTextColor(255, 255, 255);
+        doc.text('Prime', MX, 14.5);
+        doc.setDrawColor(...GOLD);
+        doc.setLineWidth(0.7);
+        doc.line(0, 22, PW, 22);
+        y = 34;
+      } else {
+        doc.setDrawColor(...GOLD);
+        doc.setLineWidth(0.4);
+        doc.line(MX, 10, PW - MX, 10);
+        y = 18;
+      }
+    };
+
+    const newPage = () => { doc.addPage(); drawHeader(false); };
+    const guard = (need) => { if (y + need > PH - MB) newPage(); };
+
+    // Page 1 header
+    drawHeader(true);
+
+    // Title
+    const subjectLabel = subject === '__custom__' ? customSubject : subject;
+    const titleText = subjectLabel ? `${subjectLabel} — Study Summary` : 'Study Summary';
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(17);
+    doc.setTextColor(...EMERALD);
+    const titleLines = doc.splitTextToSize(titleText, CW);
+    guard(titleLines.length * 7.5 + 10);
+    doc.text(titleLines, MX, y, { lineHeightFactor: 1.5 });
+    y += titleLines.length * 7.5 + 4;
+    doc.setDrawColor(...LGREY);
+    doc.setLineWidth(0.25);
+    doc.line(MX, y, PW - MX, y);
+    y += 9;
+
+    const sectionTitle = (label) => {
+      guard(14);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(11);
+      doc.setTextColor(...EMERALD);
+      doc.text(label, MX, y);
+      y += 7;
+    };
+
+    // Key Points
+    if (result.keyPoints?.length > 0) {
+      sectionTitle('Key Points');
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(10);
+      doc.setTextColor(...DARK);
+      result.keyPoints.forEach((pt) => {
+        const lines = doc.splitTextToSize(`•  ${pt}`, CW - 5);
+        guard(lines.length * LH + 3);
+        doc.text(lines, MX + 3, y, { lineHeightFactor: 1.6 });
+        y += lines.length * LH + 3;
+      });
+      y += 7;
+    }
+
+    // Key Definitions
+    if (result.keyDefinitions?.length > 0) {
+      sectionTitle('Key Definitions');
+      result.keyDefinitions.forEach((def) => {
+        const termLines = doc.splitTextToSize(def.term, CW);
+        const defLines = doc.splitTextToSize(def.definition, CW - 5);
+        guard(termLines.length * LH + defLines.length * LH + 6);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10);
+        doc.setTextColor(...GOLD);
+        doc.text(termLines, MX, y, { lineHeightFactor: 1.6 });
+        y += termLines.length * LH + 0.5;
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(...DARK);
+        doc.text(defLines, MX + 3, y, { lineHeightFactor: 1.6 });
+        y += defLines.length * LH + 5;
+      });
+      y += 4;
+    }
+
+    // Exam Questions
+    if (result.examQuestions?.length > 0) {
+      sectionTitle('Likely Exam Questions');
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(10);
+      doc.setTextColor(...DARK);
+      result.examQuestions.forEach((q, i) => {
+        const lines = doc.splitTextToSize(`${i + 1}.  ${q}`, CW - 6);
+        guard(lines.length * LH + 4);
+        doc.text(lines, MX + 3, y, { lineHeightFactor: 1.6 });
+        y += lines.length * LH + 4;
+      });
+    }
+
+    // Footer on every page
+    const total = doc.internal.getNumberOfPages();
+    const dateStr = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    for (let p = 1; p <= total; p++) {
+      doc.setPage(p);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      doc.setTextColor(...FGREY);
+      doc.text(`Generated with Prime — primestudyapp.com · ${dateStr}`, MX, PH - 10);
+      if (total > 1) doc.text(`${p} / ${total}`, PW - MX, PH - 10, { align: 'right' });
+    }
+
+    const safe = subjectLabel ? subjectLabel.replace(/[^\w\s\-]/g, '').trim() : '';
+    const datePart = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    doc.save(`Prime Summary${safe ? ` - ${safe}` : ''} - ${datePart}.pdf`);
   };
 
   const renderSummary = (item) => {
@@ -458,6 +586,16 @@ export default function NoteSummarizer() {
               ))}
             </ol>
           </div>
+
+          {/* Download PDF */}
+          <button
+            onClick={downloadSummaryPDF}
+            className="w-full py-3 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-transform active:scale-[0.97]"
+            style={{ background: 'rgba(0,77,46,0.12)', border: '1px solid rgba(0,77,46,0.35)', color: '#34d399' }}
+          >
+            <Download size={15} />
+            Download PDF
+          </button>
         </div>
       )}
     </div>
