@@ -70,8 +70,7 @@ export default function NoteSummarizer() {
     try {
       const prepared = await prepareFileForAI(file);
       setAttachedFile(prepared.type === 'block' ? { file, fileBlock: prepared.block } : { file, referenceText: prepared.text });
-    } catch (err) {
-      console.error('[handleFileChange] prepareFileForAI threw:', err?.name, err?.message, err);
+    } catch {
       setFileError("Could not read file. Please try a different file.");
     }
   };
