@@ -8,6 +8,7 @@ import { useApp } from "../context/AppContext";
 import UpgradeModal from "../components/UpgradeModal";
 import { ACCEPTED_FILE_TYPES, prepareFileForAI } from "../lib/fileUtils";
 import { supabase } from "../lib/supabase";
+import { awardXp } from "../lib/xp";
 
 const SYSTEM_PROMPT =
   "You are an expert study assistant. The user may provide lecture notes as text or as an attached file, and may also provide optional instructions for what they want. If no instructions are given, return a full summary as a JSON object with: keyPoints (array of strings), keyDefinitions (array of objects with term and definition), examQuestions (array of strings). If the user gives specific instructions, follow them and return the result in the same JSON format. Return ONLY valid JSON with no markdown or backticks.";
@@ -95,6 +96,8 @@ export default function NoteSummarizer() {
       if (!jsonMatch) throw new Error('Could not parse response.');
       const parsed = JSON.parse(jsonMatch[0]);
       setResult(parsed);
+      awardXp('note_summarized');
+      if (attachedFile) awardXp('file_uploaded');
       supabase.auth.getUser().then(({ data: { user } }) => {
         if (user) {
           const payload = {

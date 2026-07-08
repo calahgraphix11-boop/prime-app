@@ -6,6 +6,7 @@ import UpgradeModal from "../components/UpgradeModal";
 import { ACCEPTED_FILE_TYPES, prepareFileForAI } from "../lib/fileUtils";
 import { supabase } from "../lib/supabase";
 import { wikiSummary } from "../utils/wikiLookup";
+import { awardXp } from "../lib/xp";
 
 const DIFFICULTIES = ["Easy", "Medium", "Hard"];
 const QUESTION_COUNTS = [5, 10, 15];
@@ -130,6 +131,7 @@ export default function ExamPrep() {
       setAnswers({});
       console.log('[exam-coach] setting phase to quiz');
       setPhase("quiz");
+      if (attachedFile) awardXp('file_uploaded');
     } catch (err) {
       console.log('[exam-coach] catch error:', err);
       if (err.message === 'PARSE_FAIL') {
@@ -154,6 +156,8 @@ export default function ExamPrep() {
       const correctCount = questions.filter((q, i) => answers[i] === q.correct).length;
       const score = questionType === "Structured" ? null : Math.round((correctCount / questions.length) * 100);
       setPhase("results");
+      awardXp('exam_coach_session');
+      if (score === 100) awardXp('exam_coach_perfect');
       const subjectLabel = subject === "__custom__" ? customSubject : subject;
       supabase.auth.getUser().then(({ data: { user } }) => {
         if (user) {

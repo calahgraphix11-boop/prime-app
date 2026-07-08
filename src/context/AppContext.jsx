@@ -4,6 +4,7 @@ import { useAuth } from './AuthContext';
 import { useTheme } from './ThemeContext';
 import en from '../i18n/en';
 import fr from '../i18n/fr';
+import { dailyCheckin } from '../lib/xp';
 
 const AppContext = createContext(null);
 
@@ -77,9 +78,11 @@ export function AppProvider({ children }) {
   const sessionKeyRef = useRef(null);
   const sessionChatIdRef = useRef(null);
   const [sessionMessages, setSessionMessages] = useState([]);
+  const checkinFiredRef = useRef(false);
 
   useEffect(() => {
     if (!user) {
+      checkinFiredRef.current = false;
       setSessions([]);
       setReports([]);
       setChatSessions([]);
@@ -98,6 +101,10 @@ export function AppProvider({ children }) {
       sessionKeyRef.current = null;
       sessionChatIdRef.current = null;
       return;
+    }
+    if (!checkinFiredRef.current) {
+      checkinFiredRef.current = true;
+      dailyCheckin();
     }
     setDataLoading(true);
     Promise.all([
