@@ -12,8 +12,8 @@ export default function QuoteCard() {
 
   return (
     <div className="rounded-2xl p-4 backdrop-blur-md bg-white/10 border border-white/20">
-      <p className="text-sm italic">"{quote.text}"</p>
-      <p className="text-xs mt-1 opacity-70">— {quote.author}</p>
+      <p className="text-sm italic text-gray-900 dark:text-white">"{quote.text}"</p>
+      <p className="text-xs mt-1 text-gray-700 dark:text-gray-300">— {quote.author}</p>
     </div>
   );
 }
