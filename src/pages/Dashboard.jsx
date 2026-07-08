@@ -6,6 +6,7 @@ import {
 } from "recharts";
 import { useApp } from "../context/AppContext";
 import { useAuth } from "../context/AuthContext";
+import QuoteCard from "../components/QuoteCard";
 
 const EASE_OUT = "cubic-bezier(0.23, 1, 0.32, 1)";
 const ENTER_DURATION = "280ms";
@@ -287,6 +288,10 @@ export default function Dashboard() {
           </p>
         </div>
         {periodToggle}
+      </div>
+
+      <div style={enterStyle(0.5)}>
+        <QuoteCard />
       </div>
 
       {/* 4-column stat cards */}

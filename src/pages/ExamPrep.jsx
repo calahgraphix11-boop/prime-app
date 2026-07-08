@@ -5,6 +5,7 @@ import { useApp } from "../context/AppContext";
 import UpgradeModal from "../components/UpgradeModal";
 import { ACCEPTED_FILE_TYPES, prepareFileForAI } from "../lib/fileUtils";
 import { supabase } from "../lib/supabase";
+import { wikiSummary } from "../utils/wikiLookup";
 
 const DIFFICULTIES = ["Easy", "Medium", "Hard"];
 const QUESTION_COUNTS = [5, 10, 15];
@@ -37,8 +38,30 @@ export default function ExamPrep() {
   const [tab, setTab] = useState("generate");
   const [history, setHistory] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(false);
+  const [lookup, setLookup] = useState(null);
+  const [lookupLoading, setLookupLoading] = useState(false);
+  const [lookupError, setLookupError] = useState("");
   const fileInputRef = useRef(null);
   const canUploadFiles = fileUploadsRemaining > 0;
+
+  const lookupTerm = async () => {
+    if (!topic.trim()) return;
+    setLookupLoading(true);
+    setLookupError("");
+    setLookup(null);
+    try {
+      const result = await wikiSummary(topic.trim());
+      if (!result) {
+        setLookupError("No definition found for that term.");
+      } else {
+        setLookup(result);
+      }
+    } catch {
+      setLookupError("Could not fetch a definition right now.");
+    } finally {
+      setLookupLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (tab !== "history") return;
@@ -224,12 +247,34 @@ export default function ExamPrep() {
         <div className="glass rounded-2xl p-5 space-y-4">
           <div>
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1.5">Topic</label>
-            <input
-              value={topic}
-              onChange={(e) => setTopic(e.target.value)}
-              placeholder="e.g. Photosynthesis, World War II, Calculus…"
-              className="w-full px-3 py-2.5 rounded-xl glass-input text-sm"
-            />
+            <div className="flex gap-2">
+              <input
+                value={topic}
+                onChange={(e) => setTopic(e.target.value)}
+                placeholder="e.g. Photosynthesis, World War II, Calculus…"
+                className="flex-1 px-3 py-2.5 rounded-xl glass-input text-sm"
+              />
+              <button
+                type="button"
+                onClick={lookupTerm}
+                disabled={!topic.trim() || lookupLoading}
+                className="px-3 py-2.5 rounded-xl text-sm font-medium btn-ghost disabled:opacity-50"
+              >
+                {lookupLoading ? "…" : "Define"}
+              </button>
+            </div>
+            {lookupError && <p className="text-xs mt-1.5" style={{ color: "#f87171" }}>{lookupError}</p>}
+            {lookup && (
+              <div className="mt-2 rounded-xl p-3 text-xs" style={{ background: "rgba(245,168,0,0.08)", border: "1px solid rgba(245,168,0,0.25)" }}>
+                <p className="font-semibold text-gray-900 dark:text-white">{lookup.title}</p>
+                <p className="mt-1 text-gray-700 dark:text-gray-300 leading-relaxed">{lookup.extract}</p>
+                {lookup.url && (
+                  <a href={lookup.url} target="_blank" rel="noreferrer" className="mt-1 inline-block" style={{ color: "#F5A800" }}>
+                    Read more
+                  </a>
+                )}
+              </div>
+            )}
           </div>
 
           {/* File attachment */}
