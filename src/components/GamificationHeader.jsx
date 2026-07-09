@@ -54,7 +54,7 @@ export default function GamificationHeader() {
         <img
           src={rank.icon}
           alt={rank.name}
-          className="flex-shrink-0"
+          className="flex-shrink-0 gh-crest"
           style={{ width: 40, height: 40, objectFit: "contain" }}
         />
         <div className="min-w-0">

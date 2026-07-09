@@ -445,6 +445,25 @@ body {
   }
 }
 
+@keyframes gh-crest-float {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-4px);
+  }
+}
+
+.gh-crest {
+  animation: gh-crest-float 2.4s ease-in-out infinite alternate;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gh-crest {
+    animation: none !important;
+  }
+}
+
 /* ─── Light mode: Tailwind text-white overrides ──────────── */
 [data-theme="light"] .text-white    { color: #1a1a1a; }
 [data-theme="light"] .text-white\/90 { color: rgba(26,26,26,0.9); }
