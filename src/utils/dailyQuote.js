@@ -1,3 +1,5 @@
+import { supabase } from '../lib/supabase.js';
+
 const CACHE_KEY = 'prime_daily_quote';
 
 const FALLBACK = {
@@ -16,9 +18,9 @@ export async function getDailyQuote() {
   } catch {}
 
   try {
-    const res = await fetch('https://zenquotes.io/api/today');
-    const data = await res.json();
-    const quote = { text: data[0].q, author: data[0].a };
+    const { data, error } = await supabase.functions.invoke('get-daily-quote');
+    if (error || !data?.text) throw error || new Error('Empty quote response');
+    const quote = { text: data.text, author: data.author };
     localStorage.setItem(CACHE_KEY, JSON.stringify({ date: today, quote }));
     return quote;
   } catch {
