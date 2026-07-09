@@ -7,7 +7,6 @@ import {
 import { useApp } from "../context/AppContext";
 import { useAuth } from "../context/AuthContext";
 import QuoteCard from "../components/QuoteCard";
-import GamificationHeader from "../components/GamificationHeader";
 
 const EASE_OUT = "cubic-bezier(0.23, 1, 0.32, 1)";
 const ENTER_DURATION = "280ms";
@@ -271,8 +270,6 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-5 pt-2">
-
-      <GamificationHeader />
 
       {/* Greeting header */}
       <div

@@ -3,6 +3,7 @@ import { HashRouter, Routes, Route, Navigate, useNavigate } from "react-router-d
 import { ThemeProvider } from "./context/ThemeContext";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { AppProvider } from "./context/AppContext";
+import { XpBubbleProvider } from "./context/XpBubbleContext";
 import Layout from "./components/Layout";
 import Dashboard from "./pages/Dashboard";
 import StudySessions from "./pages/StudySessions";
@@ -132,9 +133,11 @@ export default function App() {
         <HashRouter>
           <AuthProvider>
             <AppProvider>
-              <AccessGate>
-                <AppRoutes />
-              </AccessGate>
+              <XpBubbleProvider>
+                <AccessGate>
+                  <AppRoutes />
+                </AccessGate>
+              </XpBubbleProvider>
             </AppProvider>
           </AuthProvider>
         </HashRouter>

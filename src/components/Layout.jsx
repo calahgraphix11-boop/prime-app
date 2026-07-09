@@ -21,6 +21,7 @@ import { Menu, Bell, LayoutDashboard, Clock, Users2, Trophy, UserCircle } from '
 import { NavLink } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import ChatBubble from './ChatBubble';
+import GamificationHeader from './GamificationHeader';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
@@ -177,6 +178,7 @@ export default function Layout({ children }) {
         </header>
 
         <main className="px-4 pb-32 max-w-2xl mx-auto pt-2">
+          <GamificationHeader />
           {children}
         </main>
       </div>
