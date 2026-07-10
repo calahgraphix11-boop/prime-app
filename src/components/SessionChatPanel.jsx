@@ -1,13 +1,49 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, Mic, MicOff } from 'lucide-react';
+import { Send, Mic, MicOff, User } from 'lucide-react';
 import { chatWithAssistant } from '../lib/gemini';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
+import { getCharacter } from '../lib/gamification';
+
+const BOT_AVATAR = '/gamification-assets/avatars/studypal-avatar.png';
+
+function BotAvatar() {
+  return (
+    <img
+      src={BOT_AVATAR}
+      alt="StudyPal"
+      className="w-7 h-7 rounded-full object-cover flex-shrink-0"
+      style={{ border: '1px solid rgba(245,168,0,0.35)' }}
+    />
+  );
+}
+
+function UserAvatar({ character }) {
+  if (character) {
+    return (
+      <img
+        src={character.icon}
+        alt={character.name}
+        className="w-7 h-7 rounded-full object-cover flex-shrink-0"
+        style={{ border: '1px solid rgba(0,77,46,0.5)' }}
+      />
+    );
+  }
+  return (
+    <div
+      className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0"
+      style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)' }}
+    >
+      <User size={14} className="text-white/50" />
+    </div>
+  );
+}
 
 export default function SessionChatPanel() {
   const { sessionMessages, updateSessionMessages, chatRemaining, incrementChat, trialExpired } = useApp();
   const { profile } = useAuth();
   const username = profile?.username || profile?.full_name || null;
+  const userCharacter = getCharacter(profile?.character_avatar);
 
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -61,7 +97,8 @@ export default function SessionChatPanel() {
           </div>
         )}
         {sessionMessages.map((m, i) => (
-          <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+          <div key={i} className={`flex items-end gap-2 ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+            {m.role !== 'user' && <BotAvatar />}
             <div
               className="max-w-[80%] px-3 py-2 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap"
               style={m.role === 'user'
@@ -71,10 +108,12 @@ export default function SessionChatPanel() {
             >
               {m.content}
             </div>
+            {m.role === 'user' && <UserAvatar character={userCharacter} />}
           </div>
         ))}
         {loading && (
-          <div className="flex justify-start">
+          <div className="flex items-end gap-2 justify-start">
+            <BotAvatar />
             <div className="px-3 py-2 rounded-2xl text-sm" style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.08)' }}>
               <span className="text-white/40 animate-pulse">Thinking…</span>
             </div>

@@ -1,9 +1,44 @@
 import { useState, useEffect } from 'react';
-import { MessageCircle, X, History, ArrowLeft } from 'lucide-react';
+import { MessageCircle, X, History, ArrowLeft, User } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useApp } from '../context/AppContext';
+import { getCharacter } from '../lib/gamification';
 import SessionChatPanel from './SessionChatPanel';
+
+const BOT_AVATAR = '/gamification-assets/avatars/studypal-avatar.png';
+
+function BotAvatar() {
+  return (
+    <img
+      src={BOT_AVATAR}
+      alt="StudyPal"
+      className="w-7 h-7 rounded-full object-cover flex-shrink-0"
+      style={{ border: '1px solid rgba(245,168,0,0.35)' }}
+    />
+  );
+}
+
+function UserAvatar({ character }) {
+  if (character) {
+    return (
+      <img
+        src={character.icon}
+        alt={character.name}
+        className="w-7 h-7 rounded-full object-cover flex-shrink-0"
+        style={{ border: '1px solid rgba(0,77,46,0.5)' }}
+      />
+    );
+  }
+  return (
+    <div
+      className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0"
+      style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)' }}
+    >
+      <User size={14} className="text-white/50" />
+    </div>
+  );
+}
 
 function relativeDate(iso) {
   const d = new Date(iso);
@@ -21,6 +56,8 @@ function preview(messages) {
 }
 
 function HistoryView({ chat, onBack }) {
+  const { profile } = useAuth();
+  const userCharacter = getCharacter(profile?.character_avatar);
   return (
     <div className="flex flex-col h-full">
       <div
@@ -45,7 +82,8 @@ function HistoryView({ chat, onBack }) {
           <p className="text-xs text-white/35 text-center py-8">No messages in this session.</p>
         ) : (
           chat.messages.map((m, i) => (
-            <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+            <div key={i} className={`flex items-end gap-2 ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+              {m.role !== 'user' && <BotAvatar />}
               <div
                 className="max-w-[80%] px-3 py-2 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap"
                 style={m.role === 'user'
@@ -55,6 +93,7 @@ function HistoryView({ chat, onBack }) {
               >
                 {m.content || m.text || ''}
               </div>
+              {m.role === 'user' && <UserAvatar character={userCharacter} />}
             </div>
           ))
         )}
