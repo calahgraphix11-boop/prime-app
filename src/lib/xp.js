@@ -1,46 +1,30 @@
 import { supabase } from './supabase';
 import { emitXpAward, emitLevelUp } from './xpEvents';
-import { calculateLevelProgress, getRank } from './gamification';
+import { getRank } from './gamification';
 
 // RPCs may return a single row as an object, or as a one-row array
-// depending on the Postgres function's return type — normalize both.
-function firstRow(data) {
-  return Array.isArray(data) ? data[0] : data;
+// depending on the Postgres function's return type — normalize both to an array.
+function toRows(data) {
+  return Array.isArray(data) ? data : [data];
+}
+
+// old_level/new_level come straight from the RPC response — never re-derive
+// these by re-querying user_xp, since a second award_xp call (e.g. a streak
+// milestone bonus fired right after the base checkin) can land its XP before
+// this one reads back, making any inferred "previous level" wrong.
+function notifyLevelUp(oldLevel, newLevel) {
+  const rank = getRank(newLevel);
+  const prevRank = getRank(oldLevel);
+  emitLevelUp({ level: newLevel, rank, rankChanged: rank.name !== prevRank.name });
 }
 
 function notifyIfAwarded(result) {
   if (result && result.xp_awarded > 0) {
     emitXpAward({ xp: result.xp_awarded, leveledUp: !!result.leveled_up });
     if (result.leveled_up) {
-      notifyLevelUp(result.xp_awarded);
+      notifyLevelUp(result.old_level, result.new_level);
     }
   }
-}
-
-// The RPC only reports a leveled_up boolean, not the resulting level/rank —
-// resolve those by reading the user's current total_xp back. Deriving the
-// pre-award total from total_xp - xp_awarded lets us detect a rank change
-// without needing the RPC to report the previous level.
-function notifyLevelUp(xpAwarded) {
-  supabase.auth.getUser().then(({ data }) => {
-    const user = data?.user;
-    if (!user) return;
-    return supabase
-      .from('user_xp')
-      .select('total_xp, current_level')
-      .eq('user_id', user.id)
-      .maybeSingle()
-      .then(({ data: xpRow, error }) => {
-        if (error || !xpRow) return;
-        const { level } = calculateLevelProgress(xpRow.total_xp, xpRow.current_level);
-        const prevLevel = calculateLevelProgress(Math.max(0, xpRow.total_xp - xpAwarded), 1).level;
-        const rank = getRank(level);
-        const prevRank = getRank(prevLevel);
-        emitLevelUp({ level, rank, rankChanged: rank.name !== prevRank.name });
-      });
-  }).catch((err) => {
-    console.warn('[xp] failed to resolve level-up details:', err);
-  });
 }
 
 // Fire-and-forget XP calls. Never throw — a failure here must never block
@@ -48,7 +32,7 @@ function notifyLevelUp(xpAwarded) {
 export function awardXp(actionType) {
   supabase.rpc('award_xp', { p_action_type: actionType }).then(({ data, error }) => {
     if (error) { console.warn('[xp] award_xp failed:', actionType, error); return; }
-    notifyIfAwarded(firstRow(data));
+    notifyIfAwarded(toRows(data)[0]);
   }).catch((err) => {
     console.warn('[xp] award_xp failed:', actionType, err);
   });
@@ -57,7 +41,27 @@ export function awardXp(actionType) {
 export function dailyCheckin() {
   supabase.rpc('daily_checkin').then(({ data, error }) => {
     if (error) { console.warn('[xp] daily_checkin failed:', error); return; }
-    notifyIfAwarded(firstRow(data));
+
+    // daily_checkin can internally trigger two award_xp calls (base checkin +
+    // streak milestone bonus), returned as two rows. Fire a bubble per award,
+    // but collapse any level-ups into a single modal event spanning from the
+    // first row's old_level to the highest new_level reached, so the modal
+    // never fires twice for one checkin.
+    let oldLevel = null;
+    let newLevel = null;
+
+    for (const row of toRows(data)) {
+      if (!row || !(row.xp_awarded > 0)) continue;
+      emitXpAward({ xp: row.xp_awarded, leveledUp: !!row.leveled_up });
+      if (row.leveled_up) {
+        if (oldLevel === null) oldLevel = row.old_level;
+        newLevel = newLevel === null ? row.new_level : Math.max(newLevel, row.new_level);
+      }
+    }
+
+    if (newLevel !== null) {
+      notifyLevelUp(oldLevel, newLevel);
+    }
   }).catch((err) => {
     console.warn('[xp] daily_checkin failed:', err);
   });
