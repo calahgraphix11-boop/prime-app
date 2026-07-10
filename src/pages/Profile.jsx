@@ -1,6 +1,8 @@
-import { useState, useRef } from 'react';
-import { User, Camera, Save, Check } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { User, Camera, Save, Check, Award } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { supabase } from '../lib/supabase';
+import BadgeGrid from '../components/BadgeGrid';
 
 export default function Profile() {
   const { user, profile, updateProfile, uploadAvatar } = useAuth();
@@ -12,6 +14,21 @@ export default function Profile() {
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState('');
   const fileInputRef = useRef(null);
+  const [earnedBadgeKeys, setEarnedBadgeKeys] = useState(new Set());
+  const [badgesLoading, setBadgesLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from('user_badges')
+      .select('badge_key')
+      .eq('user_id', user.id)
+      .then(({ data, error: fetchErr }) => {
+        if (fetchErr) { console.warn('[badges] failed to load user_badges:', fetchErr); return; }
+        setEarnedBadgeKeys(new Set((data || []).map((row) => row.badge_key)));
+      })
+      .finally(() => setBadgesLoading(false));
+  }, [user?.id]);
 
   const initials = (fullName || user?.email || '?').charAt(0).toUpperCase();
 
@@ -151,6 +168,33 @@ export default function Profile() {
           {saved ? <Check size={16} /> : <Save size={16} />}
           {saving ? 'Saving...' : saved ? 'Saved!' : 'Save Changes'}
         </button>
+      </div>
+
+      {/* Badges */}
+      <div className="glass rounded-2xl p-5 space-y-4">
+        <div className="flex items-center gap-2 mb-1">
+          <div
+            className="w-8 h-8 rounded-lg flex items-center justify-center"
+            style={{ background: 'rgba(245,168,0,0.2)' }}
+          >
+            <Award size={16} style={{ color: '#F5A800' }} />
+          </div>
+          <div>
+            <h2 className="text-base font-semibold text-white">Badges</h2>
+            <p className="text-xs text-white/35">{earnedBadgeKeys.size} of 8 earned</p>
+          </div>
+        </div>
+
+        {badgesLoading ? (
+          <div className="flex justify-center py-8">
+            <div
+              className="w-6 h-6 rounded-full border-2 animate-spin"
+              style={{ borderColor: 'rgba(255,255,255,0.1)', borderTopColor: '#F5A800' }}
+            />
+          </div>
+        ) : (
+          <BadgeGrid earnedKeys={earnedBadgeKeys} />
+        )}
       </div>
     </div>
   );

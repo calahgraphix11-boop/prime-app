@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import { emitXpAward, emitLevelUp } from './xpEvents';
+import { emitXpAward, emitLevelUp, emitBadgeEarned } from './xpEvents';
 import { getRank } from './gamification';
 
 // RPCs may return a single row as an object, or as a one-row array
@@ -27,12 +27,26 @@ function notifyIfAwarded(result) {
   }
 }
 
+// Fire-and-forget: a just-completed action may have crossed a badge
+// milestone (first exam, 100th study action, etc). Never throw — a failure
+// here must never block or affect the underlying feature.
+function checkAndAwardBadges() {
+  supabase.rpc('check_and_award_badges').then(({ data, error }) => {
+    if (error) { console.warn('[xp] check_and_award_badges failed:', error); return; }
+    const newlyEarned = data?.newly_earned || [];
+    newlyEarned.forEach((badgeKey) => emitBadgeEarned({ badgeKey }));
+  }).catch((err) => {
+    console.warn('[xp] check_and_award_badges failed:', err);
+  });
+}
+
 // Fire-and-forget XP calls. Never throw — a failure here must never block
 // or affect the underlying feature (exam, summary, upload, etc).
 export function awardXp(actionType) {
   supabase.rpc('award_xp', { p_action_type: actionType }).then(({ data, error }) => {
     if (error) { console.warn('[xp] award_xp failed:', actionType, error); return; }
     notifyIfAwarded(toRows(data)[0]);
+    checkAndAwardBadges();
   }).catch((err) => {
     console.warn('[xp] award_xp failed:', actionType, err);
   });

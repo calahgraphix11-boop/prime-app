@@ -31,3 +31,56 @@ const RANKS = [
 export function getRank(level) {
   return RANKS.find((r) => level <= r.max) || RANKS[RANKS.length - 1];
 }
+
+// Mirrors the 8 badges awarded server-side by check_and_award_badges() —
+// order here is the display order on the Profile badges grid.
+export const BADGES = [
+  {
+    key: "first-step",
+    name: "First Step",
+    icon: "/gamification-assets/badges/badge-first-step.png",
+    description: "Complete your first study action",
+  },
+  {
+    key: "streak-starter",
+    name: "Streak Starter",
+    icon: "/gamification-assets/badges/badge-streak-starter.png",
+    description: "Reach a 3-day study streak",
+  },
+  {
+    key: "on-fire",
+    name: "On Fire",
+    icon: "/gamification-assets/badges/badge-on-fire.png",
+    description: "Reach a 7-day study streak",
+  },
+  {
+    key: "note-taker",
+    name: "Note Taker",
+    icon: "/gamification-assets/badges/badge-note-taker.png",
+    description: "Summarize your first note",
+  },
+  {
+    key: "exam-ready",
+    name: "Exam Ready",
+    icon: "/gamification-assets/badges/badge-exam-ready.png",
+    description: "Complete your first Exam Coach session",
+  },
+  {
+    key: "perfect-score",
+    name: "Perfect Score",
+    icon: "/gamification-assets/badges/badge-perfect-score.png",
+    description: "Score 100% on an Exam Coach session",
+  },
+  {
+    key: "bookworm",
+    name: "Bookworm",
+    icon: "/gamification-assets/badges/badge-bookworm.png",
+    description: "Upload your first file",
+  },
+  {
+    key: "century-club",
+    name: "Century Club",
+    icon: "/gamification-assets/badges/badge-century-club.png",
+    description: "Complete 100 total study actions",
+  },
+];
