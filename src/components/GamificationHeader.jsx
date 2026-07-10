@@ -4,11 +4,12 @@ import { supabase } from "../lib/supabase";
 import { useAuth } from "../context/AuthContext";
 import { useXpBubbleAnchor } from "../context/XpBubbleContext";
 import { calculateLevelProgress, getRank } from "../lib/gamification";
+import CharacterPortrait from "./CharacterPortrait";
 
 const EASE_OUT = "cubic-bezier(0.23, 1, 0.32, 1)";
 
 export default function GamificationHeader() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [xpRow, setXpRow] = useState(null);
   const [pulseStreak, setPulseStreak] = useState(false);
   const prevStreakRef = useRef(null);
@@ -59,11 +60,11 @@ export default function GamificationHeader() {
       className="gamification-header glass rounded-2xl px-4 py-3 mb-5 flex items-center justify-between gap-4 flex-wrap"
     >
       <div className="flex items-center gap-3 min-w-0">
-        <img
-          src={rank.icon}
-          alt={rank.name}
-          className="flex-shrink-0 gh-crest"
-          style={{ width: 40, height: 40, objectFit: "contain" }}
+        <CharacterPortrait
+          characterKey={profile?.character_avatar}
+          rank={rank}
+          size={40}
+          className="gh-crest"
         />
         <div className="min-w-0">
           <div className="text-sm font-bold text-white leading-tight">

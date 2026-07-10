@@ -22,6 +22,7 @@ import { NavLink } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import ChatBubble from './ChatBubble';
 import GamificationHeader from './GamificationHeader';
+import CharacterSelectModal from './CharacterSelectModal';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
@@ -32,13 +33,15 @@ export default function Layout({ children }) {
   const [notifications, setNotifications] = useState([]);
   const [bellOpen, setBellOpen] = useState(false);
   const bellRef = useRef(null);
+  const [dismissedCharacterPrompt, setDismissedCharacterPrompt] = useState(false);
 
   const {
     activeSession, remaining, running,
     pendingCompletedSession, saveCompletedSession,
     t,
   } = useApp();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
+  const showCharacterPrompt = !!profile && !profile.character_avatar && !dismissedCharacterPrompt;
 
   useEffect(() => {
     if (!user) return;
@@ -238,6 +241,11 @@ export default function Layout({ children }) {
           </NavLink>
         ))}
       </nav>
+
+      {/* First-time character pick — shown once until the user selects an avatar */}
+      {showCharacterPrompt && (
+        <CharacterSelectModal onClose={() => setDismissedCharacterPrompt(true)} />
+      )}
 
       {/* Global session-complete notes modal */}
       {pendingCompletedSession && (

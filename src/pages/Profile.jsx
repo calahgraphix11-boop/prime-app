@@ -1,11 +1,15 @@
 import { useState, useRef, useEffect } from 'react';
-import { User, Camera, Save, Check, Award } from 'lucide-react';
+import { User, Camera, Save, Check, Award, UserCircle2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import BadgeGrid from '../components/BadgeGrid';
+import CharacterSelectModal from '../components/CharacterSelectModal';
+import { getCharacter } from '../lib/gamification';
 
 export default function Profile() {
   const { user, profile, updateProfile, uploadAvatar } = useAuth();
+  const [showCharacterModal, setShowCharacterModal] = useState(false);
+  const currentCharacter = getCharacter(profile?.character_avatar);
   const [fullName, setFullName] = useState(profile?.full_name || user?.user_metadata?.full_name || '');
   const [username, setUsername] = useState(profile?.username || '');
   const [avatarPreview, setAvatarPreview] = useState(profile?.avatar_url || null);
@@ -100,6 +104,36 @@ export default function Profile() {
         </div>
         <p className="text-xs text-white/35">Click the camera icon to upload a new photo</p>
       </div>
+
+      {/* Character */}
+      <div className="glass rounded-2xl p-5 flex items-center gap-4">
+        <div
+          className="w-14 h-14 rounded-full overflow-hidden flex items-center justify-center flex-shrink-0"
+          style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}
+        >
+          {currentCharacter ? (
+            <img src={currentCharacter.icon} alt={currentCharacter.name} className="w-full h-full object-cover" />
+          ) : (
+            <UserCircle2 size={26} className="text-white/30" />
+          )}
+        </div>
+        <div className="flex-1 min-w-0">
+          <h2 className="text-base font-semibold text-white">Character</h2>
+          <p className="text-xs text-white/35 truncate">
+            {currentCharacter ? currentCharacter.name : 'No character selected yet'}
+          </p>
+        </div>
+        <button
+          onClick={() => setShowCharacterModal(true)}
+          className="px-3.5 py-2 rounded-xl text-sm font-semibold btn-ghost flex-shrink-0"
+        >
+          Change Character
+        </button>
+      </div>
+
+      {showCharacterModal && (
+        <CharacterSelectModal onClose={() => setShowCharacterModal(false)} />
+      )}
 
       {/* Personal Info */}
       <div className="glass rounded-2xl p-5 space-y-4">

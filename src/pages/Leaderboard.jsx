@@ -3,7 +3,8 @@ import { Trophy, Flame, Users, Globe, Zap, Star } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useApp } from '../context/AppContext';
-import { calculateLevelProgress, getRank } from '../lib/gamification';
+import { calculateLevelProgress, getRank, getCharacter } from '../lib/gamification';
+import CharacterPortrait from '../components/CharacterPortrait';
 
 const getWeekStart = () => {
   const now = new Date();
@@ -190,20 +191,41 @@ function XpPodiumCard({ entry, rank, isMe, delayMs }) {
       className="lb-podium-item flex flex-col items-center"
       style={{ order, animationDelay: `${delayMs}ms` }}
     >
-      <div
-        className="rounded-full flex-shrink-0 overflow-hidden flex items-center justify-center mb-2"
-        style={{
-          width: meta.crest + 10,
-          height: meta.crest + 10,
-          border: `2px solid ${meta.ring}`,
-          background: 'rgba(255,255,255,0.04)',
-        }}
-      >
-        <img
-          src={rankInfo.icon}
-          alt={rankInfo.name}
-          style={{ width: meta.crest, height: meta.crest, objectFit: 'contain' }}
-        />
+      <div className="relative flex-shrink-0 mb-2" style={{ width: meta.crest + 10, height: meta.crest + 10 }}>
+        <div
+          className="rounded-full overflow-hidden w-full h-full flex items-center justify-center"
+          style={{ border: `2px solid ${meta.ring}`, background: 'rgba(255,255,255,0.04)' }}
+        >
+          {entry.character_avatar ? (
+            <img
+              src={getCharacter(entry.character_avatar)?.icon}
+              alt=""
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <img
+              src={rankInfo.icon}
+              alt={rankInfo.name}
+              style={{ width: meta.crest, height: meta.crest, objectFit: 'contain' }}
+            />
+          )}
+        </div>
+        {entry.character_avatar && (
+          <img
+            src={rankInfo.icon}
+            alt={rankInfo.name}
+            className="absolute rounded-full"
+            style={{
+              width: Math.round((meta.crest + 10) * 0.42),
+              height: Math.round((meta.crest + 10) * 0.42),
+              bottom: -2,
+              right: -2,
+              objectFit: 'contain',
+              background: '#0a1a10',
+              border: '2px solid rgba(0,26,16,0.95)',
+            }}
+          />
+        )}
       </div>
       <p className="text-sm font-semibold text-white truncate max-w-[100px] text-center">
         {entry.username || entry.full_name || 'Unknown'}
@@ -254,12 +276,7 @@ function XpListRow({ entry, rank, isMe, pinned, delayMs }) {
           {rank}
         </span>
 
-        <img
-          src={rankInfo.icon}
-          alt={rankInfo.name}
-          style={{ width: 24, height: 24, objectFit: 'contain' }}
-          className="flex-shrink-0"
-        />
+        <CharacterPortrait characterKey={entry.character_avatar} rank={rankInfo} size={24} />
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 flex-wrap">
@@ -357,7 +374,7 @@ export default function Leaderboard() {
         .order('total_xp', { ascending: false }),
       supabase
         .from('profiles')
-        .select('id, username, full_name, avatar_url'),
+        .select('id, username, full_name, avatar_url, character_avatar'),
     ]);
 
     const profileMap = new Map((allProfiles || []).map((p) => [p.id, p]));

@@ -32,6 +32,17 @@ export function getRank(level) {
   return RANKS.find((r) => level <= r.max) || RANKS[RANKS.length - 1];
 }
 
+export const CHARACTERS = [
+  { key: "male-glasses", name: "The Analyst", icon: "/gamification-assets/avatars/avatar-male-glasses.png" },
+  { key: "female-braids", name: "The Strategist", icon: "/gamification-assets/avatars/avatar-female-braids.png" },
+  { key: "male-locs", name: "The Grinder", icon: "/gamification-assets/avatars/avatar-male-locs.png" },
+  { key: "female-afro", name: "The Visionary", icon: "/gamification-assets/avatars/avatar-female-afro.webp" },
+];
+
+export function getCharacter(key) {
+  return CHARACTERS.find((c) => c.key === key) || null;
+}
+
 // Mirrors the 8 badges awarded server-side by check_and_award_badges() —
 // order here is the display order on the Profile badges grid.
 export const BADGES = [
