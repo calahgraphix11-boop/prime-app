@@ -6,6 +6,7 @@ import UpgradeModal from "../components/UpgradeModal";
 import { ACCEPTED_FILE_TYPES, prepareFileForAI } from "../lib/fileUtils";
 import { supabase } from "../lib/supabase";
 import { wikiSummary } from "../utils/wikiLookup";
+import { fetchTriviaQuestions } from "../utils/triviaLookup";
 import { awardXp } from "../lib/xp";
 
 const DIFFICULTIES = ["Easy", "Medium", "Hard"];
@@ -42,6 +43,9 @@ export default function ExamPrep() {
   const [lookup, setLookup] = useState(null);
   const [lookupLoading, setLookupLoading] = useState(false);
   const [lookupError, setLookupError] = useState("");
+  const [quickPracticeLoading, setQuickPracticeLoading] = useState(false);
+  const [quickPracticeError, setQuickPracticeError] = useState("");
+  const [isQuickPractice, setIsQuickPractice] = useState(false);
   const fileInputRef = useRef(null);
   const canUploadFiles = fileUploadsRemaining > 0;
 
@@ -64,6 +68,33 @@ export default function ExamPrep() {
     }
   };
 
+  const startQuickPractice = async () => {
+    setQuickPracticeLoading(true);
+    setQuickPracticeError("");
+    try {
+      const trivia = await fetchTriviaQuestions(questionCount);
+      if (!trivia.length) throw new Error("EMPTY");
+      const mapped = trivia.map((q) => ({
+        question: q.question,
+        options: [...q.incorrect_answers, q.correct_answer].sort(() => Math.random() - 0.5),
+        correct: q.correct_answer,
+        explanation: `Category: ${q.category}`,
+      }));
+      setQuestionType("Multiple Choice");
+      setTopic("General Knowledge");
+      setSubject("");
+      setQuestions(mapped);
+      setCurrentIndex(0);
+      setAnswers({});
+      setIsQuickPractice(true);
+      setPhase("quiz");
+    } catch {
+      setQuickPracticeError("Could not load trivia questions. Please try again.");
+    } finally {
+      setQuickPracticeLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (tab !== "history") return;
     setHistoryLoading(true);
@@ -81,6 +112,7 @@ export default function ExamPrep() {
     setQuestions(item.questions);
     setCurrentIndex(0);
     setAnswers({});
+    setIsQuickPractice(false);
     setTab("generate");
     setPhase("quiz");
   };
@@ -130,6 +162,7 @@ export default function ExamPrep() {
       setQuestions(sliced);
       setCurrentIndex(0);
       setAnswers({});
+      setIsQuickPractice(false);
       console.log('[exam-coach] setting phase to quiz');
       setPhase("quiz");
       if (attachedFile) awardXp('file_uploaded');
@@ -157,19 +190,23 @@ export default function ExamPrep() {
       const correctCount = questions.filter((q, i) => answers[i] === q.correct).length;
       const score = questionType === "Structured" ? null : Math.round((correctCount / questions.length) * 100);
       setPhase("results");
-      awardXp('exam_coach_session');
-      if (score === 100) awardXp('exam_coach_perfect');
-      const subjectLabel = subject === "__custom__" ? customSubject : subject;
-      supabase.auth.getUser().then(({ data: { user } }) => {
-        if (user) {
-          const payload = { user_id: user.id, topic, subject: subjectLabel || null, difficulty, questions, score };
-          console.log('[exam_history] about to save');
-          console.log('[exam_history] saving:', payload);
-          supabase.from("exam_history").insert(payload).then(({ error }) => {
-            console.log('[exam_history] result:', error ? `error: ${error.message}` : 'ok');
-          });
-        }
-      });
+      if (!isQuickPractice) {
+        awardXp('exam_coach_session');
+        if (score === 100) awardXp('exam_coach_perfect');
+      }
+      if (!isQuickPractice) {
+        const subjectLabel = subject === "__custom__" ? customSubject : subject;
+        supabase.auth.getUser().then(({ data: { user } }) => {
+          if (user) {
+            const payload = { user_id: user.id, topic, subject: subjectLabel || null, difficulty, questions, score };
+            console.log('[exam_history] about to save');
+            console.log('[exam_history] saving:', payload);
+            supabase.from("exam_history").insert(payload).then(({ error }) => {
+              console.log('[exam_history] result:', error ? `error: ${error.message}` : 'ok');
+            });
+          }
+        });
+      }
     }
   };
 
@@ -188,6 +225,7 @@ export default function ExamPrep() {
     setAnswers({});
     setCurrentIndex(0);
     setError("");
+    setIsQuickPractice(false);
   };
 
   const tryAgain = () => {
@@ -210,6 +248,27 @@ export default function ExamPrep() {
           <button onClick={() => setTab("generate")} className={`flex-1 py-1.5 rounded-lg text-sm font-medium transition-all ${tab === "generate" ? "bg-white/10 text-gray-900 dark:text-white" : "text-gray-700 dark:text-gray-300"}`}>Generate</button>
           <button onClick={() => setTab("history")} className={`flex-1 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-1.5 ${tab === "history" ? "bg-white/10 text-gray-900 dark:text-white" : "text-gray-700 dark:text-gray-300"}`}><Clock size={13} />History</button>
         </div>
+
+        {tab === "generate" && (
+          <div className="glass rounded-2xl p-4 flex items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-medium text-gray-900 dark:text-white">Quick Practice</p>
+              <p className="text-xs text-gray-700 dark:text-gray-300 mt-0.5">General knowledge questions, unrelated to your courses</p>
+              {quickPracticeError && <p className="text-xs mt-1" style={{ color: "#f87171" }}>{quickPracticeError}</p>}
+            </div>
+            <button
+              onClick={startQuickPractice}
+              disabled={quickPracticeLoading}
+              className="px-3 py-2 rounded-xl text-xs font-semibold btn-ghost flex items-center justify-center gap-1.5 disabled:opacity-50 flex-shrink-0"
+            >
+              {quickPracticeLoading ? (
+                <><span className="w-3 h-3 border-2 border-current/30 border-t-current rounded-full animate-spin inline-block" /> Loading…</>
+              ) : (
+                <><Zap size={13} /> Quick Practice</>
+              )}
+            </button>
+          </div>
+        )}
 
         {tab === "history" ? (
           <div className="glass rounded-2xl p-5">
