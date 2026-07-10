@@ -26,6 +26,7 @@ export default function Sidebar({ open, onClose }) {
     { to: '/summarizer', icon: FileText, label: 'Note Summarizer' },
     { to: '/chat', icon: MessageCircle, label: t.aiChatbot, id: 'nav-studypal' },
     { to: '/friends', icon: Users, label: 'Friends' },
+    { to: '/leaderboard', icon: Trophy, label: 'Leaderboard', id: 'nav-leaderboard' },
     { to: '/settings', icon: Settings, label: t.settings, id: 'nav-settings' },
   ];
 
