@@ -20,11 +20,19 @@ export function getMediaType(filename) {
   );
 }
 
+// FileReader's onerror hands back a raw Event (not an Error), and reader.error
+// is a DOMException — rejecting with either crashes callers that expect a
+// real Error. Always normalize to `new Error(...)` here.
+function readerErrorToError(reader, fallbackMessage) {
+  const message = reader.error?.message || fallbackMessage;
+  return new Error(message);
+}
+
 export function readFileAsBase64(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(reader.result.split(',')[1]);
-    reader.onerror = reject;
+    reader.onerror = () => reject(readerErrorToError(reader, 'Could not read the file from disk.'));
     reader.readAsDataURL(file);
   });
 }
@@ -32,6 +40,23 @@ export function readFileAsBase64(file) {
 function truncateTo3000Words(text) {
   const words = text.trim().split(/\s+/);
   return words.length <= 3000 ? text : words.slice(0, 3000).join(' ');
+}
+
+// Real .docx files are zip archives, which always start with the "PK" magic
+// bytes (0x50 0x4B). A .doc file renamed to .docx (or a corrupted file) won't.
+async function hasDocxZipSignature(file) {
+  const header = new Uint8Array(await file.slice(0, 4).arrayBuffer());
+  return header[0] === 0x50 && header[1] === 0x4b;
+}
+
+// Defensive: this only ever logs, it must never itself throw and take down
+// the caller (e.g. if `error` is a weird cross-realm object with a throwing getter).
+function safeLogError(context, error) {
+  try {
+    console.error(`[fileUtils] ${context}:`, error?.message || error);
+  } catch {
+    // ignore — logging must never crash the caller
+  }
 }
 
 // Returns { type: 'block', block } for PDF/images (diagrams preserved)
@@ -50,16 +75,34 @@ export async function prepareFileForAI(file) {
   }
 
   if (ext === 'docx') {
-    const arrayBuffer = await file.arrayBuffer();
-    const { value } = await mammoth.extractRawText({ arrayBuffer });
-    return { type: 'text', text: truncateTo3000Words(value) };
+    if (!(await hasDocxZipSignature(file))) {
+      throw new Error(
+        "This looks like an older .doc file, not .docx. Please save it as .docx in Word and try again."
+      );
+    }
+    let arrayBuffer;
+    try {
+      arrayBuffer = await file.arrayBuffer();
+    } catch (err) {
+      safeLogError('failed to read .docx file into memory', err);
+      throw new Error('Could not read the file from disk. Please try re-uploading it.');
+    }
+    try {
+      const { value } = await mammoth.extractRawText({ arrayBuffer });
+      return { type: 'text', text: truncateTo3000Words(value) };
+    } catch (err) {
+      safeLogError('mammoth failed to extract text from .docx', err);
+      throw new Error(
+        'This .docx file appears to be corrupted or unreadable. Please try re-saving it in Word and uploading again.'
+      );
+    }
   }
 
   if (ext === 'txt') {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => resolve({ type: 'text', text: truncateTo3000Words(reader.result) });
-      reader.onerror = reject;
+      reader.onerror = () => reject(readerErrorToError(reader, 'Could not read the text file from disk.'));
       reader.readAsText(file);
     });
   }
@@ -83,7 +126,7 @@ export async function extractTextFromFile(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(truncateTo3000Words(reader.result));
-    reader.onerror = reject;
+    reader.onerror = () => reject(readerErrorToError(reader, 'Could not read the text file from disk.'));
     reader.readAsText(file);
   });
 }

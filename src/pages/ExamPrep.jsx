@@ -94,8 +94,9 @@ export default function ExamPrep() {
     try {
       const prepared = await prepareFileForAI(file);
       setAttachedFile(prepared.type === 'block' ? { file, fileBlock: prepared.block } : { file, referenceText: prepared.text });
-    } catch {
-      setFileError("Could not read file. Please try a different file.");
+    } catch (err) {
+      console.error('[ExamPrep] file upload failed:', err?.message || err);
+      setFileError(err?.message || "Could not read file. Please try a different file.");
     }
   };
 
