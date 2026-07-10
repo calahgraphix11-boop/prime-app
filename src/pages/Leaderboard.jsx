@@ -291,7 +291,7 @@ export default function Leaderboard() {
   const { user } = useAuth();
   const { streak } = useApp();
   const [tab, setTab] = useState('global');
-  const [mode, setMode] = useState('weekly');
+  const [mode, setMode] = useState('xp');
   const [entries, setEntries] = useState([]);
   const [friendIds, setFriendIds] = useState(new Set());
   const [loading, setLoading] = useState(true);
@@ -381,12 +381,13 @@ export default function Leaderboard() {
   const top3 = displayEntries.slice(0, 3);
   const rest = displayEntries.slice(3);
 
-  const xpTop10 = xpEntries.slice(0, 10);
-  const xpPodium = xpTop10.slice(0, 3);
-  const xpRest = xpTop10.slice(3, 10);
+  const XP_TOP_N = 20;
+  const xpTopN = xpEntries.slice(0, XP_TOP_N);
+  const xpPodium = xpTopN.slice(0, 3);
+  const xpRest = xpTopN.slice(3, XP_TOP_N);
   const myXpIndex = xpEntries.findIndex((e) => e.id === user?.id);
   const myXpRank = myXpIndex >= 0 ? myXpIndex + 1 : null;
-  const myXpInTop10 = myXpIndex >= 0 && myXpIndex < 10;
+  const myXpInTopN = myXpIndex >= 0 && myXpIndex < XP_TOP_N;
   const myXpEntry = myXpIndex >= 0 ? xpEntries[myXpIndex] : null;
 
   return (
@@ -416,17 +417,17 @@ export default function Leaderboard() {
         style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}
       >
         {[
-          { key: 'weekly', icon: Flame, label: 'Weekly' },
-          { key: 'xp', icon: Star, label: 'All-Time XP' },
+          { key: 'xp', icon: Star, label: 'XP Ranking' },
+          { key: 'weekly', icon: Flame, label: 'Weekly Activity' },
         ].map(({ key, icon: Icon, label }) => (
           <button
             key={key}
             onClick={() => setMode(key)}
-            className="flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium transition-all"
+            className="flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold transition-all"
             style={
               mode === key
                 ? { background: '#F5A800', color: '#1a0c00' }
-                : { color: 'rgba(255,255,255,0.45)' }
+                : { color: 'rgba(255,255,255,0.45)', fontWeight: 500 }
             }
           >
             <Icon size={15} />
@@ -544,7 +545,7 @@ export default function Leaderboard() {
             </div>
           )}
 
-          {/* Rank 4-10 */}
+          {/* Rank 4-20 */}
           {xpRest.length > 0 && (
             <div
               className="rounded-2xl overflow-hidden"
@@ -564,8 +565,8 @@ export default function Leaderboard() {
             </div>
           )}
 
-          {/* Pinned own rank if outside top 10 */}
-          {myXpEntry && !myXpInTop10 && (
+          {/* Pinned own rank if outside top 20 */}
+          {myXpEntry && !myXpInTopN && (
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.1)' }} />
