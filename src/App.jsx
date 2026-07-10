@@ -4,6 +4,7 @@ import { ThemeProvider } from "./context/ThemeContext";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { AppProvider } from "./context/AppContext";
 import { XpBubbleProvider } from "./context/XpBubbleContext";
+import { LevelUpModalProvider } from "./context/LevelUpModalContext";
 import Layout from "./components/Layout";
 import Dashboard from "./pages/Dashboard";
 import StudySessions from "./pages/StudySessions";
@@ -134,9 +135,11 @@ export default function App() {
           <AuthProvider>
             <AppProvider>
               <XpBubbleProvider>
-                <AccessGate>
-                  <AppRoutes />
-                </AccessGate>
+                <LevelUpModalProvider>
+                  <AccessGate>
+                    <AppRoutes />
+                  </AccessGate>
+                </LevelUpModalProvider>
               </XpBubbleProvider>
             </AppProvider>
           </AuthProvider>

@@ -1,5 +1,6 @@
 import { supabase } from './supabase';
-import { emitXpAward } from './xpEvents';
+import { emitXpAward, emitLevelUp } from './xpEvents';
+import { calculateLevelProgress, getRank } from './gamification';
 
 // RPCs may return a single row as an object, or as a one-row array
 // depending on the Postgres function's return type — normalize both.
@@ -10,7 +11,36 @@ function firstRow(data) {
 function notifyIfAwarded(result) {
   if (result && result.xp_awarded > 0) {
     emitXpAward({ xp: result.xp_awarded, leveledUp: !!result.leveled_up });
+    if (result.leveled_up) {
+      notifyLevelUp(result.xp_awarded);
+    }
   }
+}
+
+// The RPC only reports a leveled_up boolean, not the resulting level/rank —
+// resolve those by reading the user's current total_xp back. Deriving the
+// pre-award total from total_xp - xp_awarded lets us detect a rank change
+// without needing the RPC to report the previous level.
+function notifyLevelUp(xpAwarded) {
+  supabase.auth.getUser().then(({ data }) => {
+    const user = data?.user;
+    if (!user) return;
+    return supabase
+      .from('user_xp')
+      .select('total_xp, current_level')
+      .eq('user_id', user.id)
+      .maybeSingle()
+      .then(({ data: xpRow, error }) => {
+        if (error || !xpRow) return;
+        const { level } = calculateLevelProgress(xpRow.total_xp, xpRow.current_level);
+        const prevLevel = calculateLevelProgress(Math.max(0, xpRow.total_xp - xpAwarded), 1).level;
+        const rank = getRank(level);
+        const prevRank = getRank(prevLevel);
+        emitLevelUp({ level, rank, rankChanged: rank.name !== prevRank.name });
+      });
+  }).catch((err) => {
+    console.warn('[xp] failed to resolve level-up details:', err);
+  });
 }
 
 // Fire-and-forget XP calls. Never throw — a failure here must never block
