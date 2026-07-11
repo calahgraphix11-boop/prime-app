@@ -8,6 +8,7 @@ import { supabase } from "../lib/supabase";
 import { wikiSummary } from "../utils/wikiLookup";
 import { fetchTriviaQuestions } from "../utils/triviaLookup";
 import { awardXp } from "../lib/xp";
+import { EXAM_COACH_BASE_XP, COMBO_BONUS_CAP, comboBonusForStreak, getComboTier } from "../lib/combo";
 
 const DIFFICULTIES = ["Easy", "Medium", "Hard"];
 const QUESTION_COUNTS = [5, 10, 15];
@@ -46,8 +47,21 @@ export default function ExamPrep() {
   const [quickPracticeLoading, setQuickPracticeLoading] = useState(false);
   const [quickPracticeError, setQuickPracticeError] = useState("");
   const [isQuickPractice, setIsQuickPractice] = useState(false);
+  // Combo run within the current quiz (Multiple Choice, non-Quick-Practice
+  // only). Bonus XP accrues in a ref and is awarded once at session end.
+  const [combo, setCombo] = useState(0);
+  const [maxCombo, setMaxCombo] = useState(0);
+  const [sessionComboBonus, setSessionComboBonus] = useState(0);
+  const comboBonusRef = useRef(0);
   const fileInputRef = useRef(null);
   const canUploadFiles = fileUploadsRemaining > 0;
+
+  const resetCombo = () => {
+    setCombo(0);
+    setMaxCombo(0);
+    setSessionComboBonus(0);
+    comboBonusRef.current = 0;
+  };
 
   const lookupTerm = async () => {
     if (!topic.trim()) return;
@@ -87,6 +101,7 @@ export default function ExamPrep() {
       setCurrentIndex(0);
       setAnswers({});
       setIsQuickPractice(true);
+      resetCombo();
       setPhase("quiz");
     } catch {
       setQuickPracticeError("Could not load trivia questions. Please try again.");
@@ -113,6 +128,7 @@ export default function ExamPrep() {
     setCurrentIndex(0);
     setAnswers({});
     setIsQuickPractice(false);
+    resetCombo();
     setTab("generate");
     setPhase("quiz");
   };
@@ -163,6 +179,7 @@ export default function ExamPrep() {
       setCurrentIndex(0);
       setAnswers({});
       setIsQuickPractice(false);
+      resetCombo();
       console.log('[exam-coach] setting phase to quiz');
       setPhase("quiz");
       if (attachedFile) awardXp('file_uploaded');
@@ -181,6 +198,20 @@ export default function ExamPrep() {
   const selectAnswer = (option) => {
     if (answers[currentIndex] !== undefined) return;
     setAnswers((prev) => ({ ...prev, [currentIndex]: option }));
+
+    // Combo accrual: Multiple Choice, real Exam Coach sessions only. Quick
+    // Practice stays fully outside the XP system, so no combo there either.
+    const q = questions[currentIndex];
+    if (!isQuickPractice && q?.correct !== undefined) {
+      if (option === q.correct) {
+        const run = combo + 1;
+        setCombo(run);
+        setMaxCombo((m) => Math.max(m, run));
+        comboBonusRef.current = Math.min(COMBO_BONUS_CAP, comboBonusRef.current + comboBonusForStreak(run));
+      } else {
+        setCombo(0);
+      }
+    }
   };
 
   const next = () => {
@@ -189,9 +220,13 @@ export default function ExamPrep() {
     } else {
       const correctCount = questions.filter((q, i) => answers[i] === q.correct).length;
       const score = questionType === "Structured" ? null : Math.round((correctCount / questions.length) * 100);
+      const comboBonus = Math.min(COMBO_BONUS_CAP, comboBonusRef.current);
+      setSessionComboBonus(comboBonus);
       setPhase("results");
       if (!isQuickPractice) {
-        awardXp('exam_coach_session');
+        // Combo bonus rides the existing session award via p_xp_override
+        // (base + bonus in one call) — never a separate award per question.
+        awardXp('exam_coach_session', comboBonus > 0 ? EXAM_COACH_BASE_XP + comboBonus : undefined);
         if (score === 100) awardXp('exam_coach_perfect');
       }
       if (!isQuickPractice) {
@@ -226,11 +261,13 @@ export default function ExamPrep() {
     setCurrentIndex(0);
     setError("");
     setIsQuickPractice(false);
+    resetCombo();
   };
 
   const tryAgain = () => {
     setCurrentIndex(0);
     setAnswers({});
+    resetCombo();
     setPhase("quiz");
   };
 
@@ -483,9 +520,27 @@ export default function ExamPrep() {
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Exam Coach</h1>
             <p className="text-sm text-gray-700 dark:text-gray-300 mt-0.5">Practice smarter, not harder</p>
           </div>
-          <div className="text-right flex-shrink-0">
-            <div className="text-xs text-gray-700 dark:text-gray-300 mb-0.5">Question</div>
-            <div className="text-sm font-semibold text-gray-900 dark:text-white">{currentIndex + 1} / {questions.length}</div>
+          <div className="flex items-center gap-2.5 flex-shrink-0">
+            {/* Consecutive-correct combo — keyed by count so the pop replays
+                on each extension. Never shown in Quick Practice. */}
+            {!isQuickPractice && combo >= 2 && (
+              <span
+                key={combo}
+                className="combo-chip"
+                style={{
+                  color: getComboTier(combo).color,
+                  background: getComboTier(combo).bg,
+                  border: getComboTier(combo).border,
+                  boxShadow: getComboTier(combo).glow,
+                }}
+              >
+                <Zap size={12} fill="currentColor" /> {combo}x combo
+              </span>
+            )}
+            <div className="text-right">
+              <div className="text-xs text-gray-700 dark:text-gray-300 mb-0.5">Question</div>
+              <div className="text-sm font-semibold text-gray-900 dark:text-white">{currentIndex + 1} / {questions.length}</div>
+            </div>
           </div>
         </div>
 
@@ -634,6 +689,15 @@ export default function ExamPrep() {
         <div className="inline-block px-4 py-1.5 rounded-full text-sm font-semibold" style={{ background: badge.bg, border: `1px solid ${badge.border}`, color: badge.color }}>
           {badge.label}
         </div>
+        {!isQuickPractice && sessionComboBonus > 0 && (
+          <div
+            className="flex items-center justify-center gap-1.5 text-xs font-semibold"
+            style={{ color: "#F5A800" }}
+          >
+            <Zap size={13} fill="currentColor" />
+            Best combo {maxCombo}x · +{sessionComboBonus} bonus XP
+          </div>
+        )}
       </div>
 
       {wrongAnswers.length > 0 && (

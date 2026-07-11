@@ -6,6 +6,8 @@ import { AppProvider } from "./context/AppContext";
 import { XpBubbleProvider } from "./context/XpBubbleContext";
 import { LevelUpModalProvider } from "./context/LevelUpModalContext";
 import { BadgeToastProvider } from "./context/BadgeToastContext";
+import { QuestToastProvider } from "./context/QuestToastContext";
+import { StreakToastProvider } from "./context/StreakToastContext";
 import Layout from "./components/Layout";
 import Dashboard from "./pages/Dashboard";
 import StudySessions from "./pages/StudySessions";
@@ -138,9 +140,13 @@ export default function App() {
               <XpBubbleProvider>
                 <LevelUpModalProvider>
                   <BadgeToastProvider>
-                    <AccessGate>
-                      <AppRoutes />
-                    </AccessGate>
+                    <QuestToastProvider>
+                      <StreakToastProvider>
+                        <AccessGate>
+                          <AppRoutes />
+                        </AccessGate>
+                      </StreakToastProvider>
+                    </QuestToastProvider>
                   </BadgeToastProvider>
                 </LevelUpModalProvider>
               </XpBubbleProvider>

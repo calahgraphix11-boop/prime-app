@@ -790,6 +790,20 @@ body {
   flex-shrink: 0;
 }
 
+/* Quest-complete toast reuses the badge-toast shell; only the icon differs
+   (a gold glyph tile instead of badge art). */
+.quest-toast-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: rgba(245, 168, 0, 0.16);
+  color: #F5A800;
+}
+
 .badge-toast-text {
   display: flex;
   flex-direction: column;
@@ -831,6 +845,31 @@ body {
 @keyframes badge-toast-fade-in {
   from { opacity: 0; }
   to { opacity: 1; }
+}
+
+/* ─── Exam Coach combo chip ──────────────────────────────── */
+.combo-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  animation: combo-pop 220ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@keyframes combo-pop {
+  0% { transform: scale(0.85); }
+  55% { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .combo-chip {
+    animation: none !important;
+  }
 }
 
 /* ─── Light mode: Tailwind text-white overrides ──────────── */

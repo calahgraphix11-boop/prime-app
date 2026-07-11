@@ -4,6 +4,7 @@ import { supabase } from "../lib/supabase";
 import { useAuth } from "../context/AuthContext";
 import { useXpBubbleAnchor } from "../context/XpBubbleContext";
 import { calculateLevelProgress, getRank } from "../lib/gamification";
+import { getStreakTier } from "../lib/streaks";
 import CharacterPortrait from "./CharacterPortrait";
 
 const EASE_OUT = "cubic-bezier(0.23, 1, 0.32, 1)";
@@ -54,6 +55,7 @@ export default function GamificationHeader() {
   const { total_xp, current_level, current_streak } = xpRow;
   const { level, xpIntoLevel, xpForNextLevel, progress } = calculateLevelProgress(total_xp, current_level);
   const rank = getRank(level);
+  const streakTier = getStreakTier(current_streak);
 
   return (
     <div
@@ -89,15 +91,24 @@ export default function GamificationHeader() {
         </div>
       </div>
 
+      {/* Flame escalates with streak milestones (14/30/100 days) — richer color
+          and a bigger static glow per tier, mirroring the rank-crest escalation.
+          Below 14 days this renders exactly the original chip. */}
       <div
         className="flex items-center gap-1.5 flex-shrink-0 px-2.5 py-1 rounded-full"
         style={{
-          background: "rgba(251,146,60,0.15)",
+          background: streakTier.chipBg,
+          border: streakTier.chipBorder,
+          boxShadow: streakTier.chipGlow,
           transform: pulseStreak ? "scale(1.12)" : "scale(1)",
           transition: `transform 180ms ${EASE_OUT}`,
         }}
       >
-        <Flame size={15} style={{ color: "#fb923c" }} />
+        <Flame
+          size={15}
+          fill={streakTier.flameFill}
+          style={{ color: streakTier.flameColor }}
+        />
         <span className="text-sm font-bold text-white">{current_streak}</span>
       </div>
     </div>

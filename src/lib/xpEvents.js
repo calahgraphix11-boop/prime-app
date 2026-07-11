@@ -35,3 +35,29 @@ export function subscribeBadgeEarned(fn) {
   badgeEarnedListeners.add(fn);
   return () => badgeEarnedListeners.delete(fn);
 }
+
+// Separate channel for completed quests — same isolation reasoning as badges:
+// a quest toast must never contend with the XP bubble or level-up modal.
+const questCompleteListeners = new Set();
+
+export function emitQuestComplete(payload) {
+  questCompleteListeners.forEach((fn) => fn(payload));
+}
+
+export function subscribeQuestComplete(fn) {
+  questCompleteListeners.add(fn);
+  return () => questCompleteListeners.delete(fn);
+}
+
+// Separate channel for 14/30/100-day streak milestones, isolated for the same
+// reason as the others — the milestone toast owns its own celebration lane.
+const streakMilestoneListeners = new Set();
+
+export function emitStreakMilestone(payload) {
+  streakMilestoneListeners.forEach((fn) => fn(payload));
+}
+
+export function subscribeStreakMilestone(fn) {
+  streakMilestoneListeners.add(fn);
+  return () => streakMilestoneListeners.delete(fn);
+}

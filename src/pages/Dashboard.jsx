@@ -7,6 +7,8 @@ import {
 import { useApp } from "../context/AppContext";
 import { useAuth } from "../context/AuthContext";
 import QuoteCard from "../components/QuoteCard";
+import QuestsCard from "../components/QuestsCard";
+import NextBadgeCard from "../components/NextBadgeCard";
 
 const EASE_OUT = "cubic-bezier(0.23, 1, 0.32, 1)";
 const ENTER_DURATION = "280ms";
@@ -336,6 +338,16 @@ export default function Dashboard() {
           trend={aiTrend}
           enterDelay={4}
         />
+      </div>
+
+      {/* Quests + next badge goal */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 items-start">
+        <div style={enterStyle(4.5)}>
+          <QuestsCard />
+        </div>
+        <div style={enterStyle(5)}>
+          <NextBadgeCard />
+        </div>
       </div>
 
       {/* Charts — side by side on lg+ */}
