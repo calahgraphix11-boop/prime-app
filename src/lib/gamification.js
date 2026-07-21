@@ -37,6 +37,12 @@ export const CHARACTERS = [
   { key: "female-braids", name: "The Strategist", icon: "/gamification-assets/avatars/avatar-female-braids.png" },
   { key: "male-locs", name: "The Grinder", icon: "/gamification-assets/avatars/avatar-male-locs.png" },
   { key: "female-afro", name: "The Visionary", icon: "/gamification-assets/avatars/avatar-female-afro.webp" },
+  { key: "male-dreads", name: "The Motivator", icon: "/gamification-assets/avatars/avatar-male-dreads.png" },
+  { key: "male-glasses-2", name: "The Scholar", icon: "/gamification-assets/avatars/avatar-male-glasses-2.png" },
+  { key: "female-cornrows", name: "The Perfectionist", icon: "/gamification-assets/avatars/avatar-female-cornrows.png" },
+  { key: "female-curls", name: "The Dreamer", icon: "/gamification-assets/avatars/avatar-female-curls.png" },
+  { key: "female-braids-long", name: "The Trailblazer", icon: "/gamification-assets/avatars/avatar-female-braids-long.png" },
+  { key: "male-beard", name: "The Mentor", icon: "/gamification-assets/avatars/avatar-male-beard.png" },
 ];
 
 export function getCharacter(key) {

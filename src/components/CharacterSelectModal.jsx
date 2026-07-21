@@ -33,7 +33,7 @@ export default function CharacterSelectModal({ onClose }) {
         }
       `}</style>
 
-      <div className="glass-elevated rounded-3xl w-full max-w-md p-6 relative">
+      <div className="glass-elevated rounded-3xl w-full max-w-md p-6 relative max-h-[85vh] overflow-y-auto">
         <button
           onClick={onClose}
           className="absolute top-4 right-4 p-2 rounded-xl text-white/50 hover:text-white hover:bg-white/10 transition-colors"
@@ -47,7 +47,7 @@ export default function CharacterSelectModal({ onClose }) {
           <p className="text-sm text-white/50 mt-1">Pick who represents you on your journey</p>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-3 gap-4">
           {CHARACTERS.map((c, i) => {
             const isSelected = profile?.character_avatar === c.key;
             return (
