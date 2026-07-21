@@ -9,8 +9,8 @@ import { dailyCheckin } from '../lib/xp';
 const AppContext = createContext(null);
 
 export const MONTHLY_CAPS = {
-  basic: { report_rewrites: 30, note_summaries: 30, exam_prep_count: 60, file_uploads: 10 },
-  pro:   { report_rewrites: 150, note_summaries: 150, exam_prep_count: null, file_uploads: null },
+  basic: { note_summaries: 30, exam_prep_count: 60, file_uploads: 10 },
+  pro:   { note_summaries: 150, exam_prep_count: null, file_uploads: null },
 };
 
 /*
@@ -62,8 +62,8 @@ export function AppProvider({ children }) {
   const [chatSessions, setChatSessions] = useState([]);
   const [courses, setCourses] = useState([]);
   const [weeklyGoalMinutes, setWeeklyGoalMinutesState] = useState(300);
-  const [dailyUsage, setDailyUsage] = useState({ chat_messages: 0, report_rewrites: 0, note_summaries: 0, exam_prep_count: 0, file_uploads: 0 });
-  const [monthlyUsage, setMonthlyUsage] = useState({ report_rewrites: 0, note_summaries: 0, exam_prep_count: 0, file_uploads: 0 });
+  const [dailyUsage, setDailyUsage] = useState({ chat_messages: 0, note_summaries: 0, exam_prep_count: 0, file_uploads: 0 });
+  const [monthlyUsage, setMonthlyUsage] = useState({ note_summaries: 0, exam_prep_count: 0, file_uploads: 0 });
   const [dataLoading, setDataLoading] = useState(false);
 
   // ── Global timer state ────────────────────────────────────
@@ -88,8 +88,8 @@ export function AppProvider({ children }) {
       setChatSessions([]);
       setCourses([]);
       setWeeklyGoalMinutesState(300);
-      setDailyUsage({ chat_messages: 0, report_rewrites: 0, note_summaries: 0, exam_prep_count: 0, file_uploads: 0 });
-      setMonthlyUsage({ report_rewrites: 0, note_summaries: 0, exam_prep_count: 0, file_uploads: 0 });
+      setDailyUsage({ chat_messages: 0, note_summaries: 0, exam_prep_count: 0, file_uploads: 0 });
+      setMonthlyUsage({ note_summaries: 0, exam_prep_count: 0, file_uploads: 0 });
       clearInterval(intervalRef.current);
       setActiveSession(null);
       setRunning(false);
@@ -114,19 +114,18 @@ export function AppProvider({ children }) {
       supabase.from('courses').select('*').eq('user_id', user.id).order('created_at'),
       supabase.from('user_settings').select('*').eq('user_id', user.id).maybeSingle(),
       supabase.from('daily_usage').select('*').eq('user_id', user.id).eq('date', today()).maybeSingle(),
-      supabase.from('daily_usage').select('report_rewrites, note_summaries, exam_prep_count, file_uploads').eq('user_id', user.id).gte('date', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]),
+      supabase.from('daily_usage').select('note_summaries, exam_prep_count, file_uploads').eq('user_id', user.id).gte('date', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]),
     ]).then(([{ data: s }, { data: r }, { data: c }, { data: cData }, { data: settings }, { data: usage }, { data: monthRows }]) => {
       setSessions(s || []);
       setReports(r || []);
       setChatSessions(c || []);
       setWeeklyGoalMinutesState(settings?.weekly_goal_minutes || 300);
-      setDailyUsage({ chat_messages: usage?.chat_messages || 0, report_rewrites: usage?.report_rewrites || 0, note_summaries: usage?.note_summaries || 0, exam_prep_count: usage?.exam_prep_count || 0, file_uploads: usage?.file_uploads || 0 });
+      setDailyUsage({ chat_messages: usage?.chat_messages || 0, note_summaries: usage?.note_summaries || 0, exam_prep_count: usage?.exam_prep_count || 0, file_uploads: usage?.file_uploads || 0 });
       setMonthlyUsage((monthRows || []).reduce((acc, row) => ({
-        report_rewrites: acc.report_rewrites + (row.report_rewrites || 0),
         note_summaries:  acc.note_summaries  + (row.note_summaries  || 0),
         exam_prep_count: acc.exam_prep_count + (row.exam_prep_count || 0),
         file_uploads:    acc.file_uploads    + (row.file_uploads    || 0),
-      }), { report_rewrites: 0, note_summaries: 0, exam_prep_count: 0, file_uploads: 0 }));
+      }), { note_summaries: 0, exam_prep_count: 0, file_uploads: 0 }));
       setCourses(cData || []);
     }).finally(() => setDataLoading(false));
   }, [user?.id]);
@@ -459,7 +458,6 @@ export function AppProvider({ children }) {
 
   // Point values per the scoring spec
   const incrementChat       = () => { incrementUsage('chat_messages'); addLeaderboardPoints(5); };
-  const incrementRewrite    = async () => { const r = await checkAndIncrementUsage('report_rewrites'); if (r.allowed) addLeaderboardPoints(10); return r; };
   const incrementSummary    = async () => { const r = await checkAndIncrementUsage('note_summaries');  if (r.allowed) addLeaderboardPoints(10); return r; };
   const incrementExam       = async () => { const r = await checkAndIncrementUsage('exam_prep_count'); if (r.allowed) addLeaderboardPoints(15); return r; };
   const incrementFileUpload = async () => checkAndIncrementUsage('file_uploads');
@@ -471,7 +469,6 @@ export function AppProvider({ children }) {
     return Math.max(0, cap - (monthlyUsage[action] || 0));
   };
   const chatRemaining        = (trialActive || planActive) ? 999 : 0;
-  const rewriteRemaining     = _monthlyRemaining('report_rewrites');
   const summaryRemaining     = _monthlyRemaining('note_summaries');
   const examRemaining        = _monthlyRemaining('exam_prep_count');
   const fileUploadsRemaining = _monthlyRemaining('file_uploads');
@@ -545,7 +542,7 @@ export function AppProvider({ children }) {
       weeklyGoalMinutes, setWeeklyGoal,
       streak,
       dataLoading,
-      chatRemaining, rewriteRemaining, summaryRemaining, examRemaining, incrementChat, incrementRewrite, incrementSummary, incrementExam,
+      chatRemaining, summaryRemaining, examRemaining, incrementChat, incrementSummary, incrementExam,
       fileUploadsRemaining, incrementFileUpload,
       monthlyUsage,
       addLeaderboardPoints,

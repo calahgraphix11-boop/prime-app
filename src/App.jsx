@@ -11,7 +11,6 @@ import { StreakToastProvider } from "./context/StreakToastContext";
 import Layout from "./components/Layout";
 import Dashboard from "./pages/Dashboard";
 import StudySessions from "./pages/StudySessions";
-import AIReportWriter from "./pages/AIReportWriter";
 import AIChatbot from "./pages/AIChatbot";
 import Settings from "./pages/Settings";
 import Profile from "./pages/Profile";
@@ -112,7 +111,6 @@ function AppRoutes() {
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/" element={<HomeRoute />} />
       <Route path="/sessions" element={<ProtectedRoute><Layout><StudySessions /></Layout></ProtectedRoute>} />
-      <Route path="/report" element={<ProtectedRoute><Layout><AIReportWriter /></Layout></ProtectedRoute>} />
       <Route path="/internship-report" element={<ProtectedRoute><Layout><InternshipReport /></Layout></ProtectedRoute>} />
       <Route path="/chat" element={<ProtectedRoute><Layout><AIChatbot /></Layout></ProtectedRoute>} />
       <Route path="/settings" element={<ProtectedRoute><Layout><Settings /></Layout></ProtectedRoute>} />

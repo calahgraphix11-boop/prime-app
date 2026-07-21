@@ -20,7 +20,6 @@ export default function Sidebar({ open, onClose }) {
   const initials = (profile?.full_name || user?.email || '?').charAt(0).toUpperCase();
 
   const navItems = [
-    { to: '/report', icon: FileText, label: t.aiReportWriter, id: 'nav-report' },
     { to: '/internship-report', icon: FileText, label: 'Internship Report' },
     { to: '/exam-prep', icon: GraduationCap, label: 'Exam Coach' },
     { to: '/summarizer', icon: FileText, label: 'Note Summarizer' },
