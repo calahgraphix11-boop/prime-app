@@ -5,26 +5,10 @@ import {
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
+import { useApp } from '../context/AppContext';
+import { fmtAgo, fmtDate, fmtDuration } from '../utils/dateFormat';
 
 // ─── helpers ────────────────────────────────────────────────────────────────
-
-function fmtAgo(iso) {
-  if (!iso) return '';
-  const diff = Date.now() - new Date(iso).getTime();
-  if (diff < 60000) return 'just now';
-  if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
-  if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
-  return new Date(iso).toLocaleDateString();
-}
-
-function fmtMins(m) {
-  if (!m) return '0m';
-  const h = Math.floor(m / 60);
-  const min = m % 60;
-  if (h === 0) return `${min}m`;
-  if (min === 0) return `${h}h`;
-  return `${h}h ${min}m`;
-}
 
 function currentWeekStart() {
   const now = new Date();
@@ -130,6 +114,7 @@ function Spinner() {
 // ─── Create Group Modal ──────────────────────────────────────────────────────
 
 function CreateGroupModal({ onClose, onCreated, userId }) {
+  const { t } = useApp();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [isPublic, setIsPublic] = useState(true);
@@ -140,7 +125,7 @@ function CreateGroupModal({ onClose, onCreated, userId }) {
   const previewGroup = { name, icon_url: iconColor };
 
   const handleCreate = async () => {
-    if (!name.trim()) { setError('Group name is required.'); return; }
+    if (!name.trim()) { setError(t.groupNameRequired); return; }
     setLoading(true);
     setError('');
 
@@ -178,7 +163,7 @@ function CreateGroupModal({ onClose, onCreated, userId }) {
         style={{ background: 'rgba(0,22,12,0.99)', border: '1px solid rgba(255,255,255,0.1)', maxHeight: '90vh' }}
       >
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold text-white">Create Study Group</h2>
+          <h2 className="text-lg font-bold text-white">{t.createStudyGroup}</h2>
           <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-white/10 transition-colors">
             <X size={18} className="text-white/60" />
           </button>
@@ -193,11 +178,11 @@ function CreateGroupModal({ onClose, onCreated, userId }) {
         <div className="space-y-4">
           {/* Group name */}
           <div>
-            <label className="block text-xs text-white/50 mb-1.5">Group Name *</label>
+            <label className="block text-xs text-white/50 mb-1.5">{t.groupNameLabel}</label>
             <input
               value={name}
               onChange={e => setName(e.target.value)}
-              placeholder="e.g. Math Study Squad"
+              placeholder={t.groupNamePlaceholder}
               className="w-full glass-input rounded-xl px-3 py-2.5 text-sm"
               maxLength={60}
             />
@@ -205,10 +190,10 @@ function CreateGroupModal({ onClose, onCreated, userId }) {
 
           {/* Icon picker */}
           <div>
-            <label className="block text-xs text-white/50 mb-2">Group Icon</label>
+            <label className="block text-xs text-white/50 mb-2">{t.groupIconLabel}</label>
             <div className="flex items-center gap-3 mb-3">
               <GroupIcon group={previewGroup} size={44} />
-              <p className="text-xs text-white/35">Pick a color for your group icon</p>
+              <p className="text-xs text-white/35">{t.pickGroupIconColor}</p>
             </div>
             <div className="grid grid-cols-6 gap-2">
               {ICON_COLORS.map(color => (
@@ -238,11 +223,11 @@ function CreateGroupModal({ onClose, onCreated, userId }) {
 
           {/* Description */}
           <div>
-            <label className="block text-xs text-white/50 mb-1.5">Description</label>
+            <label className="block text-xs text-white/50 mb-1.5">{t.groupDescriptionLabel}</label>
             <textarea
               value={description}
               onChange={e => setDescription(e.target.value)}
-              placeholder="What is this group about?"
+              placeholder={t.groupDescriptionPlaceholder}
               rows={3}
               className="w-full glass-input rounded-xl px-3 py-2.5 text-sm resize-none"
               maxLength={200}
@@ -251,9 +236,9 @@ function CreateGroupModal({ onClose, onCreated, userId }) {
 
           {/* Visibility */}
           <div>
-            <label className="block text-xs text-white/50 mb-2">Visibility</label>
+            <label className="block text-xs text-white/50 mb-2">{t.visibilityLabel}</label>
             <div className="flex gap-2">
-              {[{ val: true, label: 'Public', Icon: Globe }, { val: false, label: 'Private', Icon: Lock }].map(({ val, label, Icon }) => (
+              {[{ val: true, label: t.publicLabel, Icon: Globe }, { val: false, label: t.privateLabel, Icon: Lock }].map(({ val, label, Icon }) => (
                 <button
                   key={label}
                   onClick={() => setIsPublic(val)}
@@ -274,7 +259,7 @@ function CreateGroupModal({ onClose, onCreated, userId }) {
           disabled={loading || !name.trim()}
           className="w-full py-3 rounded-xl text-sm font-semibold transition-all btn-gold disabled:opacity-50"
         >
-          {loading ? 'Creating…' : 'Create Group'}
+          {loading ? t.creatingButton : t.createGroupButton}
         </button>
       </div>
     </div>
@@ -284,6 +269,7 @@ function CreateGroupModal({ onClose, onCreated, userId }) {
 // ─── Invite Modal ────────────────────────────────────────────────────────────
 
 function InviteModal({ group, inviteCode, onClose, onCodeChange }) {
+  const { t } = useApp();
   const [copied, setCopied] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
   const link = `https://primestudyapp.com/join/${inviteCode}`;
@@ -312,14 +298,14 @@ function InviteModal({ group, inviteCode, onClose, onCodeChange }) {
         style={{ background: 'rgba(0,22,12,0.99)', border: '1px solid rgba(255,255,255,0.1)' }}
       >
         <div className="flex items-center justify-between">
-          <h2 className="text-base font-bold text-white">Invite to {group.name}</h2>
+          <h2 className="text-base font-bold text-white">{t.inviteToGroup.replace('{name}', group.name)}</h2>
           <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-white/10 transition-colors">
             <X size={18} className="text-white/60" />
           </button>
         </div>
 
         <div>
-          <label className="block text-xs text-white/50 mb-2">Invite Link</label>
+          <label className="block text-xs text-white/50 mb-2">{t.inviteLinkLabel}</label>
           <div
             className="px-3 py-2.5 rounded-xl text-xs break-all select-all"
             style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.7)', border: '1px solid rgba(255,255,255,0.1)' }}
@@ -333,7 +319,7 @@ function InviteModal({ group, inviteCode, onClose, onCodeChange }) {
             onClick={copyLink}
             className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all btn-gold"
           >
-            {copied ? 'Copied!' : 'Copy Link'}
+            {copied ? t.copiedButton : t.copyLinkButton}
           </button>
           <button
             onClick={regenerate}
@@ -341,7 +327,7 @@ function InviteModal({ group, inviteCode, onClose, onCodeChange }) {
             className="flex-1 py-2.5 rounded-xl text-sm font-medium transition-all disabled:opacity-50"
             style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.7)', border: '1px solid rgba(255,255,255,0.1)' }}
           >
-            {regenerating ? 'Updating…' : 'Regenerate'}
+            {regenerating ? t.updatingButton : t.regenerateButton}
           </button>
         </div>
       </div>
@@ -352,6 +338,7 @@ function InviteModal({ group, inviteCode, onClose, onCodeChange }) {
 // ─── Group Item (left panel row) ─────────────────────────────────────────────
 
 function GroupItem({ group, isActive, onClick, onJoin, showJoin, joined }) {
+  const { t } = useApp();
   return (
     <div
       onClick={onClick}
@@ -368,7 +355,7 @@ function GroupItem({ group, isActive, onClick, onJoin, showJoin, joined }) {
           <span className="text-xs text-white/30">{group.member_count ?? 0}</span>
           {!group.is_public && (
             <span className="text-xs text-white/25 flex items-center gap-0.5 ml-1">
-              <Lock size={9} /> Private
+              <Lock size={9} /> {t.privateLabel}
             </span>
           )}
         </div>
@@ -379,7 +366,7 @@ function GroupItem({ group, isActive, onClick, onJoin, showJoin, joined }) {
           className="text-xs font-semibold px-2.5 py-1 rounded-lg flex-shrink-0 transition-all hover:opacity-80"
           style={{ background: '#F5A800', color: '#111' }}
         >
-          Join
+          {t.joinButton}
         </button>
       )}
       {showJoin && !group.is_public && (
@@ -392,16 +379,17 @@ function GroupItem({ group, isActive, onClick, onJoin, showJoin, joined }) {
 // ─── Left Panel ──────────────────────────────────────────────────────────────
 
 function LeftPanel({ myGroups, discoverGroups, activeGroupId, onSelect, onJoin, joinedIds, searchQuery, setSearchQuery, onCreateClick, loading }) {
+  const { t } = useApp();
   return (
     <div className="flex flex-col h-full" style={{ width: 280, minWidth: 280, flexShrink: 0, borderRight: '1px solid rgba(255,255,255,0.07)' }}>
       <div className="p-4 space-y-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-bold text-white">Study Groups</h2>
+          <h2 className="text-sm font-bold text-white">{t.studyGroupsTitle}</h2>
           <button
             onClick={onCreateClick}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold btn-gold"
           >
-            <Plus size={13} /> Create
+            <Plus size={13} /> {t.createButton}
           </button>
         </div>
         <div className="relative">
@@ -409,7 +397,7 @@ function LeftPanel({ myGroups, discoverGroups, activeGroupId, onSelect, onJoin, 
           <input
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            placeholder="Search groups…"
+            placeholder={t.searchGroupsPlaceholder}
             className="w-full pl-9 pr-3 py-2 rounded-xl glass-input text-sm"
           />
         </div>
@@ -421,14 +409,14 @@ function LeftPanel({ myGroups, discoverGroups, activeGroupId, onSelect, onJoin, 
         {!loading && myGroups.length === 0 && discoverGroups.length === 0 && (
           <div className="text-center py-12">
             <Users size={28} className="mx-auto mb-2 text-white/15" />
-            <p className="text-sm text-white/30">No groups found</p>
-            <p className="text-xs text-white/20 mt-1">Create one to get started</p>
+            <p className="text-sm text-white/30">{t.noGroupsFound}</p>
+            <p className="text-xs text-white/20 mt-1">{t.createOneToGetStarted}</p>
           </div>
         )}
 
         {!loading && myGroups.length > 0 && (
           <div>
-            <p className="text-xs font-semibold text-white/30 uppercase tracking-wider px-2 mb-2">My Groups</p>
+            <p className="text-xs font-semibold text-white/30 uppercase tracking-wider px-2 mb-2">{t.myGroupsHeading}</p>
             <div className="space-y-1">
               {myGroups.map(g => (
                 <GroupItem
@@ -444,7 +432,7 @@ function LeftPanel({ myGroups, discoverGroups, activeGroupId, onSelect, onJoin, 
 
         {!loading && discoverGroups.length > 0 && (
           <div>
-            <p className="text-xs font-semibold text-white/30 uppercase tracking-wider px-2 mb-2">Discover</p>
+            <p className="text-xs font-semibold text-white/30 uppercase tracking-wider px-2 mb-2">{t.discoverHeading}</p>
             <div className="space-y-1">
               {discoverGroups.map(g => (
                 <GroupItem
@@ -468,6 +456,7 @@ function LeftPanel({ myGroups, discoverGroups, activeGroupId, onSelect, onJoin, 
 // ─── Chat Tab ────────────────────────────────────────────────────────────────
 
 function ChatTab({ group, userId, isAdmin }) {
+  const { t, lang } = useApp();
   const [messages, setMessages] = useState([]);
   const [pinnedMessage, setPinnedMessage] = useState(null);
   const [input, setInput] = useState('');
@@ -579,13 +568,13 @@ function ChatTab({ group, userId, isAdmin }) {
         {messages.length === 0 && (
           <div className="text-center py-16">
             <MessageCircle size={28} className="mx-auto mb-2 text-white/15" />
-            <p className="text-sm text-white/30">No messages yet — say hello!</p>
+            <p className="text-sm text-white/30">{t.noMessagesYet}</p>
           </div>
         )}
         {messages.map(msg => {
           const isMe = msg.user_id === userId;
           const sender = msg.profiles;
-          const name = sender?.username || sender?.full_name || 'Unknown';
+          const name = sender?.username || sender?.full_name || t.unknownUser;
           return (
             <div key={msg.id} className={`group/msg flex gap-2.5 ${isMe ? 'flex-row-reverse' : ''}`}>
               <Avi profile={sender} size={32} />
@@ -607,13 +596,13 @@ function ChatTab({ group, userId, isAdmin }) {
                     <button
                       onClick={() => pinMessage(msg.id)}
                       className="opacity-0 group-hover/msg:opacity-100 transition-opacity p-1 rounded-lg hover:bg-white/10"
-                      title="Pin message"
+                      title={t.pinMessageTitle}
                     >
                       <Pin size={13} style={{ color: msg.is_pinned ? '#F5A800' : 'rgba(255,255,255,0.35)' }} />
                     </button>
                   )}
                 </div>
-                <span className="text-xs text-white/20 px-1">{fmtAgo(msg.created_at)}</span>
+                <span className="text-xs text-white/20 px-1">{fmtAgo(msg.created_at, t, lang)}</span>
               </div>
             </div>
           );
@@ -626,7 +615,7 @@ function ChatTab({ group, userId, isAdmin }) {
           value={input}
           onChange={e => setInput(e.target.value)}
           onKeyDown={onKey}
-          placeholder="Send a message…"
+          placeholder={t.sendMessagePlaceholder}
           className="flex-1 glass-input rounded-xl px-4 py-2.5 text-sm"
           maxLength={500}
         />
@@ -646,6 +635,7 @@ function ChatTab({ group, userId, isAdmin }) {
 // ─── Members Tab ─────────────────────────────────────────────────────────────
 
 function MembersTab({ group, userId, onLeft }) {
+  const { t, lang } = useApp();
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [leaveWarning, setLeaveWarning] = useState(false);
@@ -721,8 +711,8 @@ function MembersTab({ group, userId, onLeft }) {
         >
           <Crown size={15} style={{ color: '#F5A800', flexShrink: 0, marginTop: 1 }} />
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium" style={{ color: '#F5A800' }}>You are the only admin</p>
-            <p className="text-xs text-white/50 mt-0.5">Make someone else admin before leaving the group.</p>
+            <p className="text-sm font-medium" style={{ color: '#F5A800' }}>{t.onlyAdminWarningTitle}</p>
+            <p className="text-xs text-white/50 mt-0.5">{t.onlyAdminWarningBody}</p>
           </div>
           <button onClick={() => setLeaveWarning(false)} className="text-white/30 hover:text-white/60 transition-colors flex-shrink-0">
             <X size={14} />
@@ -732,7 +722,7 @@ function MembersTab({ group, userId, onLeft }) {
 
       {members.map(member => {
         const p = member.profiles;
-        const name = p?.username || p?.full_name || 'Unknown';
+        const name = p?.username || p?.full_name || t.unknownUser;
         const isAdmin = member.role === 'admin';
         const isMe = member.user_id === userId;
 
@@ -752,14 +742,14 @@ function MembersTab({ group, userId, onLeft }) {
                     className="text-xs px-1.5 py-0.5 rounded-md font-semibold flex-shrink-0 flex items-center gap-1"
                     style={{ background: 'rgba(245,168,0,0.18)', color: '#F5A800' }}
                   >
-                    <Crown size={10} /> Admin
+                    <Crown size={10} /> {t.adminBadge}
                   </span>
                 )}
                 {isMe && !isAdmin && (
-                  <span className="text-xs text-white/25 flex-shrink-0">(you)</span>
+                  <span className="text-xs text-white/25 flex-shrink-0">{t.youParenthetical}</span>
                 )}
               </div>
-              <p className="text-xs text-white/30">Joined {fmtAgo(member.joined_at)}</p>
+              <p className="text-xs text-white/30">{t.joinedPrefix} {fmtAgo(member.joined_at, t, lang)}</p>
             </div>
 
             {/* Action buttons */}
@@ -770,10 +760,10 @@ function MembersTab({ group, userId, onLeft }) {
                   onClick={() => makeAdmin(member.id)}
                   className="text-xs font-medium px-2.5 py-1.5 rounded-lg transition-all hover:bg-white/5 flex items-center gap-1"
                   style={{ border: '1px solid rgba(245,168,0,0.3)', color: 'rgba(245,168,0,0.8)' }}
-                  title="Make Admin"
+                  title={t.makeAdminTitle}
                 >
                   <ShieldCheck size={12} />
-                  <span className="hidden sm:inline">Admin</span>
+                  <span className="hidden sm:inline">{t.adminBadge}</span>
                 </button>
               )}
               {/* Remove — shown to admins for non-admin members who aren't me */}
@@ -783,7 +773,7 @@ function MembersTab({ group, userId, onLeft }) {
                   className="text-xs font-medium px-2.5 py-1.5 rounded-lg transition-all hover:bg-white/5"
                   style={{ border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.3)' }}
                 >
-                  Remove
+                  {t.removeButton}
                 </button>
               )}
               {/* Leave — shown only on my own row */}
@@ -793,7 +783,7 @@ function MembersTab({ group, userId, onLeft }) {
                   className="text-xs font-medium px-2.5 py-1.5 rounded-lg transition-all"
                   style={{ border: '1px solid rgba(239,68,68,0.4)', color: 'rgba(239,68,68,0.75)' }}
                 >
-                  Leave
+                  {t.leaveButton}
                 </button>
               )}
             </div>
@@ -813,6 +803,7 @@ const MEDAL = {
 };
 
 function LeaderboardTab({ group }) {
+  const { t } = useApp();
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -845,17 +836,17 @@ function LeaderboardTab({ group }) {
 
   return (
     <div className="flex-1 overflow-y-auto p-4">
-      <p className="text-xs text-white/30 text-center mb-4">Weekly study time · this week</p>
+      <p className="text-xs text-white/30 text-center mb-4">{t.weeklyStudyTimeCaption}</p>
       {entries.length === 0 && (
         <div className="text-center py-12">
           <Trophy size={28} className="mx-auto mb-2 text-white/15" />
-          <p className="text-sm text-white/30">No study data this week</p>
+          <p className="text-sm text-white/30">{t.noStudyDataThisWeek}</p>
         </div>
       )}
       <div className="space-y-2">
         {entries.map((entry, i) => {
           const meta = MEDAL[i];
-          const name = entry.profile?.username || entry.profile?.full_name || 'Unknown';
+          const name = entry.profile?.username || entry.profile?.full_name || t.unknownUser;
           return (
             <div
               key={entry.profile?.id || i}
@@ -877,7 +868,7 @@ function LeaderboardTab({ group }) {
               <Avi profile={entry.profile} size={32} />
               <p className="flex-1 text-sm font-medium text-white truncate">{name}</p>
               <p className="text-sm font-semibold flex-shrink-0" style={{ color: '#F5A800' }}>
-                {fmtMins(entry.minutes)}
+                {fmtDuration(entry.minutes, t)}
               </p>
             </div>
           );
@@ -890,6 +881,7 @@ function LeaderboardTab({ group }) {
 // ─── Group Settings Modal ─────────────────────────────────────────────────────
 
 function GroupSettingsModal({ group, isAdmin, userId, onClose, onGroupUpdated, onGroupDeleted }) {
+  const { t, lang } = useApp();
   const [name, setName] = useState(group?.name || '');
   const [description, setDescription] = useState(group?.description || '');
   const [isPublic, setIsPublic] = useState(group?.is_public ?? true);
@@ -921,7 +913,7 @@ function GroupSettingsModal({ group, isAdmin, userId, onClose, onGroupUpdated, o
   };
 
   const handleSave = async () => {
-    if (!name.trim()) { setError('Group name is required.'); return; }
+    if (!name.trim()) { setError(t.groupNameRequired); return; }
     setSaving(true);
     setError('');
     const icon_url = iconImage || iconColor;
@@ -965,7 +957,7 @@ function GroupSettingsModal({ group, isAdmin, userId, onClose, onGroupUpdated, o
         style={{ background: 'rgba(0,22,12,0.99)', border: '1px solid rgba(255,255,255,0.1)', maxHeight: '90vh' }}
       >
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold text-white">Group Settings</h2>
+          <h2 className="text-lg font-bold text-white">{t.groupSettingsTitle}</h2>
           <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-white/10 transition-colors">
             <X size={18} className="text-white/60" />
           </button>
@@ -981,10 +973,10 @@ function GroupSettingsModal({ group, isAdmin, userId, onClose, onGroupUpdated, o
           <>
             {/* Edit section */}
             <div className="space-y-4">
-              <p className="text-xs font-semibold text-white/30 uppercase tracking-wider">Edit Group</p>
+              <p className="text-xs font-semibold text-white/30 uppercase tracking-wider">{t.editGroupHeading}</p>
 
               <div>
-                <label className="block text-xs text-white/50 mb-1.5">Group Name *</label>
+                <label className="block text-xs text-white/50 mb-1.5">{t.groupNameLabel}</label>
                 <input
                   value={name}
                   onChange={e => setName(e.target.value)}
@@ -994,7 +986,7 @@ function GroupSettingsModal({ group, isAdmin, userId, onClose, onGroupUpdated, o
               </div>
 
               <div>
-                <label className="block text-xs text-white/50 mb-2">Group Icon</label>
+                <label className="block text-xs text-white/50 mb-2">{t.groupIconLabel}</label>
                 <div className="flex items-center gap-3 mb-3">
                   <div className="relative group/icon flex-shrink-0">
                     <GroupIcon group={previewGroup} size={52} />
@@ -1012,14 +1004,14 @@ function GroupSettingsModal({ group, isAdmin, userId, onClose, onGroupUpdated, o
                     <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageSelect} />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-xs text-white/35">Upload a photo or pick a color</p>
+                    <p className="text-xs text-white/35">{t.uploadPhotoOrColor}</p>
                     {iconImage && (
                       <button
                         type="button"
                         onClick={() => setIconImage(null)}
                         className="text-xs text-white/30 hover:text-white/60 transition-colors mt-1"
                       >
-                        Remove image
+                        {t.removeImageButton}
                       </button>
                     )}
                   </div>
@@ -1051,7 +1043,7 @@ function GroupSettingsModal({ group, isAdmin, userId, onClose, onGroupUpdated, o
               </div>
 
               <div>
-                <label className="block text-xs text-white/50 mb-1.5">Description</label>
+                <label className="block text-xs text-white/50 mb-1.5">{t.groupDescriptionLabel}</label>
                 <textarea
                   value={description}
                   onChange={e => setDescription(e.target.value)}
@@ -1062,9 +1054,9 @@ function GroupSettingsModal({ group, isAdmin, userId, onClose, onGroupUpdated, o
               </div>
 
               <div>
-                <label className="block text-xs text-white/50 mb-2">Visibility</label>
+                <label className="block text-xs text-white/50 mb-2">{t.visibilityLabel}</label>
                 <div className="flex gap-2">
-                  {[{ val: true, label: 'Public', Icon: Globe }, { val: false, label: 'Private', Icon: Lock }].map(({ val, label, Icon }) => (
+                  {[{ val: true, label: t.publicLabel, Icon: Globe }, { val: false, label: t.privateLabel, Icon: Lock }].map(({ val, label, Icon }) => (
                     <button
                       key={label}
                       onClick={() => setIsPublic(val)}
@@ -1084,16 +1076,16 @@ function GroupSettingsModal({ group, isAdmin, userId, onClose, onGroupUpdated, o
                 disabled={saving || !name.trim()}
                 className="w-full py-3 rounded-xl text-sm font-semibold transition-all btn-gold disabled:opacity-50"
               >
-                {saving ? 'Saving…' : 'Save Changes'}
+                {saving ? t.savingButton : t.saveChangesButton}
               </button>
             </div>
 
             {/* Danger section */}
             <div className="space-y-3 pt-2" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
-              <p className="text-xs font-semibold text-white/30 uppercase tracking-wider pt-2">Danger Zone</p>
+              <p className="text-xs font-semibold text-white/30 uppercase tracking-wider pt-2">{t.dangerZoneHeading}</p>
               {confirmDelete && (
                 <p className="text-xs text-red-400 px-3 py-2 rounded-lg" style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}>
-                  This will permanently delete the group and all its messages. Click again to confirm.
+                  {t.deleteGroupConfirmWarning}
                 </p>
               )}
               <button
@@ -1102,7 +1094,7 @@ function GroupSettingsModal({ group, isAdmin, userId, onClose, onGroupUpdated, o
                 className="w-full py-2.5 rounded-xl text-sm font-semibold transition-all disabled:opacity-50"
                 style={{ background: confirmDelete ? 'rgba(239,68,68,0.2)' : 'transparent', color: 'rgba(239,68,68,0.8)', border: '1px solid rgba(239,68,68,0.35)' }}
               >
-                {deleting ? 'Deleting…' : confirmDelete ? 'Confirm Delete' : 'Delete Group'}
+                {deleting ? t.deletingButton : confirmDelete ? t.confirmDeleteButton : t.deleteGroupButton}
               </button>
             </div>
           </>
@@ -1110,7 +1102,7 @@ function GroupSettingsModal({ group, isAdmin, userId, onClose, onGroupUpdated, o
           <>
             {/* Member info view */}
             <div className="space-y-3">
-              <p className="text-xs font-semibold text-white/30 uppercase tracking-wider">Group Info</p>
+              <p className="text-xs font-semibold text-white/30 uppercase tracking-wider">{t.groupInfoHeading}</p>
               <div className="flex items-center gap-3">
                 <GroupIcon group={group} size={48} />
                 <div className="min-w-0">
@@ -1122,18 +1114,18 @@ function GroupSettingsModal({ group, isAdmin, userId, onClose, onGroupUpdated, o
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div className="px-3 py-2.5 rounded-xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
-                  <p className="text-xs text-white/35 mb-0.5">Members</p>
+                  <p className="text-xs text-white/35 mb-0.5">{t.membersLabel}</p>
                   <p className="text-sm font-semibold text-white">{group.member_count ?? 0}</p>
                 </div>
                 <div className="px-3 py-2.5 rounded-xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
-                  <p className="text-xs text-white/35 mb-0.5">Visibility</p>
+                  <p className="text-xs text-white/35 mb-0.5">{t.visibilityLabel}</p>
                   <p className="text-sm font-semibold text-white flex items-center gap-1">
-                    {group.is_public ? <><Globe size={12} /> Public</> : <><Lock size={12} /> Private</>}
+                    {group.is_public ? <><Globe size={12} /> {t.publicLabel}</> : <><Lock size={12} /> {t.privateLabel}</>}
                   </p>
                 </div>
               </div>
               {group.created_at && (
-                <p className="text-xs text-white/25 px-1">Created {new Date(group.created_at).toLocaleDateString()}</p>
+                <p className="text-xs text-white/25 px-1">{t.createdPrefix} {fmtDate(group.created_at, lang)}</p>
               )}
             </div>
 
@@ -1144,7 +1136,7 @@ function GroupSettingsModal({ group, isAdmin, userId, onClose, onGroupUpdated, o
                 className="w-full py-2.5 rounded-xl text-sm font-semibold transition-all disabled:opacity-50 mt-2"
                 style={{ background: 'transparent', color: 'rgba(239,68,68,0.8)', border: '1px solid rgba(239,68,68,0.35)' }}
               >
-                {leaving ? 'Leaving…' : 'Leave Group'}
+                {leaving ? t.leavingButton : t.leaveGroupButton}
               </button>
             </div>
           </>
@@ -1158,7 +1150,11 @@ function GroupSettingsModal({ group, isAdmin, userId, onClose, onGroupUpdated, o
 
 const TABS = ['chat', 'members', 'leaderboard'];
 
+const tabLabel = (key, t) =>
+  key === 'chat' ? t.tabChat : key === 'members' ? t.tabMembers : t.tabLeaderboard;
+
 function RightPanel({ group, userId, isMember, onLeft, onGroupUpdate, onJoin }) {
+  const { t } = useApp();
   const [tab, setTab] = useState('chat');
   const [isAdmin, setIsAdmin] = useState(false);
   const [inviteCode, setInviteCode] = useState(group?.invite_code || null);
@@ -1207,8 +1203,8 @@ function RightPanel({ group, userId, isMember, onLeft, onGroupUpdate, onJoin }) 
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
         <Users size={40} className="text-white/10 mb-3" />
-        <p className="text-base font-medium text-white/30">Select a group to get started</p>
-        <p className="text-sm text-white/20 mt-1">Or create your own study group</p>
+        <p className="text-base font-medium text-white/30">{t.selectGroupToStart}</p>
+        <p className="text-sm text-white/20 mt-1">{t.orCreateYourOwnGroup}</p>
       </div>
     );
   }
@@ -1233,14 +1229,14 @@ function RightPanel({ group, userId, isMember, onLeft, onGroupUpdate, onJoin }) 
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold flex-shrink-0 transition-all hover:opacity-80"
             style={{ background: 'rgba(245,168,0,0.15)', color: '#F5A800', border: '1px solid rgba(245,168,0,0.3)' }}
           >
-            <Link2 size={12} /> Invite
+            <Link2 size={12} /> {t.inviteButton}
           </button>
         )}
         <button
           onClick={() => setSettingsOpen(true)}
           className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 transition-all hover:bg-white/10"
           style={{ border: '1px solid rgba(255,255,255,0.1)' }}
-          title="Group Settings"
+          title={t.groupSettingsTitle}
         >
           <Settings size={15} className="text-white/50" />
         </button>
@@ -1277,16 +1273,16 @@ function RightPanel({ group, userId, isMember, onLeft, onGroupUpdate, onJoin }) 
 
       {/* Tab bar */}
       <div className="flex flex-shrink-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-        {TABS.map(t => (
+        {TABS.map(tabKey => (
           <button
-            key={t}
-            onClick={() => setTab(t)}
-            className="flex-1 py-2.5 text-sm font-medium capitalize transition-colors"
-            style={tab === t
+            key={tabKey}
+            onClick={() => setTab(tabKey)}
+            className="flex-1 py-2.5 text-sm font-medium transition-colors"
+            style={tab === tabKey
               ? { color: '#F5A800', borderBottom: '2px solid #F5A800' }
               : { color: 'rgba(128,128,128,0.7)' }}
           >
-            {t}
+            {tabLabel(tabKey, t)}
           </button>
         ))}
       </div>
@@ -1298,13 +1294,13 @@ function RightPanel({ group, userId, isMember, onLeft, onGroupUpdate, onJoin }) 
           : (
             <div className="flex-1 flex flex-col items-center justify-center gap-3 p-8">
               <Lock size={28} className="text-white/20" />
-              <p className="text-sm text-white/40">Join this group to participate in the chat</p>
+              <p className="text-sm text-white/40">{t.joinToParticipate}</p>
               {group?.is_public && (
                 <button
                   onClick={() => onJoin?.(group)}
                   className="px-5 py-2.5 rounded-xl text-sm font-semibold btn-gold"
                 >
-                  Join Group
+                  {t.joinGroupButton}
                 </button>
               )}
             </div>
@@ -1320,6 +1316,7 @@ function RightPanel({ group, userId, isMember, onLeft, onGroupUpdate, onJoin }) 
 
 export default function StudyGroups() {
   const { user, profile } = useAuth();
+  const { t } = useApp();
   const [searchQuery, setSearchQuery] = useState('');
   const [myGroups, setMyGroups] = useState([]);
   const [discoverGroups, setDiscoverGroups] = useState([]);
@@ -1435,8 +1432,8 @@ export default function StudyGroups() {
   return (
     <div className="flex flex-col" style={{ height: 'calc(100vh - 100px)' }}>
       <div className="mb-3 flex-shrink-0">
-        <h1 className="text-2xl font-bold text-white">Study Groups</h1>
-        <p className="text-sm text-white/50 mt-0.5">Study together, grow together</p>
+        <h1 className="text-2xl font-bold text-white">{t.studyGroupsTitle}</h1>
+        <p className="text-sm text-white/50 mt-0.5">{t.studyTogetherTagline}</p>
       </div>
 
       <div
@@ -1468,7 +1465,7 @@ export default function StudyGroups() {
               className="md:hidden flex items-center gap-2 px-4 py-2.5 text-sm text-white/50 hover:text-white transition-colors flex-shrink-0"
               style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}
             >
-              <ArrowLeft size={15} /> Back to Groups
+              <ArrowLeft size={15} /> {t.backToGroups}
             </button>
           )}
           <RightPanel

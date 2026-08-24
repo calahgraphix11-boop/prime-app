@@ -7,7 +7,7 @@ import UpgradeModal from "../components/UpgradeModal";
 import { ACCEPTED_FILE_TYPES, MAX_FILE_SIZE, getMediaType, readFileAsBase64 } from "../lib/fileUtils";
 
 export default function AIChatbot() {
-  const { t, chatSessions, createChatSession, updateChatSession, dataLoading, chatRemaining, incrementChat, trialExpired, fileUploadsRemaining, incrementFileUpload, trialActive, planActive } = useApp();
+  const { t, lang, chatSessions, createChatSession, updateChatSession, dataLoading, chatRemaining, incrementChat, trialExpired, fileUploadsRemaining, incrementFileUpload, trialActive, planActive } = useApp();
   const { profile } = useAuth();
   const canUploadFiles = fileUploadsRemaining > 0;
   const username = profile?.username || profile?.full_name || null;
@@ -26,13 +26,13 @@ export default function AIChatbot() {
     const file = e.target.files[0];
     e.target.value = "";
     if (!file) return;
-    if (file.size > MAX_FILE_SIZE) { setFileError("File exceeds 5 MB limit."); return; }
+    if (file.size > MAX_FILE_SIZE) { setFileError(t.fileTooLarge); return; }
     setFileError("");
     try {
       const base64 = await readFileAsBase64(file);
       setAttachedFile({ file, base64, mediaType: getMediaType(file.name) });
     } catch {
-      setFileError("Could not read file. Please try a different file.");
+      setFileError(t.couldNotReadFile);
     }
   };
 
@@ -80,7 +80,7 @@ export default function AIChatbot() {
     // Stored content: plain text for history (file data is not persisted)
     const storedContent = msg || `📎 ${fileToSend.file.name}`;
     const newMessages = [...currentMessages, { role: "user", content: storedContent }];
-    const label = newMessages[0]?.content.slice(0, 28) || "New Chat";
+    const label = newMessages[0]?.content.slice(0, 28) || t.newChatLabel;
     await updateChatSession(currentChatId, newMessages, label);
     setLoading(true);
 
@@ -94,7 +94,7 @@ export default function AIChatbot() {
       : null;
 
     try {
-      const reply = await chatWithAssistant(apiMessages, model, username, fileArg);
+      const reply = await chatWithAssistant(apiMessages, model, username, fileArg, lang);
       await updateChatSession(
         currentChatId,
         [...newMessages, { role: "assistant", content: reply }],
@@ -103,7 +103,7 @@ export default function AIChatbot() {
     } catch {
       await updateChatSession(
         currentChatId,
-        [...newMessages, { role: "assistant", content: "Sorry, I encountered an error. Please try again." }],
+        [...newMessages, { role: "assistant", content: t.chatErrorReply }],
         label
       );
     } finally {
@@ -118,7 +118,7 @@ export default function AIChatbot() {
 
   const toggleVoice = () => {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SR) return alert("Voice input is not supported in this browser. Try Chrome or Edge.");
+    if (!SR) return alert(t.voiceNotSupported);
 
     if (listening) {
       recognitionRef.current?.stop();
@@ -161,7 +161,7 @@ export default function AIChatbot() {
           </button>
           {/* Model selector */}
           <div>
-            <p className="text-xs text-white/35 font-semibold uppercase tracking-wider mb-1.5 px-1">Model</p>
+            <p className="text-xs text-white/35 font-semibold uppercase tracking-wider mb-1.5 px-1">{t.modelLabel}</p>
             <div className="flex flex-col gap-1">
               {MODELS.map((m) => (
                 <button
@@ -178,7 +178,7 @@ export default function AIChatbot() {
         </div>
         <div className="flex-1 overflow-y-auto p-2 space-y-1">
           {dataLoading && (
-            <p className="text-xs text-white/30 text-center py-4">Loading…</p>
+            <p className="text-xs text-white/30 text-center py-4">{t.loadingText}</p>
           )}
           {!dataLoading && chatSessions.length === 0 && (
             <p className="text-xs text-white/30 text-center py-4">{t.noChats}</p>
@@ -203,7 +203,7 @@ export default function AIChatbot() {
             onClick={() => setShowSidebar(true)}
             className="flex items-center gap-2 text-sm text-white/60 px-3 py-1.5 rounded-lg hover:bg-white/10 transition-colors"
           >
-            <PanelLeft size={16} /> Chats
+            <PanelLeft size={16} /> {t.chatsLabel}
           </button>
         </div>
 
@@ -213,16 +213,16 @@ export default function AIChatbot() {
               <div className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center" style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.25)' }}>
                 <MessageCircle size={24} style={{ color: '#f87171' }} />
               </div>
-              <h2 className="text-lg font-bold text-white mb-2">{trialExpired ? 'Free Trial Ended' : 'Daily Limit Reached'}</h2>
-              <p className="text-sm text-white/50 leading-relaxed">{trialExpired ? 'Your 7-day free trial has ended — upgrade to Pro or Basic to keep studying.' : "You've reached your daily limit — upgrade to Pro for more."}</p>
+              <h2 className="text-lg font-bold text-white mb-2">{trialExpired ? t.freeTrialEnded : t.dailyLimitReached}</h2>
+              <p className="text-sm text-white/50 leading-relaxed">{trialExpired ? t.trialEndedMessage : t.dailyLimitMessage}</p>
               <div className="mt-5 px-4 py-2 rounded-full text-xs font-semibold inline-block" style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171' }}>
-                {trialExpired ? '7-day free trial ended' : `${10} / ${10} messages used today`}
+                {trialExpired ? t.trialEndedBadge : `${10} / ${10} ${t.messagesUsedTodaySuffix}`}
               </div>
               <button
                 onClick={() => setShowUpgrade(true)}
                 className="mt-5 w-full py-2.5 rounded-xl text-sm font-semibold btn-gold flex items-center justify-center gap-2"
               >
-                <Zap size={15} /> Upgrade Plan
+                <Zap size={15} /> {t.upgradePlan}
               </button>
             </div>
           </div>
@@ -232,8 +232,8 @@ export default function AIChatbot() {
               {messages.length === 0 && !loading && (
                 <div className="flex flex-col items-center justify-center h-full gap-6 text-center">
                   <div>
-                    <h2 className="text-xl font-bold text-white mb-1">{t.aiChatTitle || "StudyPal AI"}</h2>
-                    <p className="text-sm text-white/40">{t.aiChatSubtitle || "Ask me anything about your studies"}</p>
+                    <h2 className="text-xl font-bold text-white mb-1">{t.aiChatTitle}</h2>
+                    <p className="text-sm text-white/40">{t.aiChatSubtitle}</p>
                   </div>
                   <div className="flex flex-wrap gap-2 justify-center max-w-md">
                     {chips.map((chip) => (
@@ -266,7 +266,7 @@ export default function AIChatbot() {
               {loading && (
                 <div className="flex justify-start">
                   <div className="px-4 py-3 rounded-2xl text-sm" style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                    <span className="text-white/40 animate-pulse">Thinking…</span>
+                    <span className="text-white/40 animate-pulse">{t.thinkingEllipsis}</span>
                   </div>
                 </div>
               )}
@@ -285,10 +285,10 @@ export default function AIChatbot() {
               {fileError && <p className="text-xs mb-1.5 px-1" style={{ color: '#f87171' }}>{fileError}</p>}
 
               {!canUploadFiles && (
-                <p className="text-xs mb-1.5 px-1 text-white/40">Upgrade to access file uploads</p>
+                <p className="text-xs mb-1.5 px-1 text-white/40">{t.upgradeForFileUploads}</p>
               )}
               {canUploadFiles && fileUploadsRemaining === 0 && (
-                <p className="text-xs mb-1.5 px-1 text-white/40">Daily file upload limit reached</p>
+                <p className="text-xs mb-1.5 px-1 text-white/40">{t.dailyFileUploadLimitReached}</p>
               )}
               <div className="flex items-end gap-2 rounded-2xl px-4 py-3" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}>
                 {canUploadFiles && fileUploadsRemaining > 0 ? (
@@ -297,7 +297,7 @@ export default function AIChatbot() {
                     onClick={() => fileInputRef.current?.click()}
                     className="p-1.5 rounded-lg transition-colors flex-shrink-0"
                     style={{ color: attachedFile ? '#F5A800' : 'rgba(255,255,255,0.35)' }}
-                    title="Attach file"
+                    title={t.attachFile}
                   >
                     <Paperclip size={18} />
                   </button>
@@ -312,7 +312,7 @@ export default function AIChatbot() {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
-                  placeholder={t.chatPlaceholder || "Ask anything…"}
+                  placeholder={t.typeMessage}
                   className="flex-1 bg-transparent text-sm text-white placeholder-white/30 resize-none outline-none"
                   style={{ maxHeight: '120px' }}
                 />

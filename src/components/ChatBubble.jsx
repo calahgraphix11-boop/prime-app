@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext';
 
 export default function ChatBubble() {
   const {
-    t, chatRemaining, incrementChat, trialExpired,
+    t, lang, chatRemaining, incrementChat, trialExpired,
     activeSession, sessionMessages, updateSessionMessages,
   } = useApp();
   const { profile } = useAuth();
@@ -40,7 +40,7 @@ export default function ChatBubble() {
     await updateSessionMessages(newMessages);
     setLoading(true);
     try {
-      const reply = await chatWithAssistant(newMessages, undefined, username);
+      const reply = await chatWithAssistant(newMessages, undefined, username, undefined, lang);
       await updateSessionMessages([...newMessages, { role: 'assistant', content: reply }]);
     } catch {
       await updateSessionMessages([...newMessages, { role: 'assistant', content: 'Sorry, I encountered an error. Please try again.' }]);
@@ -134,7 +134,7 @@ export default function ChatBubble() {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
-                  placeholder={t.chatPlaceholder || 'Ask anything…'}
+                  placeholder={t.typeMessage}
                   className="flex-1 bg-transparent text-xs text-white placeholder-white/30 resize-none outline-none"
                   style={{ maxHeight: '80px' }}
                 />

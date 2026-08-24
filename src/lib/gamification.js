@@ -21,28 +21,34 @@ export function calculateLevelProgress(totalXp, storedLevel = 1) {
 }
 
 const RANKS = [
-  { max: 5, name: "Novice", icon: "/gamification-assets/ranks/rank-1-novice.png" },
-  { max: 12, name: "Apprentice", icon: "/gamification-assets/ranks/rank-2-apprentice.png" },
-  { max: 20, name: "Scholar", icon: "/gamification-assets/ranks/rank-3-scholar.png" },
-  { max: 30, name: "Master", icon: "/gamification-assets/ranks/rank-4-master.png" },
-  { max: Infinity, name: "Prime", icon: "/gamification-assets/ranks/rank-5-prime.png" },
+  { max: 5, name: { en: "Novice", fr: "Novice" }, icon: "/gamification-assets/ranks/rank-1-novice.png" },
+  { max: 12, name: { en: "Apprentice", fr: "Apprenti(e)" }, icon: "/gamification-assets/ranks/rank-2-apprentice.png" },
+  { max: 20, name: { en: "Scholar", fr: "Érudit(e)" }, icon: "/gamification-assets/ranks/rank-3-scholar.png" },
+  { max: 30, name: { en: "Master", fr: "Maître" }, icon: "/gamification-assets/ranks/rank-4-master.png" },
+  { max: Infinity, name: { en: "Prime", fr: "Prime" }, icon: "/gamification-assets/ranks/rank-5-prime.png" },
 ];
 
 export function getRank(level) {
   return RANKS.find((r) => level <= r.max) || RANKS[RANKS.length - 1];
 }
 
+// Resolves a bilingual { en, fr } name/description field for the current lang.
+export function localize(field, lang) {
+  if (field && typeof field === "object") return field[lang] || field.en;
+  return field;
+}
+
 export const CHARACTERS = [
-  { key: "male-glasses", name: "The Analyst", icon: "/gamification-assets/avatars/avatar-male-glasses.png" },
-  { key: "female-braids", name: "The Strategist", icon: "/gamification-assets/avatars/avatar-female-braids.png" },
-  { key: "male-locs", name: "The Grinder", icon: "/gamification-assets/avatars/avatar-male-locs.png" },
-  { key: "female-afro", name: "The Visionary", icon: "/gamification-assets/avatars/avatar-female-afro.webp" },
-  { key: "male-dreads", name: "The Motivator", icon: "/gamification-assets/avatars/avatar-male-dreads.png" },
-  { key: "male-glasses-2", name: "The Scholar", icon: "/gamification-assets/avatars/avatar-male-glasses-2.png" },
-  { key: "female-cornrows", name: "The Perfectionist", icon: "/gamification-assets/avatars/avatar-female-cornrows.png" },
-  { key: "female-curls", name: "The Dreamer", icon: "/gamification-assets/avatars/avatar-female-curls.png" },
-  { key: "female-braids-long", name: "The Trailblazer", icon: "/gamification-assets/avatars/avatar-female-braids-long.png" },
-  { key: "male-beard", name: "The Mentor", icon: "/gamification-assets/avatars/avatar-male-beard.png" },
+  { key: "male-glasses", name: { en: "The Analyst", fr: "L'Analyste" }, icon: "/gamification-assets/avatars/avatar-male-glasses.png" },
+  { key: "female-braids", name: { en: "The Strategist", fr: "La Stratège" }, icon: "/gamification-assets/avatars/avatar-female-braids.png" },
+  { key: "male-locs", name: { en: "The Grinder", fr: "Le Bosseur" }, icon: "/gamification-assets/avatars/avatar-male-locs.png" },
+  { key: "female-afro", name: { en: "The Visionary", fr: "La Visionnaire" }, icon: "/gamification-assets/avatars/avatar-female-afro.webp" },
+  { key: "male-dreads", name: { en: "The Motivator", fr: "Le Motivateur" }, icon: "/gamification-assets/avatars/avatar-male-dreads.png" },
+  { key: "male-glasses-2", name: { en: "The Scholar", fr: "Le Savant" }, icon: "/gamification-assets/avatars/avatar-male-glasses-2.png" },
+  { key: "female-cornrows", name: { en: "The Perfectionist", fr: "La Perfectionniste" }, icon: "/gamification-assets/avatars/avatar-female-cornrows.png" },
+  { key: "female-curls", name: { en: "The Dreamer", fr: "La Rêveuse" }, icon: "/gamification-assets/avatars/avatar-female-curls.png" },
+  { key: "female-braids-long", name: { en: "The Trailblazer", fr: "La Pionnière" }, icon: "/gamification-assets/avatars/avatar-female-braids-long.png" },
+  { key: "male-beard", name: { en: "The Mentor", fr: "Le Mentor" }, icon: "/gamification-assets/avatars/avatar-male-beard.png" },
 ];
 
 export function getCharacter(key) {
@@ -54,50 +60,50 @@ export function getCharacter(key) {
 export const BADGES = [
   {
     key: "first-step",
-    name: "First Step",
+    name: { en: "First Step", fr: "Premier Pas" },
     icon: "/gamification-assets/badges/badge-first-step.png",
-    description: "Complete your first study action",
+    description: { en: "Complete your first study action", fr: "Complétez votre première action d'étude" },
   },
   {
     key: "streak-starter",
-    name: "Streak Starter",
+    name: { en: "Streak Starter", fr: "Départ en Force" },
     icon: "/gamification-assets/badges/badge-streak-starter.png",
-    description: "Reach a 3-day study streak",
+    description: { en: "Reach a 3-day study streak", fr: "Atteignez une série de 3 jours d'étude" },
   },
   {
     key: "on-fire",
-    name: "On Fire",
+    name: { en: "On Fire", fr: "En Feu" },
     icon: "/gamification-assets/badges/badge-on-fire.png",
-    description: "Reach a 7-day study streak",
+    description: { en: "Reach a 7-day study streak", fr: "Atteignez une série de 7 jours d'étude" },
   },
   {
     key: "note-taker",
-    name: "Note Taker",
+    name: { en: "Note Taker", fr: "Preneur de Notes" },
     icon: "/gamification-assets/badges/badge-note-taker.png",
-    description: "Summarize your first note",
+    description: { en: "Summarize your first note", fr: "Résumez votre première note" },
   },
   {
     key: "exam-ready",
-    name: "Exam Ready",
+    name: { en: "Exam Ready", fr: "Prêt pour l'Examen" },
     icon: "/gamification-assets/badges/badge-exam-ready.png",
-    description: "Complete your first Exam Coach session",
+    description: { en: "Complete your first Exam Coach session", fr: "Complétez votre première session Exam Coach" },
   },
   {
     key: "perfect-score",
-    name: "Perfect Score",
+    name: { en: "Perfect Score", fr: "Score Parfait" },
     icon: "/gamification-assets/badges/badge-perfect-score.png",
-    description: "Score 100% on an Exam Coach session",
+    description: { en: "Score 100% on an Exam Coach session", fr: "Obtenez 100% à une session Exam Coach" },
   },
   {
     key: "bookworm",
-    name: "Bookworm",
+    name: { en: "Bookworm", fr: "Rat de Bibliothèque" },
     icon: "/gamification-assets/badges/badge-bookworm.png",
-    description: "Upload your first file",
+    description: { en: "Upload your first file", fr: "Téléversez votre premier fichier" },
   },
   {
     key: "century-club",
-    name: "Century Club",
+    name: { en: "Century Club", fr: "Club des Cent" },
     icon: "/gamification-assets/badges/badge-century-club.png",
-    description: "Complete 100 total study actions",
+    description: { en: "Complete 100 total study actions", fr: "Complétez 100 actions d'étude au total" },
   },
 ];

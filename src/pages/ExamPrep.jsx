@@ -15,13 +15,15 @@ const QUESTION_COUNTS = [5, 10, 15];
 const QUESTION_TYPES = ["Multiple Choice", "Structured"];
 
 function getBadge(pct) {
-  if (pct >= 90) return { label: "Excellent", color: "#34d399", bg: "rgba(52,211,153,0.12)", border: "rgba(52,211,153,0.3)" };
-  if (pct >= 70) return { label: "Good", color: "#F5A800", bg: "rgba(245,168,0,0.12)", border: "rgba(245,168,0,0.3)" };
-  return { label: "Keep Practicing", color: "#f87171", bg: "rgba(239,68,68,0.12)", border: "rgba(239,68,68,0.3)" };
+  if (pct >= 90) return { color: "#34d399", bg: "rgba(52,211,153,0.12)", border: "rgba(52,211,153,0.3)" };
+  if (pct >= 70) return { color: "#F5A800", bg: "rgba(245,168,0,0.12)", border: "rgba(245,168,0,0.3)" };
+  return { color: "#f87171", bg: "rgba(239,68,68,0.12)", border: "rgba(239,68,68,0.3)" };
 }
 
 export default function ExamPrep() {
-  const { courses, examRemaining, incrementExam, fileUploadsRemaining, incrementFileUpload, trialActive, trialExpired, planActive } = useApp();
+  const { t, courses, examRemaining, incrementExam, fileUploadsRemaining, incrementFileUpload, trialActive, trialExpired, planActive, lang } = useApp();
+  const DIFFICULTY_LABELS = { Easy: t.difficultyEasy, Medium: t.difficultyMedium, Hard: t.difficultyHard };
+  const QUESTION_TYPE_LABELS = { "Multiple Choice": t.questionTypeMultipleChoice, Structured: t.questionTypeStructured };
 
   const [phase, setPhase] = useState("setup");
   const [topic, setTopic] = useState("");
@@ -69,14 +71,14 @@ export default function ExamPrep() {
     setLookupError("");
     setLookup(null);
     try {
-      const result = await wikiSummary(topic.trim());
+      const result = await wikiSummary(topic.trim(), lang);
       if (!result) {
-        setLookupError("No definition found for that term.");
+        setLookupError(t.noDefinitionFound);
       } else {
         setLookup(result);
       }
     } catch {
-      setLookupError("Could not fetch a definition right now.");
+      setLookupError(t.couldNotFetchDefinition);
     } finally {
       setLookupLoading(false);
     }
@@ -104,7 +106,7 @@ export default function ExamPrep() {
       resetCombo();
       setPhase("quiz");
     } catch {
-      setQuickPracticeError("Could not load trivia questions. Please try again.");
+      setQuickPracticeError(t.couldNotLoadTrivia);
     } finally {
       setQuickPracticeLoading(false);
     }
@@ -137,14 +139,14 @@ export default function ExamPrep() {
     const file = e.target.files[0];
     e.target.value = "";
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) { setFileError("File too large. Please attach a file under 5MB."); if (fileInputRef.current) fileInputRef.current.value = ""; return; }
+    if (file.size > 5 * 1024 * 1024) { setFileError(t.examFileTooLarge); if (fileInputRef.current) fileInputRef.current.value = ""; return; }
     setFileError("");
     try {
       const prepared = await prepareFileForAI(file);
       setAttachedFile(prepared.type === 'block' ? { file, fileBlock: prepared.block } : { file, referenceText: prepared.text });
     } catch (err) {
       console.error('[ExamPrep] file upload failed:', err?.message || err);
-      setFileError(err?.message || "Could not read file. Please try a different file.");
+      setFileError(err?.message || t.couldNotReadFile);
     }
   };
 
@@ -162,6 +164,7 @@ export default function ExamPrep() {
         referenceText: attachedFile?.referenceText,
         fileBlock: attachedFile?.fileBlock,
         questionType,
+        lang,
       });
       console.log('[exam-coach] raw response received');
       const start = raw.indexOf('[');
@@ -186,9 +189,9 @@ export default function ExamPrep() {
     } catch (err) {
       console.log('[exam-coach] catch error:', err);
       if (err.message === 'PARSE_FAIL') {
-        setError("That was a lot of questions — try fewer or a lower difficulty.");
+        setError(t.tooManyQuestionsError);
       } else {
-        setError("Failed to generate questions. Please try again.");
+        setError(t.failedToGenerateQuestions);
       }
     } finally {
       setLoading(false);
@@ -277,20 +280,20 @@ export default function ExamPrep() {
       <div className="space-y-5 pt-2">
         {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} />}
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Exam Coach</h1>
-          <p className="text-sm text-gray-700 dark:text-gray-300 mt-0.5">Practice smarter, not harder</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t.examCoachTitle}</h1>
+          <p className="text-sm text-gray-700 dark:text-gray-300 mt-0.5">{t.practiceSmarter}</p>
         </div>
 
         <div className="flex gap-1 p-1 rounded-xl" style={{ background: 'rgba(255,255,255,0.05)' }}>
-          <button onClick={() => setTab("generate")} className={`flex-1 py-1.5 rounded-lg text-sm font-medium transition-all ${tab === "generate" ? "bg-white/10 text-gray-900 dark:text-white" : "text-gray-700 dark:text-gray-300"}`}>Generate</button>
-          <button onClick={() => setTab("history")} className={`flex-1 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-1.5 ${tab === "history" ? "bg-white/10 text-gray-900 dark:text-white" : "text-gray-700 dark:text-gray-300"}`}><Clock size={13} />History</button>
+          <button onClick={() => setTab("generate")} className={`flex-1 py-1.5 rounded-lg text-sm font-medium transition-all ${tab === "generate" ? "bg-white/10 text-gray-900 dark:text-white" : "text-gray-700 dark:text-gray-300"}`}>{t.generateTab}</button>
+          <button onClick={() => setTab("history")} className={`flex-1 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-1.5 ${tab === "history" ? "bg-white/10 text-gray-900 dark:text-white" : "text-gray-700 dark:text-gray-300"}`}><Clock size={13} />{t.historyTab}</button>
         </div>
 
         {tab === "generate" && (
           <div className="glass rounded-2xl p-4 flex items-center justify-between gap-3">
             <div>
-              <p className="text-sm font-medium text-gray-900 dark:text-white">Quick Practice</p>
-              <p className="text-xs text-gray-700 dark:text-gray-300 mt-0.5">General knowledge questions, unrelated to your courses</p>
+              <p className="text-sm font-medium text-gray-900 dark:text-white">{t.quickPracticeTitle}</p>
+              <p className="text-xs text-gray-700 dark:text-gray-300 mt-0.5">{t.quickPracticeDesc}</p>
               {quickPracticeError && <p className="text-xs mt-1" style={{ color: "#f87171" }}>{quickPracticeError}</p>}
             </div>
             <button
@@ -299,9 +302,9 @@ export default function ExamPrep() {
               className="px-3 py-2 rounded-xl text-xs font-semibold btn-ghost flex items-center justify-center gap-1.5 disabled:opacity-50 flex-shrink-0"
             >
               {quickPracticeLoading ? (
-                <><span className="w-3 h-3 border-2 border-current/30 border-t-current rounded-full animate-spin inline-block" /> Loading…</>
+                <><span className="w-3 h-3 border-2 border-current/30 border-t-current rounded-full animate-spin inline-block" /> {t.loadingText}</>
               ) : (
-                <><Zap size={13} /> Quick Practice</>
+                <><Zap size={13} /> {t.quickPracticeTitle}</>
               )}
             </button>
           </div>
@@ -310,9 +313,9 @@ export default function ExamPrep() {
         {tab === "history" ? (
           <div className="glass rounded-2xl p-5">
             {historyLoading ? (
-              <p className="text-sm text-gray-700 dark:text-gray-300 text-center py-6">Loading…</p>
+              <p className="text-sm text-gray-700 dark:text-gray-300 text-center py-6">{t.loadingText}</p>
             ) : history.length === 0 ? (
-              <p className="text-sm text-gray-700 dark:text-gray-300 text-center py-6">No past sessions yet</p>
+              <p className="text-sm text-gray-700 dark:text-gray-300 text-center py-6">{t.noPastSessionsYet}</p>
             ) : (
               <div className="space-y-2">
                 {history.map((item) => (
@@ -320,9 +323,9 @@ export default function ExamPrep() {
                     <div className="text-sm font-medium text-gray-900 dark:text-white truncate">{item.topic}</div>
                     <div className="text-xs text-gray-700 dark:text-gray-300 mt-0.5 flex items-center gap-1.5">
                       {item.subject && <><span>{item.subject}</span><span>·</span></>}
-                      <span>{item.difficulty}</span>
+                      <span>{DIFFICULTY_LABELS[item.difficulty] || item.difficulty}</span>
                       <span>·</span>
-                      <span>{new Date(item.created_at).toLocaleDateString()}</span>
+                      <span>{new Date(item.created_at).toLocaleDateString(lang === "fr" ? "fr-FR" : "en-US")}</span>
                       {item.score != null && <><span>·</span><span className="font-medium" style={{ color: item.score >= 70 ? '#34d399' : item.score >= 50 ? '#F5A800' : '#f87171' }}>{item.score}%</span></>}
                     </div>
                   </button>
@@ -335,24 +338,24 @@ export default function ExamPrep() {
             <div className="w-12 h-12 rounded-xl mx-auto mb-3 flex items-center justify-center" style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.25)' }}>
               <Sparkles size={20} style={{ color: '#f87171' }} />
             </div>
-            <h3 className="text-base font-bold text-gray-900 dark:text-white mb-1.5">{trialExpired ? 'Free Trial Ended' : planActive ? 'Monthly Limit Reached' : 'Upgrade Required'}</h3>
-            <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{trialExpired ? 'Your 24-hour free trial has ended — upgrade to keep practicing.' : planActive ? `You've used all 60 Exam Coach sessions for this month — resets ${new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}.` : 'You need an active plan to use this feature.'}</p>
+            <h3 className="text-base font-bold text-gray-900 dark:text-white mb-1.5">{trialExpired ? t.freeTrialEnded : planActive ? t.monthlyLimitReached : t.upgradeRequired}</h3>
+            <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{trialExpired ? t.trialEndedExamMessage : planActive ? (lang === "fr" ? `Vous avez utilisé vos 60 sessions Exam Coach pour ce mois — réinitialisation le ${new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1).toLocaleDateString('fr-FR', { month: 'long', day: 'numeric' })}.` : `You've used all 60 Exam Coach sessions for this month — resets ${new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}.`) : t.needActivePlanMessage}</p>
             <div className="mt-4 px-4 py-1.5 rounded-full text-xs font-semibold inline-block" style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171' }}>
-              {trialExpired ? '24-hour trial ended' : planActive ? '60 / 60 sessions used this month' : 'No active plan'}
+              {trialExpired ? t.trialEndedBadgeExam : planActive ? t.sessionsUsedThisMonthBadge : t.noActivePlan}
             </div>
             <button onClick={() => setShowUpgrade(true)} className="mt-4 w-full py-2.5 rounded-xl text-sm font-semibold btn-gold flex items-center justify-center gap-2">
-              <Zap size={15} /> Upgrade Plan
+              <Zap size={15} /> {t.upgradePlan}
             </button>
           </div>
         ) : (
         <div className="glass rounded-2xl p-5 space-y-4">
           <div>
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1.5">Topic</label>
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1.5">{t.topicLabel}</label>
             <div className="flex gap-2">
               <input
                 value={topic}
                 onChange={(e) => setTopic(e.target.value)}
-                placeholder="e.g. Photosynthesis, World War II, Calculus…"
+                placeholder={t.topicPlaceholder}
                 className="flex-1 px-3 py-2.5 rounded-xl glass-input text-sm"
               />
               <button
@@ -361,7 +364,7 @@ export default function ExamPrep() {
                 disabled={!topic.trim() || lookupLoading}
                 className="px-3 py-2.5 rounded-xl text-sm font-medium btn-ghost disabled:opacity-50"
               >
-                {lookupLoading ? "…" : "Define"}
+                {lookupLoading ? "…" : t.defineButton}
               </button>
             </div>
             {lookupError && <p className="text-xs mt-1.5" style={{ color: "#f87171" }}>{lookupError}</p>}
@@ -371,7 +374,7 @@ export default function ExamPrep() {
                 <p className="mt-1 text-gray-700 dark:text-gray-300 leading-relaxed">{lookup.extract}</p>
                 {lookup.url && (
                   <a href={lookup.url} target="_blank" rel="noreferrer" className="mt-1 inline-block" style={{ color: "#F5A800" }}>
-                    Read more
+                    {t.readMore}
                   </a>
                 )}
               </div>
@@ -381,14 +384,14 @@ export default function ExamPrep() {
           {/* File attachment */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Reference Material</label>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">{t.referenceMaterialLabel}</label>
               {canUploadFiles && fileUploadsRemaining > 0 ? (
                 <label
                   htmlFor="exam-file-input"
                   className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-colors cursor-pointer"
                   style={{ background: 'rgba(0,77,46,0.3)', border: '1px solid rgba(0,77,46,0.5)', color: '#34d399' }}
                 >
-                  <Paperclip size={12} /> Attach file
+                  <Paperclip size={12} /> {t.attachFile}
                 </label>
               ) : null}
               <input
@@ -401,9 +404,9 @@ export default function ExamPrep() {
               />
             </div>
             {!canUploadFiles ? (
-              <p className="text-xs text-gray-700 dark:text-gray-300">Upgrade to access file uploads</p>
+              <p className="text-xs text-gray-700 dark:text-gray-300">{t.upgradeForFileUploads}</p>
             ) : fileUploadsRemaining === 0 ? (
-              <p className="text-xs text-gray-700 dark:text-gray-300">{planActive ? 'Monthly file upload limit reached' : 'Upgrade to continue'}</p>
+              <p className="text-xs text-gray-700 dark:text-gray-300">{planActive ? t.monthlyFileUploadLimitReached : t.upgradeToContinue}</p>
             ) : attachedFile ? (
               <div className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs" style={{ background: 'rgba(245,168,0,0.08)', border: '1px solid rgba(245,168,0,0.25)' }}>
                 <Paperclip size={12} style={{ color: '#F5A800', flexShrink: 0 }} />
@@ -411,52 +414,52 @@ export default function ExamPrep() {
                 <button onClick={() => setAttachedFile(null)} className="flex-shrink-0 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"><X size={12} /></button>
               </div>
             ) : (
-              <p className="text-xs text-gray-700 dark:text-gray-300">Optional — PDF & images preserve diagrams · Word docs are text only (diagrams not included)</p>
+              <p className="text-xs text-gray-700 dark:text-gray-300">{t.fileFormatsHintOptional}</p>
             )}
             {fileError && <p className="text-xs mt-1" style={{ color: '#f87171' }}>{fileError}</p>}
-            <p className="text-xs text-gray-700 dark:text-gray-300 mt-1">PDF · PNG · JPG · WEBP · DOCX · TXT — max 5MB</p>
+            <p className="text-xs text-gray-700 dark:text-gray-300 mt-1">{t.fileFormatsHintStatic}</p>
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1.5">Subject</label>
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1.5">{t.examSubjectLabel}</label>
             <select
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
               className="w-full px-3 py-2.5 rounded-xl glass-input text-sm"
             >
-              <option value="">Select a subject…</option>
+              <option value="">{t.selectSubjectPlaceholder}</option>
               {courses.map((c) => (
                 <option key={c.id} value={c.name}>{c.name}</option>
               ))}
-              <option value="__custom__">Other (type below)</option>
+              <option value="__custom__">{t.otherTypeBelowLabel}</option>
             </select>
             {subject === "__custom__" && (
               <input
                 value={customSubject}
                 onChange={(e) => setCustomSubject(e.target.value)}
-                placeholder="Enter subject…"
+                placeholder={t.customSubjectPlaceholder}
                 className="mt-2 w-full px-3 py-2.5 rounded-xl glass-input text-sm"
               />
             )}
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-2">Question Type</label>
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-2">{t.questionTypeLabel}</label>
             <div className="flex gap-2">
-              {QUESTION_TYPES.map((t) => (
+              {QUESTION_TYPES.map((type) => (
                 <button
-                  key={t}
-                  onClick={() => setQuestionType(t)}
-                  className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all ${questionType === t ? "btn-gold" : "btn-ghost"}`}
+                  key={type}
+                  onClick={() => setQuestionType(type)}
+                  className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all ${questionType === type ? "btn-gold" : "btn-ghost"}`}
                 >
-                  {t}
+                  {QUESTION_TYPE_LABELS[type]}
                 </button>
               ))}
             </div>
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-2">Difficulty</label>
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-2">{t.difficultyLabel}</label>
             <div className="flex gap-2">
               {DIFFICULTIES.map((d) => (
                 <button
@@ -464,14 +467,14 @@ export default function ExamPrep() {
                   onClick={() => setDifficulty(d)}
                   className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all ${difficulty === d ? "btn-gold" : "btn-ghost"}`}
                 >
-                  {d}
+                  {DIFFICULTY_LABELS[d]}
                 </button>
               ))}
             </div>
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-2">Number of Questions</label>
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-2">{t.numberOfQuestionsLabel}</label>
             <div className="flex gap-2">
               {QUESTION_COUNTS.map((n) => (
                 <button
@@ -491,13 +494,17 @@ export default function ExamPrep() {
             className="w-full py-3 rounded-xl text-sm font-semibold btn-gold flex items-center justify-center gap-2 disabled:opacity-50"
           >
             {loading ? (
-              <><span className="w-4 h-4 border-2 border-gray-900/30 border-t-gray-900 rounded-full animate-spin inline-block" /> Generating…</>
+              <><span className="w-4 h-4 border-2 border-gray-900/30 border-t-gray-900 rounded-full animate-spin inline-block" /> {t.generatingEllipsis}</>
             ) : (
-              <><Sparkles size={16} /> Generate Questions</>
+              <><Sparkles size={16} /> {t.generateQuestionsButton}</>
             )}
           </button>
           {examRemaining < 999 && (
-            <p className="text-xs text-center text-gray-700 dark:text-gray-300">{examRemaining} of {planActive ? 60 : 5} sessions remaining {planActive ? 'this month' : 'today'}</p>
+            <p className="text-xs text-center text-gray-700 dark:text-gray-300">
+              {lang === "fr"
+                ? `${examRemaining} sur ${planActive ? 60 : 5} sessions restantes ${planActive ? "ce mois-ci" : "aujourd'hui"}`
+                : `${examRemaining} of ${planActive ? 60 : 5} sessions remaining ${planActive ? "this month" : "today"}`}
+            </p>
           )}
         </div>
         )}
@@ -517,8 +524,8 @@ export default function ExamPrep() {
       <div className="space-y-5 pt-2">
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Exam Coach</h1>
-            <p className="text-sm text-gray-700 dark:text-gray-300 mt-0.5">Practice smarter, not harder</p>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t.examCoachTitle}</h1>
+            <p className="text-sm text-gray-700 dark:text-gray-300 mt-0.5">{t.practiceSmarter}</p>
           </div>
           <div className="flex items-center gap-2.5 flex-shrink-0">
             {/* Consecutive-correct combo — keyed by count so the pop replays
@@ -534,11 +541,11 @@ export default function ExamPrep() {
                   boxShadow: getComboTier(combo).glow,
                 }}
               >
-                <Zap size={12} fill="currentColor" /> {combo}x combo
+                <Zap size={12} fill="currentColor" /> {combo}x {t.comboSuffix}
               </span>
             )}
             <div className="text-right">
-              <div className="text-xs text-gray-700 dark:text-gray-300 mb-0.5">Question</div>
+              <div className="text-xs text-gray-700 dark:text-gray-300 mb-0.5">{t.questionLabel}</div>
               <div className="text-sm font-semibold text-gray-900 dark:text-white">{currentIndex + 1} / {questions.length}</div>
             </div>
           </div>
@@ -562,7 +569,7 @@ export default function ExamPrep() {
                   onClick={() => setAnswers((prev) => ({ ...prev, [currentIndex]: true }))}
                   className="w-full py-2.5 rounded-xl text-sm font-medium btn-ghost"
                 >
-                  Reveal Answer
+                  {t.revealAnswer}
                 </button>
               ) : (
                 <div className="space-y-2">
@@ -570,7 +577,7 @@ export default function ExamPrep() {
                     <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{q.answer}</p>
                   </div>
                   <div className="text-xs font-medium px-1" style={{ color: "#F5A800" }}>
-                    Suggested marks: {q.marks}
+                    {t.suggestedMarksLabel} {q.marks}
                   </div>
                 </div>
               )}
@@ -602,7 +609,7 @@ export default function ExamPrep() {
               </div>
               {answered && (
                 <div className="rounded-xl p-3 text-sm" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }}>
-                  <span className="font-semibold text-gray-700 dark:text-gray-300">Explanation: </span>
+                  <span className="font-semibold text-gray-700 dark:text-gray-300">{t.explanationLabel}</span>
                   <span className="text-gray-700 dark:text-gray-300">{q.explanation}</span>
                 </div>
               )}
@@ -615,9 +622,9 @@ export default function ExamPrep() {
               className="w-full py-3 rounded-xl text-sm font-semibold btn-gold flex items-center justify-center gap-2"
             >
               {currentIndex < questions.length - 1 ? (
-                <>Next Question <ChevronRight size={16} /></>
+                <>{t.nextQuestion} <ChevronRight size={16} /></>
               ) : (
-                <>See Results <Trophy size={16} /></>
+                <>{t.seeResults} <Trophy size={16} /></>
               )}
             </button>
           )}
@@ -632,8 +639,8 @@ export default function ExamPrep() {
     return (
       <div className="space-y-5 pt-2">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Exam Coach</h1>
-          <p className="text-sm text-gray-700 dark:text-gray-300 mt-0.5">Practice smarter, not harder</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t.examCoachTitle}</h1>
+          <p className="text-sm text-gray-700 dark:text-gray-300 mt-0.5">{t.practiceSmarter}</p>
         </div>
 
         <div className="glass rounded-2xl p-6 text-center space-y-3">
@@ -641,28 +648,32 @@ export default function ExamPrep() {
             <Trophy size={28} style={{ color: "#F5A800" }} />
           </div>
           <div>
-            <div className="text-2xl font-bold text-gray-900 dark:text-white">Session Complete</div>
-            <div className="text-sm text-gray-700 dark:text-gray-300 mt-0.5">{questions.length} structured question{questions.length !== 1 ? "s" : ""} reviewed</div>
+            <div className="text-2xl font-bold text-gray-900 dark:text-white">{t.sessionComplete}</div>
+            <div className="text-sm text-gray-700 dark:text-gray-300 mt-0.5">
+              {lang === "fr"
+                ? `${questions.length} question${questions.length !== 1 ? "s" : ""} structurée${questions.length !== 1 ? "s" : ""} revue${questions.length !== 1 ? "s" : ""}`
+                : `${questions.length} structured question${questions.length !== 1 ? "s" : ""} reviewed`}
+            </div>
           </div>
         </div>
 
         <div className="glass rounded-2xl p-5 space-y-4">
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Answer Sheet</h3>
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-white">{t.answerSheet}</h3>
           {questions.map((q, i) => (
             <div key={i} className="space-y-1.5 pb-4" style={{ borderBottom: i < questions.length - 1 ? "1px solid rgba(255,255,255,0.08)" : "none" }}>
               <p className="text-sm font-medium text-gray-700 dark:text-gray-300">{q.question}</p>
               <p className="text-xs leading-relaxed text-gray-700 dark:text-gray-300">{q.answer}</p>
-              <p className="text-xs font-medium" style={{ color: "#F5A800" }}>Marks: {q.marks}</p>
+              <p className="text-xs font-medium" style={{ color: "#F5A800" }}>{t.marksLabel} {q.marks}</p>
             </div>
           ))}
         </div>
 
         <div className="flex gap-3">
           <button onClick={tryAgain} className="flex-1 py-3 rounded-xl text-sm font-semibold btn-ghost flex items-center justify-center gap-2">
-            <RotateCcw size={15} /> Try Again
+            <RotateCcw size={15} /> {t.tryAgainLabel}
           </button>
           <button onClick={resetToSetup} className="flex-1 py-3 rounded-xl text-sm font-semibold btn-gold flex items-center justify-center gap-2">
-            <Target size={15} /> New Topic
+            <Target size={15} /> {t.newTopicLabel}
           </button>
         </div>
       </div>
@@ -670,12 +681,13 @@ export default function ExamPrep() {
   }
 
   const badge = getBadge(pct);
+  const badgeLabel = pct >= 90 ? t.badgeExcellent : pct >= 70 ? t.badgeGood : t.badgeKeepPracticing;
 
   return (
     <div className="space-y-5 pt-2">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Exam Coach</h1>
-        <p className="text-sm text-gray-700 dark:text-gray-300 mt-0.5">Practice smarter, not harder</p>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t.examCoachTitle}</h1>
+        <p className="text-sm text-gray-700 dark:text-gray-300 mt-0.5">{t.practiceSmarter}</p>
       </div>
 
       <div className="glass rounded-2xl p-6 text-center space-y-3">
@@ -684,10 +696,12 @@ export default function ExamPrep() {
         </div>
         <div>
           <div className="text-4xl font-bold text-gray-900 dark:text-white">{pct}%</div>
-          <div className="text-sm text-gray-700 dark:text-gray-300 mt-0.5">{score} of {questions.length} correct</div>
+          <div className="text-sm text-gray-700 dark:text-gray-300 mt-0.5">
+            {lang === "fr" ? `${score} sur ${questions.length} correctes` : `${score} of ${questions.length} correct`}
+          </div>
         </div>
         <div className="inline-block px-4 py-1.5 rounded-full text-sm font-semibold" style={{ background: badge.bg, border: `1px solid ${badge.border}`, color: badge.color }}>
-          {badge.label}
+          {badgeLabel}
         </div>
         {!isQuickPractice && sessionComboBonus > 0 && (
           <div
@@ -695,18 +709,18 @@ export default function ExamPrep() {
             style={{ color: "#F5A800" }}
           >
             <Zap size={13} fill="currentColor" />
-            Best combo {maxCombo}x · +{sessionComboBonus} bonus XP
+            {t.bestComboLabel} {maxCombo}x · +{sessionComboBonus} {t.bonusXpSuffix}
           </div>
         )}
       </div>
 
       {wrongAnswers.length > 0 && (
         <div className="glass rounded-2xl p-5 space-y-4">
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Review Missed Questions</h3>
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-white">{t.reviewMissedQuestions}</h3>
           {wrongAnswers.map((q, i) => (
             <div key={i} className="space-y-1.5 pb-4" style={{ borderBottom: i < wrongAnswers.length - 1 ? "1px solid rgba(255,255,255,0.08)" : "none" }}>
               <p className="text-sm text-gray-700 dark:text-gray-300">{q.question}</p>
-              <p className="text-xs font-medium" style={{ color: "#34d399" }}>Correct: {q.correct}</p>
+              <p className="text-xs font-medium" style={{ color: "#34d399" }}>{t.correctLabel} {q.correct}</p>
               <p className="text-xs text-gray-700 dark:text-gray-300">{q.explanation}</p>
             </div>
           ))}
@@ -718,13 +732,13 @@ export default function ExamPrep() {
           onClick={tryAgain}
           className="flex-1 py-3 rounded-xl text-sm font-semibold btn-ghost flex items-center justify-center gap-2"
         >
-          <RotateCcw size={15} /> Try Again
+          <RotateCcw size={15} /> {t.tryAgainLabel}
         </button>
         <button
           onClick={resetToSetup}
           className="flex-1 py-3 rounded-xl text-sm font-semibold btn-gold flex items-center justify-center gap-2"
         >
-          <Target size={15} /> New Topic
+          <Target size={15} /> {t.newTopicLabel}
         </button>
       </div>
     </div>

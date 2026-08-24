@@ -24,6 +24,7 @@ import ChatBubble from './ChatBubble';
 import GamificationHeader from './GamificationHeader';
 import CharacterSelectModal from './CharacterSelectModal';
 import { useApp } from '../context/AppContext';
+import { fmtAgo } from '../utils/dateFormat';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 
@@ -38,7 +39,7 @@ export default function Layout({ children }) {
   const {
     activeSession, remaining, running,
     pendingCompletedSession, saveCompletedSession,
-    t,
+    t, lang,
   } = useApp();
   const { user, profile } = useAuth();
   const showCharacterPrompt = !!profile && !profile.character_avatar && !dismissedCharacterPrompt;
@@ -88,17 +89,7 @@ export default function Layout({ children }) {
     }
   };
 
-  const formatTime = (iso) => {
-    const d = new Date(iso);
-    const now = new Date();
-    const diffMs = now - d;
-    const diffMins = Math.floor(diffMs / 60000);
-    if (diffMins < 1) return 'just now';
-    if (diffMins < 60) return `${diffMins}m ago`;
-    const diffHours = Math.floor(diffMins / 60);
-    if (diffHours < 24) return `${diffHours}h ago`;
-    return d.toLocaleDateString();
-  };
+  const formatTime = (iso) => fmtAgo(iso, t, lang);
 
   const mins = Math.floor(remaining / 60).toString().padStart(2, "0");
   const secs = (remaining % 60).toString().padStart(2, "0");

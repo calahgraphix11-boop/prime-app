@@ -3,6 +3,7 @@ import { MessageCircle, X, History, ArrowLeft, User } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useApp } from '../context/AppContext';
+import { fmtRelativeDay } from '../utils/dateFormat';
 import { getCharacter } from '../lib/gamification';
 import SessionChatPanel from './SessionChatPanel';
 
@@ -40,15 +41,6 @@ function UserAvatar({ character }) {
   );
 }
 
-function relativeDate(iso) {
-  const d = new Date(iso);
-  const diffDays = Math.floor((Date.now() - d) / 86400000);
-  if (diffDays === 0) return 'Today';
-  if (diffDays === 1) return 'Yesterday';
-  if (diffDays < 7) return `${diffDays}d ago`;
-  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-}
-
 function preview(messages) {
   const first = messages?.[0];
   const text = first?.content || first?.text || '';
@@ -57,6 +49,7 @@ function preview(messages) {
 
 function HistoryView({ chat, onBack }) {
   const { profile } = useAuth();
+  const { t, lang } = useApp();
   const userCharacter = getCharacter(profile?.character_avatar);
   return (
     <div className="flex flex-col h-full">
@@ -73,7 +66,7 @@ function HistoryView({ chat, onBack }) {
         </button>
         <div className="min-w-0">
           <div className="text-xs font-semibold text-white truncate">{chat.sessionTitle || 'Study Chat'}</div>
-          <div className="text-[10px] text-white/35">{relativeDate(chat.updated_at)}</div>
+          <div className="text-[10px] text-white/35">{fmtRelativeDay(chat.updated_at, t, lang)}</div>
         </div>
       </div>
 
@@ -110,7 +103,7 @@ function HistoryView({ chat, onBack }) {
 }
 
 export default function StudyPalPanel({ onClose }) {
-  const { activeSession } = useApp();
+  const { activeSession, t, lang } = useApp();
   const { user } = useAuth();
 
   const [historyChats, setHistoryChats] = useState([]);
@@ -232,7 +225,7 @@ export default function StudyPalPanel({ onClose }) {
                 >
                   <div className="text-xs font-medium text-white/80 truncate">{chat.sessionTitle || 'Study Chat'}</div>
                   <div className="text-[10px] text-white/40 truncate mt-0.5">{preview(chat.messages)}</div>
-                  <div className="text-[10px] text-white/25 mt-0.5">{relativeDate(chat.updated_at)}</div>
+                  <div className="text-[10px] text-white/25 mt-0.5">{fmtRelativeDay(chat.updated_at, t, lang)}</div>
                 </button>
               );
             })}

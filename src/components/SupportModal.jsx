@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
 import { X, Send, MessageCircle } from 'lucide-react';
 import { supportChat } from '../lib/gemini';
+import { useApp } from '../context/AppContext';
 
 export default function SupportModal({ onClose }) {
+  const { lang } = useApp();
   const [tab, setTab] = useState('ai');
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
@@ -21,7 +23,7 @@ export default function SupportModal({ onClose }) {
     setMessages(next);
     setLoading(true);
     try {
-      const reply = await supportChat(next);
+      const reply = await supportChat(next, lang);
       setMessages([...next, { role: 'assistant', content: reply }]);
     } catch {
       setMessages([...next, { role: 'assistant', content: "Sorry, something went wrong. Try again or reach us on WhatsApp." }]);

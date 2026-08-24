@@ -55,7 +55,7 @@ export default function Login() {
     });
     setForgotLoading(false);
     if (err) {
-      setForgotError(err.message || "Something went wrong. Please try again.");
+      setForgotError(err.message || t.somethingWentWrongTryAgain);
     } else {
       setForgotSent(true);
     }
@@ -65,7 +65,7 @@ export default function Login() {
     if (plan) sessionStorage.setItem("pendingUpgradePlan", plan);
     setGoogleLoading(true);
     const { error: err } = await signInWithGoogle();
-    if (err) { setError(err.message || "Google sign-in failed"); setGoogleLoading(false); }
+    if (err) { setError(err.message || t.googleSignInFailed); setGoogleLoading(false); }
   };
 
   const handleSubmit = async (e) => {
@@ -75,7 +75,7 @@ export default function Login() {
     const { error: err } = await signIn(email, password);
     setLoading(false);
     if (err) {
-      setError(err.message || "Invalid credentials");
+      setError(err.message || t.invalidCredentials);
     } else {
       navigate(plan ? `/upgrade?plan=${plan}` : "/");
     }
@@ -142,7 +142,7 @@ export default function Login() {
                 padding: "0.5rem 0.75rem",
               }}
             >
-              Password updated — you can now sign in with your new password.
+              {t.passwordUpdatedMessage}
             </div>
           )}
 
@@ -158,10 +158,10 @@ export default function Login() {
                   marginTop: 0,
                 }}
               >
-                Reset password
+                {t.resetPasswordTitle}
               </h2>
               <p style={{ fontSize: "0.875rem", color: DARK.labelText, marginTop: 0, marginBottom: 20 }}>
-                Enter your email and we'll send you a reset link.
+                {t.resetPasswordSubtitle}
               </p>
 
               {forgotSent ? (
@@ -176,13 +176,13 @@ export default function Login() {
                     marginBottom: 16,
                   }}
                 >
-                  Check your email for a reset link.
+                  {t.checkEmailForResetLink}
                 </div>
               ) : (
                 <form onSubmit={handleForgot} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                   <div>
                     <label style={{ fontSize: "0.875rem", fontWeight: 500, color: DARK.labelText }}>
-                      Email
+                      {t.email}
                     </label>
                     <input
                       type="email"
@@ -254,7 +254,7 @@ export default function Login() {
                     onMouseUp={(e) => { e.currentTarget.style.transform = "scale(1)"; }}
                     onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; }}
                   >
-                    {forgotLoading ? "Sending…" : "Send reset link"}
+                    {forgotLoading ? t.sendingEllipsis : t.sendResetLink}
                   </button>
                 </form>
               )}
@@ -276,7 +276,7 @@ export default function Login() {
                   textAlign: "center",
                 }}
               >
-                ← Back to sign in
+                {t.backToSignIn}
               </button>
             </>
           ) : (
@@ -291,7 +291,7 @@ export default function Login() {
               marginTop: 0,
             }}
           >
-            Welcome back
+            {t.welcomeBack}
           </h2>
 
           <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -399,7 +399,7 @@ export default function Login() {
                   padding: 0,
                 }}
               >
-                Forgot password?
+                {t.forgotPassword}
               </button>
             </div>
 
@@ -448,7 +448,7 @@ export default function Login() {
           {/* Divider */}
           <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "16px 0" }}>
             <div style={{ flex: 1, height: 1, background: DARK.divider }} />
-            <span style={{ fontSize: "0.75rem", fontWeight: 500, color: DARK.orText }}>or</span>
+            <span style={{ fontSize: "0.75rem", fontWeight: 500, color: DARK.orText }}>{t.orDivider}</span>
             <div style={{ flex: 1, height: 1, background: DARK.divider }} />
           </div>
 
@@ -485,7 +485,7 @@ export default function Login() {
               <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>
               <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
             </svg>
-            {googleLoading ? "Redirecting…" : "Continue with Google"}
+            {googleLoading ? t.redirectingEllipsis : t.continueWithGoogle}
           </button>
 
           <p style={{ textAlign: "center", fontSize: "0.875rem", marginTop: 16, color: DARK.mutedText }}>

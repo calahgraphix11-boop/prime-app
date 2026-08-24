@@ -1,6 +1,7 @@
-export async function wikiSummary(term) {
+export async function wikiSummary(term, lang = 'en') {
+  const domain = lang === 'fr' ? 'fr.wikipedia.org' : 'en.wikipedia.org';
   const searchRes = await fetch(
-    `https://fr.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(
+    `https://${domain}/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(
       term
     )}&format=json&origin=*`
   );
@@ -10,7 +11,7 @@ export async function wikiSummary(term) {
   if (!resolvedTitle) return null;
 
   const res = await fetch(
-    `https://fr.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(resolvedTitle)}`
+    `https://${domain}/api/rest_v1/page/summary/${encodeURIComponent(resolvedTitle)}`
   );
   if (!res.ok) return null;
   const data = await res.json();

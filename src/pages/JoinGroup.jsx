@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Users, Lock } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
+import { useApp } from '../context/AppContext';
 
 function Spinner() {
   return (
@@ -16,6 +17,7 @@ export default function JoinGroup() {
   const { inviteCode } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t } = useApp();
   const [group, setGroup] = useState(null);
   const [memberCount, setMemberCount] = useState(0);
   const [isMember, setIsMember] = useState(false);
@@ -92,13 +94,13 @@ export default function JoinGroup() {
         {!loading && invalid && (
           <div className="text-center space-y-3">
             <Lock size={36} className="mx-auto text-white/20" />
-            <p className="text-base font-semibold text-white">Invalid or expired invite link</p>
-            <p className="text-sm text-white/40">This invite link doesn't exist or has been revoked.</p>
+            <p className="text-base font-semibold text-white">{t.invalidInviteLink}</p>
+            <p className="text-sm text-white/40">{t.inviteLinkRevoked}</p>
             <button
               onClick={() => navigate('/study-groups')}
               className="mt-2 px-5 py-2.5 rounded-xl text-sm font-semibold btn-gold"
             >
-              Browse Groups
+              {t.browseGroups}
             </button>
           </div>
         )}
@@ -120,12 +122,12 @@ export default function JoinGroup() {
 
             <div className="flex items-center justify-center gap-2 text-sm text-white/40">
               <Users size={14} />
-              <span>{memberCount} {memberCount === 1 ? 'member' : 'members'}</span>
+              <span>{memberCount} {memberCount === 1 ? t.memberSingular : t.memberPlural}</span>
               {!group.is_public && (
                 <>
                   <span className="text-white/20">·</span>
                   <Lock size={12} />
-                  <span>Private</span>
+                  <span>{t.privateLabel}</span>
                 </>
               )}
             </div>
@@ -139,13 +141,13 @@ export default function JoinGroup() {
             {isMember ? (
               <div className="space-y-3">
                 <p className="text-center text-sm font-medium" style={{ color: '#F5A800' }}>
-                  You're already in this group
+                  {t.alreadyInGroup}
                 </p>
                 <button
                   onClick={() => navigate('/study-groups')}
                   className="w-full py-3 rounded-xl text-sm font-semibold btn-gold"
                 >
-                  Go to Groups
+                  {t.goToGroups}
                 </button>
               </div>
             ) : (
@@ -154,7 +156,7 @@ export default function JoinGroup() {
                 disabled={joining}
                 className="w-full py-3 rounded-xl text-sm font-semibold transition-all btn-gold disabled:opacity-50"
               >
-                {joining ? 'Joining…' : 'Join Group'}
+                {joining ? t.joiningEllipsis : t.joinGroupLabel}
               </button>
             )}
           </>

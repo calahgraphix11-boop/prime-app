@@ -25,7 +25,7 @@ function randomTitle() {
 }
 
 export default function NoteSummarizer() {
-  const { courses, summaryRemaining, incrementSummary, trialExpired, fileUploadsRemaining, incrementFileUpload, trialActive, planActive, userPlan } = useApp();
+  const { t, lang, courses, summaryRemaining, incrementSummary, trialExpired, fileUploadsRemaining, incrementFileUpload, trialActive, planActive, userPlan } = useApp();
   const canUploadFiles = trialActive || userPlan === 'basic' || userPlan === 'pro';
 
   const [instructions, setInstructions] = useState("");
@@ -66,14 +66,14 @@ export default function NoteSummarizer() {
     const file = e.target.files[0];
     e.target.value = "";
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) { setFileError("File too large. Please attach a file under 5MB."); if (fileInputRef.current) fileInputRef.current.value = ""; return; }
+    if (file.size > 5 * 1024 * 1024) { setFileError(t.examFileTooLarge); if (fileInputRef.current) fileInputRef.current.value = ""; return; }
     setFileError("");
     try {
       const prepared = await prepareFileForAI(file);
       setAttachedFile(prepared.type === 'block' ? { file, fileBlock: prepared.block } : { file, referenceText: prepared.text });
     } catch (err) {
       console.error('[NoteSummarizer] file upload failed:', err?.message || err);
-      setFileError(err?.message || "Could not read file. Please try a different file.");
+      setFileError(err?.message || t.couldNotReadFile);
     }
   };
 
@@ -92,6 +92,7 @@ export default function NoteSummarizer() {
         userPrompt: `Subject: ${subjectLabel || "General"}${instructions.trim() ? `\n\nInstructions: ${instructions}` : ''}`,
         referenceText: attachedFile?.referenceText,
         fileBlock: attachedFile?.fileBlock,
+        lang,
       });
       const jsonMatch = raw.match(/\{[\s\S]*\}/);
       if (!jsonMatch) throw new Error('Could not parse response.');
@@ -116,7 +117,7 @@ export default function NoteSummarizer() {
       });
     } catch (error) {
       console.error('[summary_history] save error:', error);
-      setError("Failed to summarize. Please try again.");
+      setError(t.failedToSummarize);
     } finally {
       setLoading(false);
     }
@@ -190,7 +191,7 @@ export default function NoteSummarizer() {
 
     // Title
     const subjectLabel = subject === '__custom__' ? customSubject : subject;
-    const titleText = subjectLabel ? `${subjectLabel} — Study Summary` : 'Study Summary';
+    const titleText = subjectLabel ? `${subjectLabel} — ${t.studySummaryTitle}` : t.studySummaryTitle;
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(17);
     doc.setTextColor(...EMERALD);
@@ -214,7 +215,7 @@ export default function NoteSummarizer() {
 
     // Key Points
     if (result.keyPoints?.length > 0) {
-      sectionTitle('Key Points');
+      sectionTitle(t.keyPointsLabel);
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(10);
       doc.setTextColor(...DARK);
@@ -229,7 +230,7 @@ export default function NoteSummarizer() {
 
     // Key Definitions
     if (result.keyDefinitions?.length > 0) {
-      sectionTitle('Key Definitions');
+      sectionTitle(t.keyDefinitionsLabel);
       result.keyDefinitions.forEach((def) => {
         const termLines = doc.splitTextToSize(def.term, CW);
         const defLines = doc.splitTextToSize(def.definition, CW - 5);
@@ -249,7 +250,7 @@ export default function NoteSummarizer() {
 
     // Exam Questions
     if (result.examQuestions?.length > 0) {
-      sectionTitle('Likely Exam Questions');
+      sectionTitle(t.likelyExamQuestionsLabel);
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(10);
       doc.setTextColor(...DARK);
@@ -263,13 +264,13 @@ export default function NoteSummarizer() {
 
     // Footer on every page
     const total = doc.internal.getNumberOfPages();
-    const dateStr = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    const dateStr = new Date().toLocaleDateString(lang === 'fr' ? 'fr-FR' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' });
     for (let p = 1; p <= total; p++) {
       doc.setPage(p);
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(8);
       doc.setTextColor(...FGREY);
-      doc.text(`Generated with Prime — primestudyapp.com · ${dateStr}`, MX, PH - 10);
+      doc.text(`${t.generatedWithPrimeLabel} ${dateStr}`, MX, PH - 10);
       if (total > 1) doc.text(`${p} / ${total}`, PW - MX, PH - 10, { align: 'right' });
     }
 
@@ -280,12 +281,12 @@ export default function NoteSummarizer() {
 
   const renderSummary = (item) => {
     let parsed;
-    try { parsed = JSON.parse(item.summary); } catch { return <p className="text-xs text-gray-700 dark:text-gray-300 mt-2">Could not load summary.</p>; }
+    try { parsed = JSON.parse(item.summary); } catch { return <p className="text-xs text-gray-700 dark:text-gray-300 mt-2">{t.couldNotLoadSummary}</p>; }
     return (
       <div className="mt-3 space-y-3 text-xs">
         {parsed.keyPoints?.length > 0 && (
           <div>
-            <p className="font-semibold text-gray-900 dark:text-white mb-1">Key Points</p>
+            <p className="font-semibold text-gray-900 dark:text-white mb-1">{t.keyPointsLabel}</p>
             <ul className="space-y-1">
               {parsed.keyPoints.map((pt, i) => (
                 <li key={i} className="flex items-start gap-1.5 text-gray-700 dark:text-gray-300">
@@ -298,7 +299,7 @@ export default function NoteSummarizer() {
         )}
         {parsed.keyDefinitions?.length > 0 && (
           <div>
-            <p className="font-semibold text-gray-900 dark:text-white mb-1">Definitions</p>
+            <p className="font-semibold text-gray-900 dark:text-white mb-1">{t.definitionsLabel}</p>
             <div className="space-y-1">
               {parsed.keyDefinitions.map((def, i) => (
                 <div key={i}>
@@ -311,7 +312,7 @@ export default function NoteSummarizer() {
         )}
         {parsed.examQuestions?.length > 0 && (
           <div>
-            <p className="font-semibold text-gray-900 dark:text-white mb-1">Exam Questions</p>
+            <p className="font-semibold text-gray-900 dark:text-white mb-1">{t.examQuestionsShortLabel}</p>
             <ol className="space-y-1">
               {parsed.examQuestions.map((q, i) => (
                 <li key={i} className="flex items-start gap-1.5 text-gray-700 dark:text-gray-300">
@@ -326,7 +327,7 @@ export default function NoteSummarizer() {
           onClick={() => loadHistoryItem(item)}
           className="mt-1 text-xs font-medium px-3 py-1.5 rounded-lg btn-ghost w-full"
         >
-          Load into view
+          {t.loadIntoView}
         </button>
       </div>
     );
@@ -336,25 +337,25 @@ export default function NoteSummarizer() {
     <div className="space-y-5 pt-2">
       {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} />}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Note Summarizer</h1>
-        <p className="text-sm text-gray-700 dark:text-gray-300 mt-0.5">Turn your lecture notes into study gold</p>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t.noteSummarizerTitle}</h1>
+        <p className="text-sm text-gray-700 dark:text-gray-300 mt-0.5">{t.turnNotesIntoGold}</p>
       </div>
 
       <div className="flex gap-1 p-1 rounded-xl" style={{ background: 'rgba(255,255,255,0.05)' }}>
-        <button onClick={() => setTab("generate")} className={`flex-1 py-1.5 rounded-lg text-sm font-medium transition-all ${tab === "generate" ? "bg-white/10 text-gray-900 dark:text-white" : "text-gray-700 dark:text-gray-300"}`}>Summarize</button>
-        <button onClick={() => setTab("history")} className={`flex-1 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-1.5 ${tab === "history" ? "bg-white/10 text-gray-900 dark:text-white" : "text-gray-700 dark:text-gray-300"}`}><Clock size={13} />History</button>
+        <button onClick={() => setTab("generate")} className={`flex-1 py-1.5 rounded-lg text-sm font-medium transition-all ${tab === "generate" ? "bg-white/10 text-gray-900 dark:text-white" : "text-gray-700 dark:text-gray-300"}`}>{t.summarizeTab}</button>
+        <button onClick={() => setTab("history")} className={`flex-1 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-1.5 ${tab === "history" ? "bg-white/10 text-gray-900 dark:text-white" : "text-gray-700 dark:text-gray-300"}`}><Clock size={13} />{t.historyTab}</button>
       </div>
 
       {tab === "history" && (
         <div className="space-y-2">
           {historyLoading ? (
-            <p className="text-sm text-gray-700 dark:text-gray-300 text-center py-6">Loading…</p>
+            <p className="text-sm text-gray-700 dark:text-gray-300 text-center py-6">{t.loadingText}</p>
           ) : history.length === 0 ? (
-            <p className="text-sm text-gray-700 dark:text-gray-300 text-center py-6">No past summaries yet</p>
+            <p className="text-sm text-gray-700 dark:text-gray-300 text-center py-6">{t.noPastSummariesYet}</p>
           ) : history.map((item) => {
             const isExpanded = expandedId === item.id;
             const isEditing = editingId === item.id;
-            const displayTitle = item.title || item.subject || `Summary · ${new Date(item.created_at).toLocaleDateString()}`;
+            const displayTitle = item.title || item.subject || `${t.summaryPrefixLabel} · ${new Date(item.created_at).toLocaleDateString(lang === "fr" ? "fr-FR" : "en-US")}`;
             return (
               <div
                 key={item.id}
@@ -395,7 +396,7 @@ export default function NoteSummarizer() {
                     )}
                     <div className="text-xs text-gray-700 dark:text-gray-300 mt-0.5">
                       {item.subject && <span className="mr-1">{item.subject} ·</span>}
-                      {new Date(item.created_at).toLocaleDateString()}
+                      {new Date(item.created_at).toLocaleDateString(lang === "fr" ? "fr-FR" : "en-US")}
                     </div>
                   </div>
                   <div className="flex items-center gap-1.5 flex-shrink-0">
@@ -427,23 +428,23 @@ export default function NoteSummarizer() {
       {tab === "generate" && <div className="glass rounded-2xl p-5 space-y-4">
         {/* Subject selector */}
         <div>
-          <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1.5">Subject</label>
+          <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1.5">{t.examSubjectLabel}</label>
           <select
             value={subject}
             onChange={(e) => setSubject(e.target.value)}
             className="w-full px-3 py-2.5 rounded-xl glass-input text-sm"
           >
-            <option value="">Select a subject…</option>
+            <option value="">{t.selectSubjectPlaceholder}</option>
             {courses.map((c) => (
               <option key={c.id} value={c.name}>{c.name}</option>
             ))}
-            <option value="__custom__">Other (type below)</option>
+            <option value="__custom__">{t.otherTypeBelowLabel}</option>
           </select>
           {subject === "__custom__" && (
             <input
               value={customSubject}
               onChange={(e) => setCustomSubject(e.target.value)}
-              placeholder="Enter subject…"
+              placeholder={t.customSubjectPlaceholder}
               className="mt-2 w-full px-3 py-2.5 rounded-xl glass-input text-sm"
             />
           )}
@@ -451,11 +452,11 @@ export default function NoteSummarizer() {
 
         {/* Instructions textarea */}
         <div>
-          <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1.5">Instructions</label>
+          <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-1.5">{t.instructionsLabel}</label>
           <textarea
             value={instructions}
             onChange={(e) => setInstructions(e.target.value)}
-            placeholder="Optional — describe what you want (e.g. 'focus on key definitions', 'generate 10 exam questions', 'summarize chapter 3 only'). Leave blank to get a full summary."
+            placeholder={t.instructionsPlaceholder}
             rows={4}
             className="w-full px-3 py-2.5 rounded-xl glass-input text-sm resize-none"
           />
@@ -464,7 +465,7 @@ export default function NoteSummarizer() {
         {/* File attachment */}
         <div>
           <div className="flex items-center justify-between mb-1.5">
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Attach a file</span>
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{t.attachAFileLabel}</span>
             {canUploadFiles && fileUploadsRemaining > 0 && (
               <button
                 type="button"
@@ -472,15 +473,15 @@ export default function NoteSummarizer() {
                 className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-colors"
                 style={{ background: 'rgba(0,77,46,0.3)', border: '1px solid rgba(0,77,46,0.5)', color: '#34d399' }}
               >
-                <Paperclip size={12} /> Choose file
+                <Paperclip size={12} /> {t.chooseFileLabel}
               </button>
             )}
             <input ref={fileInputRef} type="file" accept={ACCEPTED_FILE_TYPES} onChange={handleFileChange} className="hidden" />
           </div>
           {!canUploadFiles ? (
-            <p className="text-xs text-gray-700 dark:text-gray-300">Upgrade to access file uploads</p>
+            <p className="text-xs text-gray-700 dark:text-gray-300">{t.upgradeForFileUploads}</p>
           ) : fileUploadsRemaining === 0 ? (
-            <p className="text-xs text-gray-700 dark:text-gray-300">{planActive ? 'Monthly file upload limit reached' : 'Upgrade to continue'}</p>
+            <p className="text-xs text-gray-700 dark:text-gray-300">{planActive ? t.monthlyFileUploadLimitReached : t.upgradeToContinue}</p>
           ) : attachedFile ? (
             <div className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs" style={{ background: 'rgba(245,168,0,0.08)', border: '1px solid rgba(245,168,0,0.25)' }}>
               <Paperclip size={12} style={{ color: '#F5A800', flexShrink: 0 }} />
@@ -488,10 +489,10 @@ export default function NoteSummarizer() {
               <button onClick={() => setAttachedFile(null)} className="flex-shrink-0 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"><X size={12} /></button>
             </div>
           ) : (
-            <p className="text-xs text-gray-700 dark:text-gray-300">PDF & images preserve diagrams and charts · Word docs are read as text only (diagrams not included)</p>
+            <p className="text-xs text-gray-700 dark:text-gray-300">{t.summarizerFileFormatsHint}</p>
           )}
           {fileError && <p className="text-xs mt-1" style={{ color: '#f87171' }}>{fileError}</p>}
-          <p className="text-xs text-gray-700 dark:text-gray-300 mt-1">PDF · PNG · JPG · WEBP · DOCX · TXT — max 5MB</p>
+          <p className="text-xs text-gray-700 dark:text-gray-300 mt-1">{t.fileFormatsHintStatic}</p>
         </div>
 
         {summaryRemaining === 0 ? (
@@ -499,16 +500,16 @@ export default function NoteSummarizer() {
             <div className="w-12 h-12 rounded-xl mx-auto mb-3 flex items-center justify-center" style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.25)' }}>
               <Sparkles size={20} style={{ color: '#f87171' }} />
             </div>
-            <h3 className="text-base font-bold text-gray-900 dark:text-white mb-1.5">{trialExpired ? 'Free Trial Ended' : planActive ? 'Monthly Limit Reached' : 'Upgrade Required'}</h3>
-            <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{trialExpired ? 'Your 24-hour free trial has ended — upgrade to Basic or Pro to keep summarizing notes.' : planActive ? `You've used all 30 note summaries for this month — resets ${new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}.` : 'You need an active plan to use this feature.'}</p>
+            <h3 className="text-base font-bold text-gray-900 dark:text-white mb-1.5">{trialExpired ? t.freeTrialEnded : planActive ? t.monthlyLimitReached : t.upgradeRequired}</h3>
+            <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{trialExpired ? t.trialEndedSummarizerMessage : planActive ? (lang === "fr" ? `Vous avez utilisé vos 30 résumés de notes pour ce mois — réinitialisation le ${new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1).toLocaleDateString('fr-FR', { month: 'long', day: 'numeric' })}.` : `You've used all 30 note summaries for this month — resets ${new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}.`) : t.needActivePlanMessage}</p>
             <div className="mt-4 px-4 py-1.5 rounded-full text-xs font-semibold inline-block" style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171' }}>
-              {trialExpired ? '24-hour trial ended' : planActive ? '30 / 30 summaries used this month' : 'No active plan'}
+              {trialExpired ? t.trialEndedBadgeExam : planActive ? t.summariesUsedThisMonthBadge : t.noActivePlan}
             </div>
             <button
               onClick={() => setShowUpgrade(true)}
               className="mt-4 w-full py-2.5 rounded-xl text-sm font-semibold btn-gold flex items-center justify-center gap-2"
             >
-              <Zap size={15} /> Upgrade Plan
+              <Zap size={15} /> {t.upgradePlan}
             </button>
           </div>
         ) : (
@@ -519,13 +520,17 @@ export default function NoteSummarizer() {
               className="w-full py-3 rounded-xl text-sm font-semibold btn-gold flex items-center justify-center gap-2 disabled:opacity-50"
             >
               {loading ? (
-                <><span className="w-4 h-4 border-2 border-gray-900/30 border-t-gray-900 rounded-full animate-spin inline-block" /> Summarizing…</>
+                <><span className="w-4 h-4 border-2 border-gray-900/30 border-t-gray-900 rounded-full animate-spin inline-block" /> {t.summarizingEllipsis}</>
               ) : (
-                <><Sparkles size={16} /> Summarize Notes</>
+                <><Sparkles size={16} /> {t.summarizeNotesButton}</>
               )}
             </button>
             {summaryRemaining < 999 && (
-              <p className="text-xs text-center text-gray-700 dark:text-gray-300">{summaryRemaining} of {planActive ? 30 : 5} summaries remaining {planActive ? 'this month' : 'today'}</p>
+              <p className="text-xs text-center text-gray-700 dark:text-gray-300">
+                {lang === "fr"
+                  ? `${summaryRemaining} sur ${planActive ? 30 : 5} résumés restants ${planActive ? "ce mois-ci" : "aujourd'hui"}`
+                  : `${summaryRemaining} of ${planActive ? 30 : 5} summaries remaining ${planActive ? "this month" : "today"}`}
+              </p>
             )}
           </>
         )}

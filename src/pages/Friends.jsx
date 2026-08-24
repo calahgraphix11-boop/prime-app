@@ -5,7 +5,7 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useApp } from '../context/AppContext';
 
-function UserRow({ profile, action }) {
+function UserRow({ profile, action, t }) {
   const navigate = useNavigate();
   const initials = (profile?.full_name || profile?.username || '?').charAt(0).toUpperCase();
   return (
@@ -35,7 +35,7 @@ function UserRow({ profile, action }) {
         </div>
         <div className="min-w-0">
           <p className="text-sm font-medium text-white truncate">
-            {profile?.username || profile?.full_name || 'Unknown'}
+            {profile?.username || profile?.full_name || t.unknownUser}
           </p>
           {profile?.username && profile?.full_name && (
             <p className="text-xs text-white/35 truncate">{profile.full_name}</p>
@@ -49,7 +49,7 @@ function UserRow({ profile, action }) {
 
 export default function Friends() {
   const { user, profile: currentProfile } = useAuth();
-  const { addLeaderboardPoints } = useApp();
+  const { t, addLeaderboardPoints } = useApp();
 
   const [tab, setTab] = useState('friends');
   const [query, setQuery] = useState('');
@@ -154,10 +154,10 @@ export default function Friends() {
       setRequests((prev) => prev.filter((r) => r.rowId !== rowId));
       setFriends((prev) => [...prev, { rowId, profile: requesterProfile }]);
       addLeaderboardPoints(5);
-      const accepterName = currentProfile?.username || currentProfile?.full_name || 'Someone';
+      const accepterName = currentProfile?.username || currentProfile?.full_name || t.someoneLabel;
       await supabase.from('notifications').insert({
         user_id: requesterProfile.id,
-        message: `${accepterName} accepted your friend request.`,
+        message: `${accepterName} ${t.acceptedYourFriendRequestSuffix}`,
       });
     }
   };
@@ -172,8 +172,8 @@ export default function Friends() {
   return (
     <div className="space-y-5 pt-2">
       <div>
-        <h1 className="text-2xl font-bold text-white">Friends</h1>
-        <p className="text-sm text-white/50 mt-0.5">Connect with other students</p>
+        <h1 className="text-2xl font-bold text-white">{t.friends}</h1>
+        <p className="text-sm text-white/50 mt-0.5">{t.connectWithStudents}</p>
       </div>
 
       {/* Search */}
@@ -185,14 +185,14 @@ export default function Friends() {
           >
             <Search size={16} style={{ color: '#F5A800' }} />
           </div>
-          <h2 className="text-base font-semibold text-white">Find Students</h2>
+          <h2 className="text-base font-semibold text-white">{t.findStudents}</h2>
         </div>
         <div className="relative">
           <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30 pointer-events-none" />
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search by username…"
+            placeholder={t.searchByUsername}
             className="w-full pl-9 pr-3 py-2.5 rounded-xl glass-input text-sm"
           />
         </div>
@@ -200,29 +200,30 @@ export default function Friends() {
         {query.trim() && (
           <div className="mt-3 space-y-2">
             {searching && (
-              <p className="text-xs text-white/30 text-center py-3">Searching…</p>
+              <p className="text-xs text-white/30 text-center py-3">{t.searchingEllipsis}</p>
             )}
             {!searching && searchResults.length === 0 && (
-              <p className="text-xs text-white/30 text-center py-3">No users found</p>
+              <p className="text-xs text-white/30 text-center py-3">{t.noUsersFound}</p>
             )}
             {searchResults.map((p) => (
               <UserRow
                 key={p.id}
                 profile={p}
+                t={t}
                 action={
                   isAlreadyFriend(p.id) ? (
                     <span
                       className="text-xs text-white/30 font-medium px-3 py-1.5 rounded-lg flex-shrink-0"
                       style={{ background: 'rgba(255,255,255,0.05)' }}
                     >
-                      Friends
+                      {t.friends}
                     </span>
                   ) : sentIds.has(p.id) ? (
                     <span
                       className="text-xs text-white/40 font-medium px-3 py-1.5 rounded-lg flex items-center gap-1.5 flex-shrink-0"
                       style={{ background: 'rgba(255,255,255,0.05)' }}
                     >
-                      <Clock size={11} /> Pending
+                      <Clock size={11} /> {t.pendingLabel}
                     </span>
                   ) : (
                     <button
@@ -230,7 +231,7 @@ export default function Friends() {
                       className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-all hover:opacity-85 flex-shrink-0"
                       style={{ background: '#F5A800', color: '#111' }}
                     >
-                      Add
+                      {t.addLabel}
                     </button>
                   )
                 }
@@ -244,8 +245,8 @@ export default function Friends() {
       <div className="glass rounded-2xl overflow-hidden">
         <div className="flex" style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
           {[
-            { key: 'friends', label: friends.length ? `Friends (${friends.length})` : 'Friends' },
-            { key: 'requests', label: requests.length ? `Requests (${requests.length})` : 'Requests' },
+            { key: 'friends', label: friends.length ? `${t.friends} (${friends.length})` : t.friends },
+            { key: 'requests', label: requests.length ? `${t.requests} (${requests.length})` : t.requests },
           ].map(({ key, label }) => (
             <button
               key={key}
@@ -264,28 +265,29 @@ export default function Friends() {
 
         <div className="p-4 space-y-2">
           {loading && (
-            <p className="text-xs text-white/30 text-center py-6">Loading…</p>
+            <p className="text-xs text-white/30 text-center py-6">{t.loadingText}</p>
           )}
 
           {/* Friends list */}
           {!loading && tab === 'friends' && friends.length === 0 && (
             <div className="text-center py-8">
               <Users size={28} className="mx-auto mb-2 text-white/15" />
-              <p className="text-sm text-white/30">No friends yet — search for students above</p>
+              <p className="text-sm text-white/30">{t.noFriendsYetSearchAbove}</p>
             </div>
           )}
           {tab === 'friends' && friends.map(({ rowId, profile }) => (
-            <UserRow key={rowId} profile={profile} />
+            <UserRow key={rowId} profile={profile} t={t} />
           ))}
 
           {/* Requests list */}
           {!loading && tab === 'requests' && requests.length === 0 && (
-            <p className="text-sm text-white/30 text-center py-8">No pending requests</p>
+            <p className="text-sm text-white/30 text-center py-8">{t.noPendingRequests}</p>
           )}
           {tab === 'requests' && requests.map(({ rowId, profile }) => (
             <UserRow
               key={rowId}
               profile={profile}
+              t={t}
               action={
                 <div className="flex gap-2 flex-shrink-0">
                   <button
@@ -293,14 +295,14 @@ export default function Friends() {
                     className="text-xs font-semibold px-3 py-1.5 rounded-full transition-all hover:opacity-85"
                     style={{ background: '#F5A800', color: '#111' }}
                   >
-                    Accept
+                    {t.acceptLabel}
                   </button>
                   <button
                     onClick={() => decline(rowId)}
                     className="text-xs font-medium px-3 py-1.5 rounded-full transition-colors hover:bg-white/10"
                     style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.4)' }}
                   >
-                    Decline
+                    {t.declineLabel}
                   </button>
                 </div>
               }

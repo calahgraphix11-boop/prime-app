@@ -3,14 +3,10 @@ import { Plus, Trash2, BookOpen, Clock, ChevronDown, Timer, Coffee, MessageCircl
 import { useApp } from "../context/AppContext";
 import StudyPalPanel from "../components/StudyPalPanel";
 import { supabase } from "../lib/supabase";
-
-function formatDate(iso) {
-  const d = new Date(iso);
-  return d.toLocaleDateString(undefined, { month: "short", day: "numeric" }) + ", " +
-    d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
-}
+import { fmtDateTime, fmtDuration } from "../utils/dateFormat";
 
 function CircularTimer({ totalSeconds, remaining, running, phase, darkMode }) {
+  const { t } = useApp();
   const r = 54;
   const circ = 2 * Math.PI * r;
   const progress = totalSeconds > 0 ? remaining / totalSeconds : 0;
@@ -46,7 +42,7 @@ function CircularTimer({ totalSeconds, remaining, running, phase, darkMode }) {
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <span className="text-3xl font-bold text-white tabular-nums">{mins}:{secs}</span>
           <span className="text-xs text-white/45 mt-0.5">
-            {!running ? "paused" : isBreak ? "break" : "studying"}
+            {!running ? t.timerPaused : isBreak ? t.timerBreak : t.timerStudying}
           </span>
         </div>
       </div>
@@ -55,6 +51,7 @@ function CircularTimer({ totalSeconds, remaining, running, phase, darkMode }) {
 }
 
 function SessionHistoryModal({ session, onClose }) {
+  const { t, lang } = useApp();
   const [messages, setMessages] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -100,8 +97,8 @@ function SessionHistoryModal({ session, onClose }) {
             <div className="text-base font-semibold text-white leading-tight">{session.title}</div>
             <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1">
               <span className="text-xs text-white/40">{session.subject}</span>
-              <span className="flex items-center gap-1 text-xs text-white/40"><Clock size={10} /> {session.duration} min</span>
-              <span className="text-xs text-white/30">{formatDate(session.date)}</span>
+              <span className="flex items-center gap-1 text-xs text-white/40"><Clock size={10} /> {fmtDuration(session.duration, t)}</span>
+              <span className="text-xs text-white/30">{fmtDateTime(session.date, lang)}</span>
             </div>
           </div>
           <button
@@ -114,11 +111,11 @@ function SessionHistoryModal({ session, onClose }) {
 
         {/* Chat history */}
         <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3">
-          <div className="text-xs font-semibold text-white/35 uppercase tracking-wider mb-3">Chat History</div>
+          <div className="text-xs font-semibold text-white/35 uppercase tracking-wider mb-3">{t.chatHistoryLabel}</div>
           {loading ? (
-            <p className="text-sm text-white/40 text-center py-6">Loading…</p>
+            <p className="text-sm text-white/40 text-center py-6">{t.loadingText}</p>
           ) : !messages || messages.length === 0 ? (
-            <p className="text-sm text-white/40 text-center py-6">No chat history for this session.</p>
+            <p className="text-sm text-white/40 text-center py-6">{t.noChatHistory}</p>
           ) : (
             messages.map((msg, i) => (
               <div
@@ -147,7 +144,7 @@ const DURATIONS = [15, 25, 45, 60];
 
 export default function StudySessions() {
   const {
-    t, sessions, deleteSession, courses,
+    t, lang, sessions, deleteSession, courses,
     activeSession, remaining, running, pomodoroPhase, pomodoroRounds,
     startTimerSession, pauseTimer, resumeTimer, cancelTimer, endTimerSession,
     darkMode,
@@ -198,7 +195,7 @@ export default function StudySessions() {
             <input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g. Calculus Review"
+              placeholder={t.sessionTitlePlaceholder}
               className="mt-1.5 w-full px-3 py-2.5 rounded-xl glass-input text-sm"
             />
           </div>
@@ -211,7 +208,7 @@ export default function StudySessions() {
                 className="w-full appearance-none px-3 py-2.5 rounded-xl glass-input text-sm"
               >
                 {courses.length === 0
-                  ? <option value="">No courses — add in Settings</option>
+                  ? <option value="">{t.noCoursesAddInSettings}</option>
                   : courses.map((c) => <option key={c.id} value={c.name}>{c.name}</option>)
                 }
               </select>
@@ -225,14 +222,14 @@ export default function StudySessions() {
               <Timer size={16} className="text-white/50" />
               <div>
                 <div className="text-sm font-medium text-white/85">{t.pomodoroMode}</div>
-                <div className="text-xs text-white/40">25 min study · 5 min break</div>
+                <div className="text-xs text-white/40">{t.pomodoroSchedule}</div>
               </div>
             </div>
             <button
               onClick={() => setPomodoroEnabled((p) => !p)}
               className="relative w-11 h-6 rounded-full transition-colors"
               style={{ background: pomodoroEnabled ? '#F5A800' : 'rgba(255,255,255,0.15)' }}
-              aria-label="Toggle Pomodoro"
+              aria-label={t.togglePomodoro}
             >
               <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${pomodoroEnabled ? "translate-x-5" : ""}`} />
             </button>
@@ -248,7 +245,7 @@ export default function StudySessions() {
                     onClick={() => setDuration(d)}
                     className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all ${duration === d ? "btn-gold" : "btn-ghost"}`}
                   >
-                    {d}m
+                    {fmtDuration(d, t)}
                   </button>
                 ))}
               </div>
@@ -300,7 +297,7 @@ export default function StudySessions() {
                 <Coffee size={11} /> {t.breakPhase}
               </span>
               <span className="text-xs text-white/35">
-                Round {pomodoroRounds + (pomodoroPhase === "study" ? 1 : 0)}
+                {t.roundLabel.replace('{n}', pomodoroRounds + (pomodoroPhase === "study" ? 1 : 0))}
               </span>
             </div>
           )}
@@ -383,7 +380,7 @@ export default function StudySessions() {
         <h2 className="text-base font-semibold text-white mb-4">{t.sessionHistory}</h2>
         <div className="space-y-3">
           {sessions.length === 0 ? (
-            <p className="text-sm text-white/35 text-center py-8">No sessions yet</p>
+            <p className="text-sm text-white/35 text-center py-8">{t.noSessionsYet}</p>
           ) : (
             sessions.map((s) => (
               <div
@@ -398,8 +395,8 @@ export default function StudySessions() {
                   <div className="text-sm font-medium text-white truncate">{s.title}</div>
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-0.5">
                     <span className="text-xs text-white/40">{s.subject}</span>
-                    <span className="flex items-center gap-1 text-xs text-white/40"><Clock size={10} /> {s.duration} {t.min}</span>
-                    <span className="text-xs text-white/30 hidden sm:inline">{formatDate(s.date)}</span>
+                    <span className="flex items-center gap-1 text-xs text-white/40"><Clock size={10} /> {fmtDuration(s.duration, t)}</span>
+                    <span className="text-xs text-white/30 hidden sm:inline">{fmtDateTime(s.date, lang)}</span>
                   </div>
                   {s.notes && (
                     <div className="text-xs text-white/40 mt-1.5 italic">"{s.notes}"</div>
@@ -429,7 +426,7 @@ export default function StudySessions() {
         style={chatOpen
           ? { background: 'rgba(245,168,0,0.15)', border: '1.5px solid #F5A800' }
           : { background: '#F5A800', border: 'none' }}
-        aria-label="Toggle StudyPal"
+        aria-label={t.toggleStudyPal}
       >
         {chatOpen
           ? <X size={18} style={{ color: '#F5A800' }} />

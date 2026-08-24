@@ -9,41 +9,25 @@ import { useAuth } from "../context/AuthContext";
 import QuoteCard from "../components/QuoteCard";
 import QuestsCard from "../components/QuestsCard";
 import NextBadgeCard from "../components/NextBadgeCard";
+import { fmtRelativeDay, fmtLongDate, fmtDuration, localeFor } from "../utils/dateFormat";
 
 const EASE_OUT = "cubic-bezier(0.23, 1, 0.32, 1)";
 const ENTER_DURATION = "280ms";
-
-function formatTime(minutes) {
-  if (minutes < 60) return `${minutes}m`;
-  const h = Math.floor(minutes / 60);
-  const m = minutes % 60;
-  return m > 0 ? `${h}h ${m}m` : `${h}h`;
-}
-
-function formatDate(dateStr) {
-  const d = new Date(dateStr);
-  const diff = Math.floor((Date.now() - d) / 86400000);
-  if (diff === 0) return "Today";
-  if (diff === 1) return "Yesterday";
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-}
 
 function calcTrend(curr, prev) {
   if (prev === 0) return curr > 0 ? 100 : 0;
   return Math.round(((curr - prev) / prev) * 100);
 }
 
-function greeting() {
+function greeting(t) {
   const h = new Date().getHours();
-  if (h < 12) return "Good morning";
-  if (h < 17) return "Good afternoon";
-  return "Good evening";
+  if (h < 12) return t.goodMorning;
+  if (h < 17) return t.goodAfternoon;
+  return t.goodEvening;
 }
 
-function todayLabel() {
-  return new Date().toLocaleDateString("en-US", {
-    weekday: "long", month: "long", day: "numeric", year: "numeric",
-  });
+function todayLabel(lang) {
+  return fmtLongDate(new Date(), lang);
 }
 
 const DONUT_COLORS = ["#F5A800", "#34d399", "#a78bfa", "#f472b6", "#60a5fa", "#fb923c", "#e879f9", "#4ade80"];
@@ -55,22 +39,22 @@ function enterStyle(i) {
   };
 }
 
-function GlassTooltip({ active, payload, label }) {
+function GlassTooltip({ active, payload, label, t }) {
   if (!active || !payload?.length) return null;
   return (
     <div className="glass-elevated rounded-xl px-3 py-2 text-xs text-white">
       <div className="font-semibold mb-0.5">{label}</div>
-      <div className="text-white/70">{payload[0].value} min</div>
+      <div className="text-white/70">{payload[0].value} {t.min}</div>
     </div>
   );
 }
 
-function DonutTooltip({ active, payload }) {
+function DonutTooltip({ active, payload, t }) {
   if (!active || !payload?.length) return null;
   return (
     <div className="glass-elevated rounded-xl px-3 py-2 text-xs text-white">
       <div className="font-semibold">{payload[0].name}</div>
-      <div className="text-white/70">{formatTime(payload[0].value)}</div>
+      <div className="text-white/70">{fmtDuration(payload[0].value, t)}</div>
     </div>
   );
 }
@@ -143,7 +127,7 @@ function StatCard({ icon: Icon, label, value, iconColor, iconBg, accentColor, tr
 }
 
 export default function Dashboard() {
-  const { sessions, reports, chatSessions, streak } = useApp();
+  const { t, lang, sessions, reports, chatSessions, streak } = useApp();
   const { user, profile } = useAuth();
   const [period, setPeriod] = useState("7d");
 
@@ -214,19 +198,20 @@ export default function Dashboard() {
       const mins = sessions
         .filter((s) => new Date(s.date).toDateString() === dateStr)
         .reduce((sum, s) => sum + s.duration, 0);
+      const locale = localeFor(lang);
       const label =
         period === "7d"
-          ? d.toLocaleDateString("en-US", { weekday: "short" })
-          : d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+          ? d.toLocaleDateString(locale, { weekday: "short" })
+          : d.toLocaleDateString(locale, { month: "short", day: "numeric" });
       result.push({ label, minutes: mins });
     }
     return result;
-  }, [sessions, period, periodDays, isAllTime]);
+  }, [sessions, period, periodDays, isAllTime, lang]);
 
   const subjectData = useMemo(() => {
     const map = {};
     periodSessions.forEach((s) => {
-      const subj = s.subject || "Other";
+      const subj = s.subject || t.otherSubject;
       map[subj] = (map[subj] || 0) + s.duration;
     });
     return Object.entries(map)
@@ -249,7 +234,7 @@ export default function Dashboard() {
         border: "1px solid var(--color-glass-border)",
       }}
     >
-      {[["7d", "7 days"], ["30d", "30 days"], ["all", "All time"]].map(([val, lbl]) => (
+      {[["7d", t.sevenDays], ["30d", t.thirtyDays], ["all", t.allTime]].map(([val, lbl]) => (
         <button
           key={val}
           onClick={() => setPeriod(val)}
@@ -283,10 +268,10 @@ export default function Dashboard() {
             className="font-bold text-white leading-tight"
             style={{ fontSize: "1.75rem", letterSpacing: "-0.025em" }}
           >
-            {greeting()}, {displayName}
+            {greeting(t)}, {displayName}
           </h1>
           <p className="text-sm text-white/50 mt-1">
-            {todayLabel()}
+            {todayLabel(lang)}
           </p>
         </div>
         {periodToggle}
@@ -300,8 +285,8 @@ export default function Dashboard() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <StatCard
           icon={Clock}
-          label="Total Study Time"
-          value={formatTime(totalMinutes)}
+          label={t.totalStudyTime}
+          value={fmtDuration(totalMinutes, t)}
           iconColor="#F5A800"
           iconBg="rgba(245,168,0,0.18)"
           accentColor="#F5A800"
@@ -310,7 +295,7 @@ export default function Dashboard() {
         />
         <StatCard
           icon={Flame}
-          label="Current Streak"
+          label={t.currentStreak}
           value={`${streak}d`}
           iconColor="#fb923c"
           iconBg="rgba(251,146,60,0.18)"
@@ -320,7 +305,7 @@ export default function Dashboard() {
         />
         <StatCard
           icon={BookOpen}
-          label="Sessions Completed"
+          label={t.sessionsCompleted}
           value={periodSessions.length}
           iconColor="#34d399"
           iconBg="rgba(52,211,153,0.18)"
@@ -330,7 +315,7 @@ export default function Dashboard() {
         />
         <StatCard
           icon={Zap}
-          label="AI Features Used"
+          label={t.aiFeaturesUsed}
           value={aiUsed}
           iconColor="#a78bfa"
           iconBg="rgba(167,139,250,0.18)"
@@ -362,7 +347,7 @@ export default function Dashboard() {
           }}
         >
           <h2 className="text-xs font-semibold text-white/50 uppercase tracking-widest mb-4">
-            Study Time per Day
+            {t.studyTimePerDay}
           </h2>
           <ResponsiveContainer width="100%" height={200}>
             <AreaChart data={areaData} margin={{ top: 4, right: 4, left: -24, bottom: 0 }}>
@@ -386,7 +371,7 @@ export default function Dashboard() {
                 tickLine={false}
               />
               <Tooltip
-                content={<GlassTooltip />}
+                content={<GlassTooltip t={t} />}
                 cursor={{ stroke: "rgba(245,168,0,0.25)", strokeWidth: 1 }}
               />
               <Area
@@ -405,11 +390,11 @@ export default function Dashboard() {
         {/* Subject donut chart */}
         <div className="glass rounded-2xl p-5" style={enterStyle(6)}>
           <h2 className="text-xs font-semibold text-white/50 uppercase tracking-widest mb-4">
-            Time by Subject
+            {t.timeBySubject}
           </h2>
           {subjectData.length === 0 ? (
             <div className="flex items-center justify-center h-[200px]">
-              <p className="text-sm text-white/35">No data for this period</p>
+              <p className="text-sm text-white/35">{t.noDataForPeriod}</p>
             </div>
           ) : (
             <div className="flex items-center gap-4 h-[200px]">
@@ -429,13 +414,13 @@ export default function Dashboard() {
                       <Cell key={i} fill={DONUT_COLORS[i % DONUT_COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip content={<DonutTooltip />} />
+                  <Tooltip content={<DonutTooltip t={t} />} />
                 </PieChart>
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                   <span className="text-base font-bold text-white leading-none">
-                    {formatTime(totalMinutes)}
+                    {fmtDuration(totalMinutes, t)}
                   </span>
-                  <span className="text-xs text-white/40 mt-0.5">total</span>
+                  <span className="text-xs text-white/40 mt-0.5">{t.totalLowercase}</span>
                 </div>
               </div>
               <div className="flex-1 space-y-2.5 min-w-0 overflow-y-auto" style={{ maxHeight: 160 }}>
@@ -449,7 +434,7 @@ export default function Dashboard() {
                       <span className="text-xs text-white/65 truncate">{item.name}</span>
                     </div>
                     <span className="text-xs font-semibold text-white/80 flex-shrink-0">
-                      {formatTime(item.value)}
+                      {fmtDuration(item.value, t)}
                     </span>
                   </div>
                 ))}
@@ -463,12 +448,12 @@ export default function Dashboard() {
       <div className="glass rounded-2xl p-5" style={enterStyle(7)}>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xs font-semibold text-white/50 uppercase tracking-widest">
-            Recent Sessions
+            {t.recentSessions}
           </h2>
         </div>
         <div className="space-y-2">
           {recentSessions.length === 0 ? (
-            <p className="text-sm text-white/35 text-center py-4">No sessions yet</p>
+            <p className="text-sm text-white/35 text-center py-4">{t.noSessionsYet}</p>
           ) : (
             recentSessions.map((s, i) => (
               <div
@@ -500,10 +485,10 @@ export default function Dashboard() {
                         {s.subject}
                       </span>
                     )}
-                    <span className="text-xs text-white/40">{formatTime(s.duration)}</span>
+                    <span className="text-xs text-white/40">{fmtDuration(s.duration, t)}</span>
                   </div>
                 </div>
-                <span className="text-xs text-white/35 flex-shrink-0">{formatDate(s.date)}</span>
+                <span className="text-xs text-white/35 flex-shrink-0">{fmtRelativeDay(s.date, t, lang)}</span>
               </div>
             ))
           )}

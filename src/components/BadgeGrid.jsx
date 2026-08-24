@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { Lock } from "lucide-react";
-import { BADGES } from "../lib/gamification";
+import { BADGES, localize } from "../lib/gamification";
+import { useApp } from "../context/AppContext";
 import { subscribeBadgeEarned } from "../lib/xpEvents";
 
 const GLOW_DURATION_MS = 1400;
 
 export default function BadgeGrid({ earnedKeys }) {
+  const { lang } = useApp();
   // Badges earned mid-session (via the live pub-sub) get merged in immediately
   // rather than waiting for a refetch, and get the unlock glow the DB-sourced
   // earnedKeys never trigger (those are already-known, not "just happened").
@@ -33,19 +35,21 @@ export default function BadgeGrid({ earnedKeys }) {
         const earned = earnedKeys.has(badge.key) || liveEarned.has(badge.key);
         const isGlowing = glowing.has(badge.key);
         const isOpen = openKey === badge.key;
+        const badgeName = localize(badge.name, lang);
+        const badgeDescription = localize(badge.description, lang);
 
         return (
           <div key={badge.key} className="flex flex-col items-center">
             <button
               type="button"
               onClick={() => !earned && setOpenKey(isOpen ? null : badge.key)}
-              title={earned ? badge.name : badge.description}
+              title={earned ? badgeName : badgeDescription}
               className={`badge-grid-item${isGlowing ? " badge-grid-item--glow" : ""}`}
               style={{ animationDelay: `${i * 50}ms` }}
             >
               <img
                 src={badge.icon}
-                alt={badge.name}
+                alt={badgeName}
                 className={earned ? "badge-grid-icon" : "badge-grid-icon badge-grid-icon--locked"}
               />
               {!earned && (
@@ -58,11 +62,11 @@ export default function BadgeGrid({ earnedKeys }) {
               className="text-xs mt-1.5 text-center leading-tight"
               style={{ color: earned ? "rgba(255,255,255,0.85)" : "rgba(255,255,255,0.35)" }}
             >
-              {badge.name}
+              {badgeName}
             </p>
             {!earned && isOpen && (
               <p className="text-[10px] mt-1 text-center leading-tight" style={{ color: "rgba(255,255,255,0.4)" }}>
-                {badge.description}
+                {badgeDescription}
               </p>
             )}
           </div>

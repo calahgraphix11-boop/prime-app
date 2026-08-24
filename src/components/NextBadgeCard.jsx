@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../context/AuthContext";
+import { useApp } from "../context/AppContext";
 import { computeNextBadge, tallyActionCounts } from "../lib/badgeProgress";
+import { localize } from "../lib/gamification";
 import { subscribeXpAward, subscribeBadgeEarned } from "../lib/xpEvents";
 
 const EASE_OUT = "cubic-bezier(0.23, 1, 0.32, 1)";
@@ -11,6 +13,7 @@ const REFETCH_DELAY_MS = 1200;
 // xp_events — a concrete next goal instead of just the locked grid on Profile.
 export default function NextBadgeCard() {
   const { user } = useAuth();
+  const { t, lang } = useApp();
   const [next, setNext] = useState(null);
   const refetchTimerRef = useRef(null);
 
@@ -32,7 +35,7 @@ export default function NextBadgeCard() {
         }
         const earnedKeys = new Set((badgeRows || []).map((b) => b.badge_key));
         const counts = tallyActionCounts(eventRows);
-        setNext(computeNextBadge(earnedKeys, counts, xpRow?.current_streak || 0));
+        setNext(computeNextBadge(earnedKeys, counts, xpRow?.current_streak || 0, lang));
       } catch (err) {
         console.warn("[next-badge] fetch failed:", err);
       }
@@ -52,17 +55,18 @@ export default function NextBadgeCard() {
       unsubBadge();
       clearTimeout(refetchTimerRef.current);
     };
-  }, [user]);
+  }, [user, lang]);
 
   // Nothing to chase (all earned) or data unavailable — disappear quietly.
   if (!next) return null;
 
   const { badge, current, target, fraction, message } = next;
+  const badgeName = localize(badge.name, lang);
 
   return (
     <div className="glass rounded-2xl p-5" style={{ boxShadow: "0 4px 24px rgba(52,211,153,0.07)" }}>
       <h2 className="text-xs font-semibold text-white/50 uppercase tracking-widest mb-4">
-        Next Badge
+        {t.nextBadge}
       </h2>
       <div className="flex items-center gap-4">
         <div
@@ -77,7 +81,7 @@ export default function NextBadgeCard() {
         >
           <img
             src={badge.icon}
-            alt={badge.name}
+            alt={badgeName}
             style={{
               width: "100%",
               height: "100%",
@@ -88,7 +92,7 @@ export default function NextBadgeCard() {
           />
         </div>
         <div className="flex-1 min-w-0">
-          <div className="text-sm font-bold text-white">{badge.name}</div>
+          <div className="text-sm font-bold text-white">{badgeName}</div>
           <div className="text-xs text-white/50 mt-0.5 leading-snug">{message}</div>
           <div className="flex items-center gap-2 mt-2.5">
             <div

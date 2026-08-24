@@ -3,7 +3,7 @@ import { Trophy, Flame, Users, Globe, Zap, Star } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useApp } from '../context/AppContext';
-import { calculateLevelProgress, getRank, getCharacter } from '../lib/gamification';
+import { calculateLevelProgress, getRank, getCharacter, localize } from '../lib/gamification';
 import CharacterPortrait from '../components/CharacterPortrait';
 
 const getWeekStart = () => {
@@ -63,7 +63,7 @@ function Avatar({ profile, size }) {
   );
 }
 
-function TopCard({ entry, rank, isMe }) {
+function TopCard({ entry, rank, isMe, t }) {
   const meta = RANK_META[rank];
   return (
     <div
@@ -86,14 +86,14 @@ function TopCard({ entry, rank, isMe }) {
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5 flex-wrap">
           <p className="text-sm font-semibold text-white truncate">
-            {entry.username || entry.full_name || 'Unknown'}
+            {entry.username || entry.full_name || t.unknownUser}
           </p>
           {isMe && (
             <span
               className="text-xs px-1.5 py-0.5 rounded-full font-medium flex-shrink-0"
               style={{ background: 'rgba(245,168,0,0.2)', color: '#F5A800' }}
             >
-              You
+              {t.youLabel}
             </span>
           )}
         </div>
@@ -107,11 +107,11 @@ function TopCard({ entry, rank, isMe }) {
           <Zap size={12} style={{ color: meta.border }} />
           <p className="text-sm font-bold" style={{ color: meta.border }}>{fmtScore(calcScore(entry))}</p>
         </div>
-        <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.28)' }}>Activity Score</p>
+        <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.28)' }}>{t.activityScoreLabel}</p>
         <div className="flex items-center gap-1.5 justify-end mt-1">
           <span className="text-xs text-white/35">{fmtTime(entry.study_minutes)}</span>
           <span className="text-xs text-white/20">·</span>
-          <span className="text-xs text-white/35">{entry.sessions_completed || 0} sessions</span>
+          <span className="text-xs text-white/35">{entry.sessions_completed || 0} {t.sessionsSuffix}</span>
           <Flame size={11} style={{ color: '#fb923c' }} />
           <span className="text-xs text-white/40">{entry.streak || 0}</span>
         </div>
@@ -120,7 +120,7 @@ function TopCard({ entry, rank, isMe }) {
   );
 }
 
-function LeaderboardRow({ entry, rank, isMe }) {
+function LeaderboardRow({ entry, rank, isMe, t }) {
   return (
     <div
       className="flex items-center gap-3 px-4 py-3 rounded-xl"
@@ -141,14 +141,14 @@ function LeaderboardRow({ entry, rank, isMe }) {
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5 flex-wrap">
           <p className="text-sm font-medium text-white truncate">
-            {entry.username || entry.full_name || 'Unknown'}
+            {entry.username || entry.full_name || t.unknownUser}
           </p>
           {isMe && (
             <span
               className="text-xs px-1.5 py-0.5 rounded-full font-medium flex-shrink-0"
               style={{ background: 'rgba(245,168,0,0.2)', color: '#F5A800' }}
             >
-              You
+              {t.youLabel}
             </span>
           )}
         </div>
@@ -180,10 +180,11 @@ const PODIUM_META = {
   3: { label: '3rd', height: 106, badgeBg: '#cd7f32', badgeText: '#1a0c00', ring: 'rgba(205,127,50,0.35)', crest: 52 },
 };
 
-function XpPodiumCard({ entry, rank, isMe, delayMs }) {
+function XpPodiumCard({ entry, rank, isMe, delayMs, t, lang }) {
   const meta = PODIUM_META[rank];
   const { level } = calculateLevelProgress(entry.total_xp, entry.current_level);
   const rankInfo = getRank(level);
+  const rankName = localize(rankInfo.name, lang);
   const order = rank === 1 ? 2 : rank === 2 ? 1 : 3;
 
   return (
@@ -205,7 +206,7 @@ function XpPodiumCard({ entry, rank, isMe, delayMs }) {
           ) : (
             <img
               src={rankInfo.icon}
-              alt={rankInfo.name}
+              alt={rankName}
               style={{ width: meta.crest, height: meta.crest, objectFit: 'contain' }}
             />
           )}
@@ -213,7 +214,7 @@ function XpPodiumCard({ entry, rank, isMe, delayMs }) {
         {entry.character_avatar && (
           <img
             src={rankInfo.icon}
-            alt={rankInfo.name}
+            alt={rankName}
             className="absolute rounded-full"
             style={{
               width: Math.round((meta.crest + 10) * 0.42),
@@ -228,7 +229,7 @@ function XpPodiumCard({ entry, rank, isMe, delayMs }) {
         )}
       </div>
       <p className="text-sm font-semibold text-white truncate max-w-[100px] text-center">
-        {entry.username || entry.full_name || 'Unknown'}
+        {entry.username || entry.full_name || t.unknownUser}
       </p>
       <div className="flex items-center gap-1 mt-0.5">
         <Zap size={11} style={{ color: meta.badgeBg }} />
@@ -254,7 +255,7 @@ function XpPodiumCard({ entry, rank, isMe, delayMs }) {
   );
 }
 
-function XpListRow({ entry, rank, isMe, pinned, delayMs }) {
+function XpListRow({ entry, rank, isMe, pinned, delayMs, t, lang }) {
   const { level } = calculateLevelProgress(entry.total_xp, entry.current_level);
   const rankInfo = getRank(level);
   return (
@@ -281,18 +282,18 @@ function XpListRow({ entry, rank, isMe, pinned, delayMs }) {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 flex-wrap">
             <p className="text-sm font-medium text-white truncate">
-              {entry.username || entry.full_name || 'Unknown'}
+              {entry.username || entry.full_name || t.unknownUser}
             </p>
             {isMe && (
               <span
                 className="text-xs px-1.5 py-0.5 rounded-full font-medium flex-shrink-0"
                 style={{ background: 'rgba(52,211,153,0.2)', color: '#34d399' }}
               >
-                You
+                {t.youLabel}
               </span>
             )}
           </div>
-          <p className="text-xs" style={{ color: 'rgba(255,255,255,0.28)' }}>Lvl {level} · {rankInfo.name}</p>
+          <p className="text-xs" style={{ color: 'rgba(255,255,255,0.28)' }}>{t.lvl} {level} · {localize(rankInfo.name, lang)}</p>
         </div>
 
         <div className="flex items-center gap-1 flex-shrink-0">
@@ -306,7 +307,7 @@ function XpListRow({ entry, rank, isMe, pinned, delayMs }) {
 
 export default function Leaderboard() {
   const { user } = useAuth();
-  const { streak } = useApp();
+  const { t, lang, streak } = useApp();
   const [tab, setTab] = useState('global');
   const [mode, setMode] = useState('xp');
   const [entries, setEntries] = useState([]);
@@ -420,11 +421,11 @@ export default function Leaderboard() {
       `}</style>
 
       <div>
-        <h1 className="text-2xl font-bold text-white">The Grind Board</h1>
+        <h1 className="text-2xl font-bold text-white">{t.grindBoardTitle}</h1>
         <p className="text-sm text-white/50 mt-0.5">
           {mode === 'weekly'
-            ? 'Ranked by activity score — study, AI features, sessions & streak'
-            : 'Ranked by total XP earned — all time'}
+            ? t.rankedByActivityScore
+            : t.rankedByXp}
         </p>
       </div>
 
@@ -434,8 +435,8 @@ export default function Leaderboard() {
         style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}
       >
         {[
-          { key: 'xp', icon: Star, label: 'XP Ranking' },
-          { key: 'weekly', icon: Flame, label: 'Weekly Activity' },
+          { key: 'xp', icon: Star, label: t.xpRanking },
+          { key: 'weekly', icon: Flame, label: t.weeklyActivity },
         ].map(({ key, icon: Icon, label }) => (
           <button
             key={key}
@@ -461,8 +462,8 @@ export default function Leaderboard() {
             style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}
           >
             {[
-              { key: 'global', icon: Globe, label: 'Global' },
-              { key: 'friends', icon: Users, label: 'Friends' },
+              { key: 'global', icon: Globe, label: t.globalLabel },
+              { key: 'friends', icon: Users, label: t.friends },
             ].map(({ key, icon: Icon, label }) => (
               <button
                 key={key}
@@ -492,8 +493,8 @@ export default function Leaderboard() {
               <Trophy size={32} className="mx-auto mb-3" style={{ color: 'rgba(255,255,255,0.12)' }} />
               <p className="text-sm" style={{ color: 'rgba(255,255,255,0.3)' }}>
                 {tab === 'friends'
-                  ? "None of your friends have studied this week yet"
-                  : "No study sessions logged this week yet"}
+                  ? t.noFriendsStudiedThisWeek
+                  : t.noStudySessionsThisWeek}
               </p>
             </div>
           ) : (
@@ -507,6 +508,7 @@ export default function Leaderboard() {
                       entry={entry}
                       rank={i + 1}
                       isMe={entry.id === user?.id}
+                      t={t}
                     />
                   ))}
                 </div>
@@ -525,6 +527,7 @@ export default function Leaderboard() {
                         entry={entry}
                         rank={i + 4}
                         isMe={entry.id === user?.id}
+                        t={t}
                       />
                     ))}
                   </div>
@@ -543,7 +546,7 @@ export default function Leaderboard() {
       ) : xpEntries.length === 0 ? (
         <div className="text-center py-16">
           <Star size={32} className="mx-auto mb-3" style={{ color: 'rgba(255,255,255,0.12)' }} />
-          <p className="text-sm" style={{ color: 'rgba(255,255,255,0.3)' }}>No XP earned yet</p>
+          <p className="text-sm" style={{ color: 'rgba(255,255,255,0.3)' }}>{t.noXpEarnedYet}</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -557,6 +560,8 @@ export default function Leaderboard() {
                   rank={i + 1}
                   isMe={entry.id === user?.id}
                   delayMs={i * 80}
+                  t={t}
+                  lang={lang}
                 />
               ))}
             </div>
@@ -576,6 +581,8 @@ export default function Leaderboard() {
                     rank={i + 4}
                     isMe={entry.id === user?.id}
                     delayMs={240 + i * 40}
+                    t={t}
+                    lang={lang}
                   />
                 ))}
               </div>
@@ -587,10 +594,10 @@ export default function Leaderboard() {
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.1)' }} />
-                <span className="text-xs font-medium" style={{ color: 'rgba(255,255,255,0.3)' }}>Your Rank</span>
+                <span className="text-xs font-medium" style={{ color: 'rgba(255,255,255,0.3)' }}>{t.yourRank}</span>
                 <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.1)' }} />
               </div>
-              <XpListRow entry={myXpEntry} rank={myXpRank} isMe pinned />
+              <XpListRow entry={myXpEntry} rank={myXpRank} isMe pinned t={t} lang={lang} />
             </div>
           )}
         </div>

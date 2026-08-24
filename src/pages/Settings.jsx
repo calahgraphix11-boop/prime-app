@@ -65,7 +65,7 @@ export default function Settings() {
       await signOut();
       navigate("/");
     } catch (err) {
-      setDeleteError(err.message || "Deletion failed. Please try again.");
+      setDeleteError(err.message || t.deletionFailed);
       setDeleteLoading(false);
     }
   };
@@ -74,7 +74,7 @@ export default function Settings() {
     <div className="space-y-5 pt-2">
       <div>
         <h1 className="text-2xl font-bold text-white">{t.settings}</h1>
-        <p className="text-sm text-white/50 mt-0.5">Manage your courses and study goals</p>
+        <p className="text-sm text-white/50 mt-0.5">{t.settingsSubtitle}</p>
       </div>
 
       {/* Courses */}
@@ -130,7 +130,7 @@ export default function Settings() {
           <input
             value={newCourseName}
             onChange={(e) => setNewCourseName(e.target.value)}
-            placeholder="e.g. Object Oriented Programming"
+            placeholder={t.coursePlaceholder}
             onKeyDown={(e) => e.key === 'Enter' && handleAddCourse()}
             className="flex-1 px-3 py-2.5 rounded-xl glass-input text-sm"
           />
@@ -152,7 +152,7 @@ export default function Settings() {
           </div>
           <h2 className="text-base font-semibold text-white">{t.weeklyGoal}</h2>
         </div>
-        <p className="text-sm text-white/40 mb-4 ml-10">Set a target for hours studied per week</p>
+        <p className="text-sm text-white/40 mb-4 ml-10">{t.weeklyGoalHint}</p>
         <div className="flex gap-3 items-center">
           <input
             type="number"
@@ -169,7 +169,7 @@ export default function Settings() {
             className="ml-auto px-5 py-2.5 rounded-xl text-sm font-semibold transition-all btn-gold"
             style={goalSaved ? { background: '#34d399', color: '#001a10' } : {}}
           >
-            {goalSaved ? '✓ Saved' : 'Save'}
+            {goalSaved ? `✓ ${t.savedButton}` : t.saveButton}
           </button>
         </div>
       </div>
@@ -179,12 +179,12 @@ export default function Settings() {
           <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.08)' }}>
             <Eye size={16} className="text-white/50" />
           </div>
-          <h2 className="text-base font-semibold text-white">Privacy</h2>
+          <h2 className="text-base font-semibold text-white">{t.privacyTitle}</h2>
         </div>
         <div className="flex items-center justify-between gap-4">
           <div>
-            <p className="text-sm font-medium text-white/80">Active Status</p>
-            <p className="text-xs text-white/35 mt-0.5">Show friends when you're in a study session</p>
+            <p className="text-sm font-medium text-white/80">{t.activeStatus}</p>
+            <p className="text-xs text-white/35 mt-0.5">{t.activeStatusHint}</p>
           </div>
           <button
             onClick={() => updateProfile({ active_status_visible: !activeStatusVisible })}
@@ -204,13 +204,13 @@ export default function Settings() {
           <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'rgba(245,168,0,0.2)' }}>
             <Monitor size={16} style={{ color: '#F5A800' }} />
           </div>
-          <h2 className="text-base font-semibold text-white">Appearance</h2>
+          <h2 className="text-base font-semibold text-white">{t.appearanceTitle}</h2>
         </div>
         <div className="flex gap-2">
           {[
-            { value: 'dark', label: 'Dark' },
-            { value: 'light', label: 'Light' },
-            { value: 'system', label: 'System' },
+            { value: 'dark', label: t.themeDark },
+            { value: 'light', label: t.themeLight },
+            { value: 'system', label: t.themeSystem },
           ].map(({ value, label }) => (
             <button
               key={value}
@@ -240,17 +240,17 @@ export default function Settings() {
         }}
       >
         <h2 className="text-base font-semibold mb-1" style={{ color: "#ef4444" }}>
-          Delete Account
+          {t.deleteAccountTitle}
         </h2>
         <p className="text-sm mb-4" style={{ color: "rgba(255,255,255,0.45)" }}>
-          Permanently delete your account and all your data. This cannot be undone.
+          {t.deleteAccountWarning}
         </p>
         <button
           onClick={() => { setDeleteError(""); setShowDeleteModal(true); }}
           className="px-4 py-2 rounded-xl text-sm font-semibold transition-all hover:bg-red-500 hover:text-white"
           style={{ border: "1px solid #ef4444", color: "#ef4444", background: "transparent" }}
         >
-          Delete My Account
+          {t.deleteAccountButton}
         </button>
       </div>
 
@@ -268,9 +268,9 @@ export default function Settings() {
               border: "1px solid rgba(255,255,255,0.1)",
             }}
           >
-            <h3 className="text-lg font-semibold text-white mb-3">Are you sure?</h3>
+            <h3 className="text-lg font-semibold text-white mb-3">{t.areYouSure}</h3>
             <p className="text-sm mb-5" style={{ color: "rgba(255,255,255,0.55)" }}>
-              This will permanently delete your account, all study sessions, chat history, and progress. This cannot be undone.
+              {t.deleteAccountConfirmWarning}
             </p>
             {deleteError && (
               <p
@@ -286,7 +286,7 @@ export default function Settings() {
                 disabled={deleteLoading}
                 className="flex-1 py-2.5 rounded-xl text-sm font-medium btn-ghost disabled:opacity-40"
               >
-                Cancel
+                {t.cancelSession}
               </button>
               <button
                 onClick={handleDeleteAccount}
@@ -294,7 +294,7 @@ export default function Settings() {
                 className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white transition-opacity disabled:opacity-60"
                 style={{ background: "#ef4444" }}
               >
-                {deleteLoading ? "Deleting…" : "Yes, Delete My Account"}
+                {deleteLoading ? t.deletingButton : t.confirmDeleteAccountButton}
               </button>
             </div>
           </div>

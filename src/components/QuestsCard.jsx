@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Swords, Check } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import { useApp } from "../context/AppContext";
 import { fetchQuestProgress } from "../lib/quests";
 import { subscribeXpAward } from "../lib/xpEvents";
 
@@ -63,6 +64,7 @@ function QuestRow({ quest }) {
 
 export default function QuestsCard() {
   const { user } = useAuth();
+  const { t } = useApp();
   const [quests, setQuests] = useState(null);
   const refetchTimerRef = useRef(null);
 
@@ -102,19 +104,19 @@ export default function QuestsCard() {
       <div className="flex items-center gap-2 mb-4">
         <Swords size={13} style={{ color: "#F5A800" }} />
         <h2 className="text-xs font-semibold text-white/50 uppercase tracking-widest">
-          Quests
+          {t.quests}
         </h2>
       </div>
       <div className="space-y-2">
         {daily.length > 0 && (
           <>
-            <p className="text-xs font-medium text-white/40 px-1">Today</p>
+            <p className="text-xs font-medium text-white/40 px-1">{t.today}</p>
             {daily.map((q) => <QuestRow key={q.quest_key} quest={q} />)}
           </>
         )}
         {weekly.length > 0 && (
           <>
-            <p className="text-xs font-medium text-white/40 px-1 pt-2">This Week</p>
+            <p className="text-xs font-medium text-white/40 px-1 pt-2">{t.thisWeek}</p>
             {weekly.map((q) => <QuestRow key={q.quest_key} quest={q} />)}
           </>
         )}

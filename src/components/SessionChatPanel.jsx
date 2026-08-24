@@ -40,7 +40,7 @@ function UserAvatar({ character }) {
 }
 
 export default function SessionChatPanel() {
-  const { sessionMessages, updateSessionMessages, chatRemaining, incrementChat, trialExpired } = useApp();
+  const { sessionMessages, updateSessionMessages, chatRemaining, incrementChat, trialExpired, lang } = useApp();
   const { profile } = useAuth();
   const username = profile?.username || profile?.full_name || null;
   const userCharacter = getCharacter(profile?.character_avatar);
@@ -64,7 +64,7 @@ export default function SessionChatPanel() {
     await updateSessionMessages(newMessages);
     setLoading(true);
     try {
-      const reply = await chatWithAssistant(newMessages, undefined, username);
+      const reply = await chatWithAssistant(newMessages, undefined, username, undefined, lang);
       await updateSessionMessages([...newMessages, { role: 'assistant', content: reply }]);
     } catch {
       await updateSessionMessages([...newMessages, { role: 'assistant', content: 'Sorry, I encountered an error. Please try again.' }]);

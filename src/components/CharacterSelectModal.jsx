@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { X, Check } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { CHARACTERS } from '../lib/gamification';
+import { useApp } from '../context/AppContext';
+import { CHARACTERS, localize } from '../lib/gamification';
 
 export default function CharacterSelectModal({ onClose }) {
   const { profile, updateProfile } = useAuth();
+  const { t, lang } = useApp();
   const [selecting, setSelecting] = useState(null);
   const [error, setError] = useState('');
 
@@ -14,7 +16,7 @@ export default function CharacterSelectModal({ onClose }) {
     const { error: updateErr } = await updateProfile({ character_avatar: key });
     setSelecting(null);
     if (updateErr) {
-      setError('Could not save your pick. Try again.');
+      setError(t.couldNotSavePick);
       return;
     }
     onClose();
@@ -37,19 +39,20 @@ export default function CharacterSelectModal({ onClose }) {
         <button
           onClick={onClose}
           className="absolute top-4 right-4 p-2 rounded-xl text-white/50 hover:text-white hover:bg-white/10 transition-colors"
-          aria-label="Close"
+          aria-label={t.close}
         >
           <X size={18} />
         </button>
 
         <div className="text-center mb-6">
-          <h2 className="text-xl font-bold text-white">Choose your character</h2>
-          <p className="text-sm text-white/50 mt-1">Pick who represents you on your journey</p>
+          <h2 className="text-xl font-bold text-white">{t.chooseCharacter}</h2>
+          <p className="text-sm text-white/50 mt-1">{t.chooseCharacterSubtitle}</p>
         </div>
 
         <div className="grid grid-cols-3 gap-4">
           {CHARACTERS.map((c, i) => {
             const isSelected = profile?.character_avatar === c.key;
+            const charName = localize(c.name, lang);
             return (
               <button
                 key={c.key}
@@ -66,7 +69,7 @@ export default function CharacterSelectModal({ onClose }) {
                   className="relative w-20 h-20 rounded-full overflow-hidden"
                   style={{ background: 'rgba(255,255,255,0.06)' }}
                 >
-                  <img src={c.icon} alt={c.name} className="w-full h-full object-cover" />
+                  <img src={c.icon} alt={charName} className="w-full h-full object-cover" />
                   {selecting === c.key && (
                     <div
                       className="absolute inset-0 flex items-center justify-center"
@@ -76,10 +79,10 @@ export default function CharacterSelectModal({ onClose }) {
                     </div>
                   )}
                 </div>
-                <span className="text-sm font-medium text-white">{c.name}</span>
+                <span className="text-sm font-medium text-white">{charName}</span>
                 {isSelected && (
                   <span className="flex items-center gap-1 text-xs font-semibold" style={{ color: '#F5A800' }}>
-                    <Check size={12} /> Selected
+                    <Check size={12} /> {t.selected}
                   </span>
                 )}
               </button>

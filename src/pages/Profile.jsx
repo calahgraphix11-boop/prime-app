@@ -1,13 +1,15 @@
 import { useState, useRef, useEffect } from 'react';
 import { User, Camera, Save, Check, Award, UserCircle2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useApp } from '../context/AppContext';
 import { supabase } from '../lib/supabase';
 import BadgeGrid from '../components/BadgeGrid';
 import CharacterSelectModal from '../components/CharacterSelectModal';
-import { getCharacter } from '../lib/gamification';
+import { getCharacter, localize, BADGES } from '../lib/gamification';
 
 export default function Profile() {
   const { user, profile, updateProfile, uploadAvatar } = useAuth();
+  const { t, lang } = useApp();
   const [showCharacterModal, setShowCharacterModal] = useState(false);
   const currentCharacter = getCharacter(profile?.character_avatar);
   const [fullName, setFullName] = useState(profile?.full_name || user?.user_metadata?.full_name || '');
@@ -60,7 +62,7 @@ export default function Profile() {
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } catch (err) {
-      setError(err.message || 'Failed to save profile');
+      setError(err.message || t.failedToSaveProfile);
     } finally {
       setSaving(false);
     }
@@ -69,8 +71,8 @@ export default function Profile() {
   return (
     <div className="space-y-5 pt-2">
       <div>
-        <h1 className="text-2xl font-bold text-white">Profile</h1>
-        <p className="text-sm text-white/50 mt-0.5">Manage your personal information</p>
+        <h1 className="text-2xl font-bold text-white">{t.profileTitle}</h1>
+        <p className="text-sm text-white/50 mt-0.5">{t.profileSubtitle}</p>
       </div>
 
       {/* Avatar */}
@@ -81,7 +83,7 @@ export default function Profile() {
             style={{ background: avatarPreview ? 'transparent' : '#F5A800' }}
           >
             {avatarPreview ? (
-              <img src={avatarPreview} alt="avatar" className="w-full h-full object-cover" />
+              <img src={avatarPreview} alt={t.avatarAlt} className="w-full h-full object-cover" />
             ) : (
               initials
             )}
@@ -90,7 +92,7 @@ export default function Profile() {
             onClick={() => fileInputRef.current?.click()}
             className="absolute bottom-0 right-0 w-8 h-8 rounded-full flex items-center justify-center transition-all hover:opacity-85 shadow-lg"
             style={{ background: '#F5A800' }}
-            title="Upload photo"
+            title={t.uploadPhoto}
           >
             <Camera size={14} className="text-gray-900" />
           </button>
@@ -102,7 +104,7 @@ export default function Profile() {
             onChange={handleFileChange}
           />
         </div>
-        <p className="text-xs text-white/35">Click the camera icon to upload a new photo</p>
+        <p className="text-xs text-white/35">{t.uploadPhotoHint}</p>
       </div>
 
       {/* Character */}
@@ -112,22 +114,22 @@ export default function Profile() {
           style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}
         >
           {currentCharacter ? (
-            <img src={currentCharacter.icon} alt={currentCharacter.name} className="w-full h-full object-cover" />
+            <img src={currentCharacter.icon} alt={localize(currentCharacter.name, lang)} className="w-full h-full object-cover" />
           ) : (
             <UserCircle2 size={26} className="text-white/30" />
           )}
         </div>
         <div className="flex-1 min-w-0">
-          <h2 className="text-base font-semibold text-white">Character</h2>
+          <h2 className="text-base font-semibold text-white">{t.characterTitle}</h2>
           <p className="text-xs text-white/35 truncate">
-            {currentCharacter ? currentCharacter.name : 'No character selected yet'}
+            {currentCharacter ? localize(currentCharacter.name, lang) : t.noCharacterSelected}
           </p>
         </div>
         <button
           onClick={() => setShowCharacterModal(true)}
           className="px-3.5 py-2 rounded-xl text-sm font-semibold btn-ghost flex-shrink-0"
         >
-          Change Character
+          {t.changeCharacter}
         </button>
       </div>
 
@@ -144,38 +146,38 @@ export default function Profile() {
           >
             <User size={16} style={{ color: '#F5A800' }} />
           </div>
-          <h2 className="text-base font-semibold text-white">Personal Info</h2>
+          <h2 className="text-base font-semibold text-white">{t.personalInfo}</h2>
         </div>
 
         <div className="space-y-3">
           <div>
             <label className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-1.5 block">
-              Full Name
+              {t.fullName}
             </label>
             <input
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              placeholder="Your full name"
+              placeholder={t.fullNamePlaceholder}
               className="w-full px-3 py-2.5 rounded-xl glass-input text-sm"
             />
           </div>
 
           <div>
             <label className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-1.5 block">
-              Username
+              {t.usernameLabel}
             </label>
             <input
               value={username}
               onChange={(e) => setUsername(e.target.value.replace(/[^a-zA-Z0-9_]/g, ''))}
-              placeholder="e.g. studyking99"
+              placeholder={t.usernamePlaceholder}
               className="w-full px-3 py-2.5 rounded-xl glass-input text-sm"
             />
-            <p className="text-xs text-white/30 mt-1">Letters, numbers, and underscores only</p>
+            <p className="text-xs text-white/30 mt-1">{t.usernameHint}</p>
           </div>
 
           <div>
             <label className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-1.5 block">
-              Email
+              {t.email}
             </label>
             <input
               value={user?.email || ''}
@@ -200,7 +202,7 @@ export default function Profile() {
           style={saved ? { background: '#34d399', color: '#001a10' } : { background: '#F5A800', color: '#111' }}
         >
           {saved ? <Check size={16} /> : <Save size={16} />}
-          {saving ? 'Saving...' : saved ? 'Saved!' : 'Save Changes'}
+          {saving ? t.savingButton : saved ? t.savedButton : t.saveChangesButton}
         </button>
       </div>
 
@@ -214,8 +216,8 @@ export default function Profile() {
             <Award size={16} style={{ color: '#F5A800' }} />
           </div>
           <div>
-            <h2 className="text-base font-semibold text-white">Badges</h2>
-            <p className="text-xs text-white/35">{earnedBadgeKeys.size} of 8 earned</p>
+            <h2 className="text-base font-semibold text-white">{t.badgesTitle}</h2>
+            <p className="text-xs text-white/35">{t.badgesEarnedCount.replace('{n}', earnedBadgeKeys.size).replace('{total}', BADGES.length)}</p>
           </div>
         </div>
 

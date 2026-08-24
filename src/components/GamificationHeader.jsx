@@ -2,8 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import { Flame } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../context/AuthContext";
+import { useApp } from "../context/AppContext";
 import { useXpBubbleAnchor } from "../context/XpBubbleContext";
-import { calculateLevelProgress, getRank } from "../lib/gamification";
+import { calculateLevelProgress, getRank, localize } from "../lib/gamification";
 import { getStreakTier } from "../lib/streaks";
 import CharacterPortrait from "./CharacterPortrait";
 
@@ -11,6 +12,7 @@ const EASE_OUT = "cubic-bezier(0.23, 1, 0.32, 1)";
 
 export default function GamificationHeader() {
   const { user, profile } = useAuth();
+  const { t, lang } = useApp();
   const [xpRow, setXpRow] = useState(null);
   const [pulseStreak, setPulseStreak] = useState(false);
   const prevStreakRef = useRef(null);
@@ -70,7 +72,7 @@ export default function GamificationHeader() {
         />
         <div className="min-w-0">
           <div className="text-sm font-bold text-white leading-tight">
-            Lvl {level} <span className="text-white/40 font-medium">·</span> {rank.name}
+            {t.lvl} {level} <span className="text-white/40 font-medium">·</span> {localize(rank.name, lang)}
           </div>
           <div ref={xpBarRef} className="mt-1.5" style={{ position: "relative" }}>
             <div
