@@ -14,7 +14,9 @@ export default function Sidebar({ open, onClose }) {
   const { user, profile, signOut, userPlan, trialActive, trialExpired, planActive } = useAuth();
   const [supportOpen, setSupportOpen] = useState(false);
   const [upgradeOpen, setUpgradeOpen] = useState(false);
-  const showUpgrade = trialExpired || (!trialActive && !planActive);
+  // An active subscription outranks trial age: trialExpired is true for every account
+  // older than 24 hours, paying subscribers included, so it can never be the sole trigger.
+  const showUpgrade = !planActive && (trialExpired || !trialActive);
 
   const displayName = profile?.username || profile?.full_name || user?.email || '';
   const initials = (profile?.full_name || user?.email || '?').charAt(0).toUpperCase();

@@ -85,7 +85,7 @@ export default function PaymentSuccess() {
             </div>
             <h2 className="text-xl font-bold text-white mb-2">You're on {planLabel}!</h2>
             <p className="text-sm text-white/60 leading-relaxed mb-6">
-              Your subscription is active for 30 days. Enjoy unlimited AI chats, report rewrites, and the full Prime experience.
+              Your subscription is active for 30 days. Enjoy unlimited AI chats and the full Prime experience.
             </p>
             <button onClick={() => navigate('/')} className="w-full py-3 rounded-xl text-sm font-semibold btn-gold">
               Start studying

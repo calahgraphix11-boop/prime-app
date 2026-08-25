@@ -27,34 +27,35 @@ const API_KEY = import.meta.env.VITE_FAPSHI_API_KEY;
 const BASE = 'https://live.fapshi.com';
 
 export const PLANS = {
+  // `features` holds i18n keys, not display strings — the wording lives in
+  // i18n/en.js + i18n/fr.js and is resolved with `t[key]` at render time.
+  // This array only decides which bullets each tier lists, in order.
   basic: {
     label: 'Basic',
-    amount: 2500,
+    amount: 2499,
     features: [
-      'Unlimited AI chats',
-      '30 report rewrites per month',
-      '30 note summaries per month',
-      '60 exam sessions per month',
-      '10 file uploads per month',
-      'Study session timer',
-      'Basic analytics',
-      'Leaderboard access',
-      'Standard support',
+      'planFeatureUnlimitedChats',
+      'planFeatureExamSessionsBasic',
+      'planFeatureSummariesBasic',
+      'planFeatureUploadsBasic',
+      'planFeatureStudyTimer',
+      'planFeatureBasicAnalytics',
+      'planFeatureLeaderboard',
+      'planFeatureStandardSupport',
     ],
   },
   pro: {
     label: 'Pro',
-    amount: 5000,
+    amount: 4999,
     features: [
-      'Unlimited AI chats',
-      'Unlimited report rewrites',
-      'Unlimited note summarizations',
-      'Unlimited Exam Coach sessions',
-      'Unlimited file uploads (PDF, images, docs)',
-      'Advanced analytics with insights',
-      'Leaderboard — compete globally and with friends',
-      'Priority support',
-      'Early access to new features',
+      'planFeatureUnlimitedChats',
+      'planFeatureUnlimitedExams',
+      'planFeatureUnlimitedUploads',
+      'planFeatureSummariesPro',
+      'planFeatureAdvancedAnalytics',
+      'planFeatureLeaderboardGlobal',
+      'planFeaturePrioritySupport',
+      'planFeatureEarlyAccess',
     ],
   },
 };

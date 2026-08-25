@@ -896,3 +896,47 @@ body {
 [data-theme="light"] .hover\:text-white:hover { color: #1a1a1a; }
 [data-theme="light"] .hover\:bg-white\/10:hover { background: rgba(0,0,0,0.06); }
 
+
+/* ─── Upgrade modal ─────────────────────────────────────── */
+@keyframes upgrade-shell-in {
+  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes upgrade-card-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.upgrade-shell {
+  animation: upgrade-shell-in 260ms cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+
+.upgrade-card {
+  animation: upgrade-card-in 260ms cubic-bezier(0.23, 1, 0.32, 1) both;
+  animation-delay: var(--card-delay, 0ms);
+  transition: box-shadow 200ms cubic-bezier(0.23, 1, 0.32, 1),
+              transform 200ms cubic-bezier(0.23, 1, 0.32, 1),
+              background 200ms ease;
+}
+
+.upgrade-card:hover {
+  transform: translateY(-2px);
+}
+
+.upgrade-card:active {
+  transform: translateY(0) scale(0.995);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .upgrade-shell,
+  .upgrade-card {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .upgrade-card:hover,
+  .upgrade-card:active {
+    transform: none !important;
+  }
+}
