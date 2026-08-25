@@ -226,12 +226,12 @@ export default function UpgradeModal({ onClose, defaultPlan }) {
           <X size={18} />
         </button>
 
-        <div className="text-center mb-6">
+        <div className="text-center mb-5">
           <div
             className="w-12 h-12 rounded-2xl mx-auto mb-3 flex items-center justify-center"
             style={{ background: 'rgba(245,168,0,0.15)', border: '1px solid rgba(245,168,0,0.3)' }}
           >
-            <Zap size={22} style={{ color: '#F5A800' }} />
+            <Crown size={26} style={{ color: '#F5A800' }} />
           </div>
           <h2 className="text-xl font-bold text-white">{t.choosePlanTitle}</h2>
           <p className="text-sm text-white/50 mt-1">{t.choosePlanSubtitle}</p>
@@ -251,7 +251,7 @@ export default function UpgradeModal({ onClose, defaultPlan }) {
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelected(tier.key); }
                 }}
-                className="upgrade-card rounded-2xl p-5 flex flex-col relative overflow-hidden cursor-pointer outline-none"
+                className="upgrade-card rounded-xl p-4 flex flex-col relative cursor-pointer outline-none"
                 style={{
                   '--card-delay': `${i * 60}ms`,
                   background: tier.background,
@@ -261,19 +261,19 @@ export default function UpgradeModal({ onClose, defaultPlan }) {
               >
                 {tier.badge && (
                   <div
-                    className="absolute top-3 left-3 px-2 py-0.5 rounded-full text-xs font-bold"
+                    className="absolute -top-2 left-4 px-2 py-0.5 rounded-full text-[10px] font-bold leading-tight"
                     style={{ background: '#F5A800', color: '#1a0c00' }}
                   >
                     {tier.badge}
                   </div>
                 )}
 
-                <div className={`flex items-center gap-2 mb-1 ${tier.badge ? 'mt-7' : ''}`}>
+                <div className="flex items-center gap-2 mb-1">
                   {tier.icon}
                   <span className="font-semibold text-white text-sm">{tier.label}</span>
                 </div>
 
-                <div className="mb-4">
+                <div className="mb-3">
                   {couponStates[tier.key].coupon ? (
                     <div className="flex items-baseline gap-2">
                       <span className="text-sm text-white/35 line-through">
@@ -299,7 +299,7 @@ export default function UpgradeModal({ onClose, defaultPlan }) {
                   )}
                 </div>
 
-                <ul className="space-y-2 flex-1">
+                <ul className="space-y-1.5 flex-1">
                   {tier.features.map((key) => (
                     <li key={key} className="flex items-start gap-2 text-sm text-white/70">
                       <Check size={13} className="mt-0.5 flex-shrink-0" style={{ color: tier.checkColor }} />
