@@ -217,16 +217,30 @@ export default function UpgradeModal({ onClose, defaultPlan }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={overlayStyle}>
-      <div className="glass-elevated upgrade-shell rounded-3xl w-full max-w-3xl p-6 relative overflow-y-auto max-h-[90vh] mt-8">
+      <div className="glass-elevated upgrade-shell rounded-3xl w-full max-w-3xl p-6 relative overflow-x-hidden overflow-y-auto max-h-[90vh] mt-8">
+        <div
+          aria-hidden="true"
+          className="upgrade-glow pointer-events-none absolute rounded-full"
+          style={{
+            zIndex: 0,
+            top: '-150px',
+            right: '-110px',
+            width: '360px',
+            height: '360px',
+            background:
+              'radial-gradient(circle, rgba(52,211,153,0.24) 0%, rgba(52,211,153,0.11) 45%, rgba(52,211,153,0) 72%)',
+          }}
+        />
+
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 rounded-xl text-white/50 hover:text-white hover:bg-white/10 transition-colors"
+          className="absolute top-4 right-4 z-10 p-2 rounded-xl text-white/50 hover:text-white hover:bg-white/10 transition-colors"
           aria-label="Close"
         >
           <X size={18} />
         </button>
 
-        <div className="text-center mb-5">
+        <div className="relative z-10 text-center mb-5">
           <div
             className="w-12 h-12 rounded-2xl mx-auto mb-3 flex items-center justify-center"
             style={{ background: 'rgba(245,168,0,0.15)', border: '1px solid rgba(245,168,0,0.3)' }}
@@ -238,7 +252,7 @@ export default function UpgradeModal({ onClose, defaultPlan }) {
         </div>
 
         {/* Stacked on narrow widths, side-by-side from sm up */}
-        <div className={`grid grid-cols-1 gap-4 ${tiers.length === 1 ? 'sm:max-w-xs sm:mx-auto' : 'sm:grid-cols-2'}`}>
+        <div className={`relative z-10 grid grid-cols-1 gap-4 ${tiers.length === 1 ? 'sm:max-w-xs sm:mx-auto' : 'sm:grid-cols-2'}`}>
           {tiers.map((tier, i) => {
             const isActive = tier.key === activeKey;
             return (
@@ -251,7 +265,7 @@ export default function UpgradeModal({ onClose, defaultPlan }) {
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelected(tier.key); }
                 }}
-                className="upgrade-card rounded-xl p-4 flex flex-col relative cursor-pointer outline-none"
+                className="upgrade-card rounded-3xl p-6 flex flex-col relative cursor-pointer outline-none"
                 style={{
                   '--card-delay': `${i * 60}ms`,
                   background: tier.background,
@@ -299,7 +313,7 @@ export default function UpgradeModal({ onClose, defaultPlan }) {
                   )}
                 </div>
 
-                <ul className="space-y-1.5 flex-1">
+                <ul className="space-y-3 flex-1">
                   {tier.features.map((key) => (
                     <li key={key} className="flex items-start gap-2 text-sm text-white/70">
                       <Check size={13} className="mt-0.5 flex-shrink-0" style={{ color: tier.checkColor }} />
@@ -316,7 +330,7 @@ export default function UpgradeModal({ onClose, defaultPlan }) {
         <button
           onClick={() => subscribe(activeKey)}
           disabled={!!loading}
-          className="mt-5 w-full py-3 rounded-xl text-sm font-semibold btn-gold disabled:opacity-50 flex items-center justify-center gap-2"
+          className="relative z-10 mt-5 w-full py-3 rounded-full text-sm font-semibold btn-gold disabled:opacity-50 flex items-center justify-center gap-2"
         >
           {loading === activeKey ? (
             <>
@@ -332,7 +346,7 @@ export default function UpgradeModal({ onClose, defaultPlan }) {
         <p className="text-xs text-white/40 text-center mt-2.5">{t.cancelAnytimePayNote}</p>
 
         {/* Coupon applies to the selected plan */}
-        <div className="mt-4 pt-4 max-w-sm mx-auto" style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+        <div className="relative z-10 mt-4 pt-4 max-w-sm mx-auto" style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}>
           <div className="flex gap-2">
             <div className="relative flex-1">
               <Tag size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30 pointer-events-none" />

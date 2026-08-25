@@ -928,6 +928,13 @@ body {
   transform: translateY(0) scale(0.995);
 }
 
+/* Ambient light bleeding off the modal's top-right corner. The heavy blur is what
+   keeps it reading as light rather than as a drawn circle; the shell's own
+   overflow clipping trims it to the rounded corner. */
+.upgrade-glow {
+  filter: blur(60px);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .upgrade-shell,
   .upgrade-card {
