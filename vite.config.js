@@ -18,6 +18,14 @@ export default defineConfig(({ mode }) => {
       tailwindcss(),
       VitePWA({
         disable: skipPWA,
+        // SW paths only — Vite's global base stays './' because the Capacitor
+        // WebView build (capacitor.config.json webDir: 'dist') needs relative
+        // asset URLs. Without this override the generated registerSW.js calls
+        // register('./sw.js', { scope: './' }), which resolves against the
+        // current page: on /profile/:userId and /join/:inviteCode that becomes
+        // /profile/sw.js, which the SPA fallback answers with index.html at
+        // HTTP 200, so registration fails on MIME type and the scope is wrong.
+        base: '/',
         registerType: 'autoUpdate',
         includeAssets: ['favicon.ico', 'favicon.png', 'favicon.svg'],
         manifest: {
